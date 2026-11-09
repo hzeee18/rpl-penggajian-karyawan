@@ -1,0 +1,1 @@
+@include('errors.layout', ['kode' => 403, 'judul' => 'Akses ditolak', 'pesan' => ($exception?->getMessage() ?: 'Kamu tidak punya izin untuk membuka halaman ini. Hubungi Admin kalau seharusnya bisa.'), 'ikon' => 'shield-x'])
