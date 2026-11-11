@@ -111,6 +111,10 @@ trait DataPerusahaanLengkap
             $tipe = LeaveType::create(['code' => 'rb_tipe', 'name' => "{$p} Tipe Leave"]);
             $komponenBaru = Component::create(['code' => 'rb_komponen', 'name' => "{$p} Komponen", 'type' => 'earning', 'default_amount' => '100.00']);
             PeriodConfig::create(['start_day' => 21, 'end_day' => 20, 'start_in_previous_month' => true]);
+            $kontrakBaruB = app(\App\Domain\Payroll\Actions\BuatKontrak::class)->handle(
+                ['employee_id' => $kStaf->id, 'contract_name' => "{$p} Kontrak Payroll", 'start_date' => '2026-01-01'],
+                [$komponenBaru->id => '123456.00'],
+            );
             Employee::findOrFail($kStaf->id)->fill(['position_id' => $jabatan->id, 'has_npwp' => true, 'npwp' => '99.999.999.9-999.999'])->save();
 
             return ['company' => $company, 'users' => $users, 'id' => [
@@ -118,7 +122,7 @@ trait DataPerusahaanLengkap
                 'attendance' => $absen->id, 'leave' => $cuti->id, 'overtime' => $lembur->id, 'payroll' => $payroll->id,
                 'payslip' => $slip->id, 'approval' => $approval->id, 'notifikasi' => $notif->id, 'user' => $users['hr']->id,
                 'role' => $role(Role::HR),
-                'pay_position' => $jabatan->id, 'pay_holiday' => $libur->id, 'pay_leave_type' => $tipe->id, 'pay_component' => $komponenBaru->id,
+                'pay_position' => $jabatan->id, 'pay_holiday' => $libur->id, 'pay_leave_type' => $tipe->id, 'pay_component' => $komponenBaru->id, 'pay_contract' => $kontrakBaruB->id,
             ]];
         });
     }

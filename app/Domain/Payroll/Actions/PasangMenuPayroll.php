@@ -25,6 +25,8 @@ final class PasangMenuPayroll
         'pay-tipe-leave' => ['Tipe Leave', 'tags', ['HR' => 'vcud', 'Admin' => 'v']],
         'pay-komponen' => ['Katalog Komponen', 'list-checks', ['HR' => 'vcud', 'Admin' => 'v']],
         'pay-cutoff' => ['Cut Off', 'calendar-range', ['HR' => 'vu', 'Admin' => 'v']],
+        // Fase 3
+        'pay-kontrak' => ['Kontrak Payroll', 'file-signature', ['HR' => 'vcud', 'Admin' => 'v']],
     ];
 
     public function handle(): void

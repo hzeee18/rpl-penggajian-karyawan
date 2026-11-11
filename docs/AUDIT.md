@@ -350,3 +350,10 @@ php artisan test --configuration=phpunit.mysql.xml    # MySQL penggajian_test (g
 **Snapshot karakterisasi yang berubah (disengaja)**: halaman Admin (hitungan menu di dashboard, daftar Manajemen Menu, baris menu baru tanpa centang di Role & Privilege). Snapshot role lain identik.
 
 **Tes**: `MasterDataTest` (6), tes kebocoran diperluas ke halaman `/pay/*` (uji mutasi: daftar tanpa scope terdeteksi di `/pay/jabatan`).
+
+## 19. Fase 3: kontrak berversi (2026-11-11)
+
+- Migration `2026_11_14_000001_create_pay_contracts_tables` (belum dijalankan di DB dev): `pay_contracts` (kolom generated STORED `active_employee_id` + unique = 1 kontrak aktif per karyawan; CHECK tanggal di MySQL) dan `pay_contract_components` (dengan `company_id`). Menu "Kontrak Payroll" tanpa hak bawaan.
+- Action: `BuatKontrak` (nilai default katalog **disalin**; hanya komponen aktif & `is_contractable`), `PerbaruiKontrak` (kontrak lama nonaktif, versi baru dengan `previous_contract_id`, nilai disalin), `NonaktifkanKontrak` (manual). Semua dalam transaksi dan tercatat di `audit_logs`.
+- Tidak ada ubah kontrak di tempat; kontrak kedaluwarsa ditandai "Kedaluwarsa" dan dinonaktifkan manual oleh HR.
+- Tes: `KontrakTest` (5), tes kebocoran mencakup `/pay/kontrak?lihat=`/`?perbarui=` id perusahaan lain. Snapshot Admin berubah (+1 menu).

@@ -76,7 +76,8 @@ final class KebocoranTenantTest extends TestCase
             // halaman payroll baru memakai ?ubah={id} (bukan route parameter)
             $ubah = ['/pay/jabatan?ubah='.$b['id']['pay_position'], '/pay/libur?ubah='.$b['id']['pay_holiday'],
                 '/pay/tipe-leave?ubah='.$b['id']['pay_leave_type'], '/pay/komponen?ubah='.$b['id']['pay_component'],
-                '/pay/karyawan?ubah='.$b['id']['karyawan']];
+                '/pay/karyawan?ubah='.$b['id']['karyawan'], '/pay/kontrak?lihat='.$b['id']['pay_contract'],
+                '/pay/kontrak?perbarui='.$b['id']['pay_contract'], '/pay/kontrak?status=semua'];
             foreach (array_merge($this->daftarUrl($b['id'], hanyaBerparameter: true), $ubah) as $url) {
                 $r = $this->actingAs($user)->get($url);
                 $this->assertNotSame(200, $r->getStatusCode() === 200 && ! $r->isRedirect() && str_contains($this->isi($r), self::PENANDA) ? 200 : 0, "{$username} membuka {$url}");

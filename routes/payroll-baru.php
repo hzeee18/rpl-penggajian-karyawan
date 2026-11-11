@@ -29,6 +29,13 @@ Route::prefix('pay')->name('pay.')->group(function () {
         Route::put('/', [PayrollBaru\CutoffController::class, 'update'])->middleware('akses:pay-cutoff,update')->name('update');
     });
 
+    Route::middleware('akses:pay-kontrak')->prefix('kontrak')->name('kontrak.')->group(function () {
+        Route::get('/', [PayrollBaru\KontrakPayrollController::class, 'index'])->name('index');
+        Route::post('/', [PayrollBaru\KontrakPayrollController::class, 'store'])->middleware('akses:pay-kontrak,create')->name('store');
+        Route::post('/{id}/perbarui', [PayrollBaru\KontrakPayrollController::class, 'perbarui'])->whereNumber('id')->middleware('akses:pay-kontrak,create')->name('perbarui');
+        Route::post('/{id}/nonaktifkan', [PayrollBaru\KontrakPayrollController::class, 'nonaktifkan'])->whereNumber('id')->middleware('akses:pay-kontrak,delete')->name('nonaktifkan');
+    });
+
     Route::middleware('akses:pay-karyawan')->prefix('karyawan')->name('karyawan.')->group(function () {
         Route::get('/', [PayrollBaru\KaryawanPayrollController::class, 'index'])->name('index');
         Route::put('/{id}', [PayrollBaru\KaryawanPayrollController::class, 'update'])->whereNumber('id')->middleware('akses:pay-karyawan,update')->name('update');

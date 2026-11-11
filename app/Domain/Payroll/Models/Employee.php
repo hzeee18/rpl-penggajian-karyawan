@@ -10,6 +10,7 @@ use App\Models\Departemen;
 use App\Models\Pajak;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * Karyawan dari sisi payroll baru (tabel lama `karyawan`, keputusan AUDIT.md §9 butir 1).
@@ -57,6 +58,12 @@ final class Employee extends Model
     public function pajak(): BelongsTo
     {
         return $this->belongsTo(Pajak::class);
+    }
+
+    /** @return HasOne<Contract, $this> */
+    public function activeContract(): HasOne
+    {
+        return $this->hasOne(Contract::class)->where('is_active', true);
     }
 
     public function employeeNo(): string
