@@ -21,7 +21,7 @@ class PayslipController extends Controller
             ->when($request->q, fn ($q, $s) => $q->where(fn ($q) => $q->whereHas('karyawan', fn ($q) => $q->where('nama', 'like', "%$s%")->orWhere('nik', 'like', "%$s%"))
                 ->orWhereHas('payroll', fn ($q) => $q->where('periode', 'like', "%$s%"))))
             ->join('payroll', 'payroll.id', '=', 'payslip.payroll_id')
-            ->orderByDesc('payroll.periode')->select('payslip.*')
+            ->orderByDesc('payroll.periode')->orderBy('payslip.id')->select('payslip.*') // id: urutan periode kembar tetap
             ->paginate(10)->withQueryString();
 
         return view('slip.index', compact('slip'));

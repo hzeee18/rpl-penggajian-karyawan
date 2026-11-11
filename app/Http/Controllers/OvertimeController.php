@@ -19,7 +19,7 @@ class OvertimeController extends Controller
             ->whereBetween('tanggal', [$awal->toDateString(), $akhir->toDateString()])
             ->when($request->karyawan_id, fn ($q, $k) => $q->where('karyawan_id', $k));
         $totalJam = (clone $base)->sum('durasi');
-        $lembur = $base->orderByDesc('tanggal')->paginate(10)->withQueryString();
+        $lembur = $base->orderByDesc('tanggal')->orderBy('id')->paginate(10)->withQueryString(); // id: urutan tanggal kembar tetap
         $ubah = $request->ubah ? Overtime::find($request->ubah) : null;
         if ($ubah) {
             $this->pastikanLingkup($request, $ubah->karyawan_id);
