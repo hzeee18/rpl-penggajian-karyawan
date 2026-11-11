@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Domain\Company\Tenancy\BelongsToCompany;
 use Illuminate\Database\Eloquent\Model;
 
 class ApprovalMapping extends Model
 {
+    use BelongsToCompany;
+
     public const TIPE = ['manager_divisi' => 'Manager divisi karyawan', 'manager_hr' => 'Manager HR'];
 
     protected $table = 'approval_mapping';

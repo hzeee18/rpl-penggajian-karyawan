@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Domain\Company\Tenancy\BelongsToCompany;
 use Illuminate\Database\Eloquent\Model;
 
 class Privilege extends Model
 {
+    use BelongsToCompany;
+
     public const AKSI = ['view', 'create', 'update', 'delete', 'approve'];
 
     protected $fillable = ['role_id', 'menu_id', 'can_view', 'can_create', 'can_update', 'can_delete', 'can_approve'];

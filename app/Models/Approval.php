@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Domain\Company\Tenancy\BelongsToCompany;
 use Illuminate\Database\Eloquent\Model;
 
 class Approval extends Model
 {
+    use BelongsToCompany;
+
     protected $table = 'approval';
     protected $fillable = ['approval_mapping_id', 'approver_id', 'diajukan_oleh', 'jenis_ref', 'ref_id', 'level', 'status', 'catatan', 'tgl_approval'];
     protected $casts = ['tgl_approval' => \App\Casts\Tanggal::class];

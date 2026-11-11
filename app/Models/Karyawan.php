@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Domain\Company\Tenancy\BelongsToCompany;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 class Karyawan extends Model
 {
+    use BelongsToCompany;
+
     protected $table = 'karyawan';
     protected $fillable = [
         'departemen_id', 'pajak_id', 'nik', 'nama', 'jabatan', 'tgl_masuk', 'no_rekening',

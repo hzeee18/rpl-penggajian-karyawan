@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Domain\Company\Tenancy\BelongsToCompany;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Database\Eloquent\Model;
 
 class Leave extends Model
 {
+    use BelongsToCompany;
+
     public const JENIS = ['cuti' => 'Cuti', 'izin' => 'Izin', 'sakit' => 'Sakit'];
 
     protected $table = 'leave';

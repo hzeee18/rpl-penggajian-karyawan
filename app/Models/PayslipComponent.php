@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Domain\Company\Tenancy\BelongsToCompany;
 use Illuminate\Database\Eloquent\Model;
 
 class PayslipComponent extends Model
 {
+    use BelongsToCompany;
+
     /** Dasar bayar yang dihitung otomatis untuk semua karyawan (tidak perlu dipasang di kontrak). */
     public const DASAR_OTOMATIS = ['gaji_pokok', 'alfa', 'pajak', 'semua'];
 

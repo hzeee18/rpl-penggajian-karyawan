@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Domain\Company\Tenancy\BelongsToCompany;
 use Illuminate\Database\Eloquent\Model;
 
 class Kontrak extends Model
 {
+    use BelongsToCompany;
+
     protected $table = 'kontrak';
     protected $fillable = ['nomor', 'karyawan_id', 'kontrak_sebelumnya_id', 'jenis', 'tgl_mulai', 'tgl_akhir', 'gaji_pokok', 'status_approval', 'is_active'];
     protected $casts = ['tgl_mulai' => \App\Casts\Tanggal::class, 'tgl_akhir' => \App\Casts\Tanggal::class, 'is_active' => 'boolean', 'gaji_pokok' => 'float'];

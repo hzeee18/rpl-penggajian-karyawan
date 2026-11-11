@@ -22,7 +22,15 @@ use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
+    /** Multi-tenant: seluruh data contoh milik perusahaan DEFAULT (console tidak punya user login). */
     public function run(): void
+    {
+        $companyId = (int) \App\Domain\Company\Models\Company::where('code', \App\Domain\Company\Models\Company::DEFAULT_CODE)->value('id');
+
+        app(\App\Domain\Company\Tenancy\CurrentCompany::class)->runAs($companyId, fn () => $this->isi());
+    }
+
+    private function isi(): void
     {
         $this->call(TarifTerSeeder::class);
 
@@ -262,8 +270,11 @@ class DatabaseSeeder extends Seeder
                 }
             }
         }
-        foreach (array_chunk($absen, 500) as $c) { \DB::table('attendance')->insert($c); }
-        foreach (array_chunk($lemburRows, 500) as $c) { \DB::table('overtime')->insert($c); }
+        // DB::table melewati global scope: company_id diisi eksplisit
+        $companyId = app(\App\Domain\Company\Tenancy\CurrentCompany::class)->id();
+        $milik = fn (array $rows) => array_map(fn ($r) => $r + ['company_id' => $companyId], $rows);
+        foreach (array_chunk($absen, 500) as $c) { \DB::table('attendance')->insert($milik($c)); }
+        foreach (array_chunk($lemburRows, 500) as $c) { \DB::table('overtime')->insert($milik($c)); }
 
         // ===== payroll Juli–Oktober final, November draft =====
         $svc = app(\App\Services\PayrollService::class);

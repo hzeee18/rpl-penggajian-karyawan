@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Domain\Company\Tenancy\BelongsToCompany;
 use Illuminate\Database\Eloquent\Model;
 
 class Notifikasi extends Model
 {
+    use BelongsToCompany;
+
     public const UPDATED_AT = null;
 
     protected $table = 'notifikasi';

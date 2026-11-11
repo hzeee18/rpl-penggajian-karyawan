@@ -63,7 +63,8 @@ return [
 
     'providers' => [
         'users' => [
-            'driver' => 'eloquent',
+            // multi-tenant: eloquent tanpa CompanyScope (App\Domain\Company\Tenancy\TenantAwareUserProvider)
+            'driver' => 'tenant-eloquent',
             'model' => env('AUTH_MODEL', User::class),
         ],
 

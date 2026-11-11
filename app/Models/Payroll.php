@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Domain\Company\Tenancy\BelongsToCompany;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 class Payroll extends Model
 {
+    use BelongsToCompany;
+
     protected $table = 'payroll';
     protected $fillable = ['master_payroll_id', 'periode', 'tgl_generate', 'status'];
     protected $casts = ['tgl_generate' => \App\Casts\Tanggal::class];

@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Company\Tenancy\CompanyScope;
+use App\Domain\Company\Tenancy\CurrentCompany;
 use App\Models\Notifikasi;
 use App\Models\Role;
 use App\Models\User;
+use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -20,8 +23,14 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $data = $request->validate(['username' => 'required|string', 'password' => 'required|string']);
-        $user = User::where('username', $data['username'])->first();
+        // multi-tenant: username unik global, dicari tanpa scope; proses selanjutnya dalam konteks perusahaan user itu
+        $user = User::withoutGlobalScope(CompanyScope::class)->where('username', $data['username'])->first();
 
+        return $this->dalamPerusahaan($user, fn () => $this->prosesLogin($request, $data, $user));
+    }
+
+    private function prosesLogin(Request $request, array $data, ?User $user)
+    {
         if ($user && $user->is_locked) {
             return back()->withInput()->withErrors(['username' => 'Akun terkunci karena salah password ' . User::MAKS_GAGAL_LOGIN . ' kali. Hubungi Admin.']);
         }
@@ -72,15 +81,23 @@ class AuthController extends Controller
     public function lupa(Request $request)
     {
         $data = $request->validate(['username' => 'required|string', 'email' => 'required|email']);
-        $user = User::where('username', $data['username'])->where('email', $data['email'])->first();
+        $user = User::withoutGlobalScope(CompanyScope::class)->where('username', $data['username'])->where('email', $data['email'])->first();
 
         if ($user) {
-            Notifikasi::kirim(User::idsRole(Role::ADMIN), 'Permintaan reset password',
-                "User {$user->username} meminta reset password.", 'user', $user->id);
+            $this->dalamPerusahaan($user, fn () => Notifikasi::kirim(User::idsRole(Role::ADMIN), 'Permintaan reset password',
+                "User {$user->username} meminta reset password.", 'user', $user->id));
         }
 
         // pesan sama supaya tidak membocorkan username yang terdaftar
         return redirect()->route('login')->with('sukses', 'Permintaan reset password sudah dikirim ke Admin. Password baru akan diberikan oleh Admin.');
+    }
+
+    /** Jalankan dalam konteks perusahaan user (sebelum login belum ada konteks dari sesi). */
+    private function dalamPerusahaan(?User $user, Closure $proses): mixed
+    {
+        return $user?->company_id !== null
+            ? app(CurrentCompany::class)->runAs((int) $user->company_id, $proses)
+            : $proses();
     }
 
     public function gantiPassword(Request $request)

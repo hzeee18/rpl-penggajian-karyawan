@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Domain\Company\Tenancy\BelongsToCompany;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 class Overtime extends Model
 {
+    use BelongsToCompany;
+
     protected $table = 'overtime';
     protected $fillable = ['karyawan_id', 'tanggal', 'jam_mulai', 'jam_selesai', 'durasi', 'keterangan', 'diinput_oleh'];
     protected $casts = ['tanggal' => \App\Casts\Tanggal::class, 'durasi' => 'float'];

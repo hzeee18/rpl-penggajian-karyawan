@@ -250,3 +250,43 @@ php artisan test --configuration=phpunit.mysql.xml    # MySQL penggajian_test (g
   - Snapshot per driver di `__snapshots__/{sqlite,mysql}/`. Memperbarui snapshot hanya dengan sengaja: `KARAKTERISASI_UPDATE=1`, dan perubahannya harus dijelaskan.
   - Sudah diuji: dua kali jalan berturut-turut identik; snapshot yang diubah sengaja terdeteksi dengan diff.
 - **Temuan baru (lingkungan)**: ekstensi PHP `zip` tidak aktif (`;extension=zip` di php.ini Laragon, baris 952). Akibatnya **export Laporan Excel dan unduh template import .xlsx gagal** (`Class "ZipArchive" not found`) di lingkungan lokal ini, sudah sebelum perubahan apa pun. Tes Excel ditandai *skipped* sampai `zip` diaktifkan. Perlu keputusan pemilik.
+
+## 13. Fase 1b: scope tenant di model lama (2026-11-11)
+
+**Desain konteks perusahaan** (`App\Domain\Company\Tenancy\CurrentCompany`), urutan:
+1. `runAs($id)` eksplisit (seeder, job, login sebelum user terautentikasi).
+2. User login → `company_id` user (dibaca dengan `Auth::hasUser()`, tanpa memicu query user).
+3. Request web tanpa user → tidak ada konteks: query kosong, create ditolak (*fail closed*). Penanda request: middleware `TenantRequestContext`, dipasang paling depan grup `web` agar route model binding ikut terbatasi.
+4. Fallback → hanya dipasang `tests/TestCase.php` (perusahaan DEFAULT) untuk kode test di luar request.
+5. Console tanpa konteks (artisan, scheduler, migration) → mode sistem: baca tidak dibatasi, create ditolak (wajib `runAs`). Contoh: `kontrak:aktifkan` tetap memproses semua kontrak (logikanya per karyawan, jadi aman lintas perusahaan).
+
+**Perubahan di kode lama** (hanya yang dibutuhkan tenant):
+- 20 model di `app/Models` + pivot baru `DepartemenManager`: `use BelongsToCompany;` (3 baris per model). `Departemen::managers()` memakai `->using(DepartemenManager::class)` agar `sync()` mengisi `company_id`.
+- `config/auth.php`: driver `tenant-eloquent` (`TenantAwareUserProvider`, mencari user tanpa scope; username unik global).
+- `AuthController`: login & lupa password mencari username tanpa scope, lalu proses lama dijalankan dalam konteks perusahaan user (penghitung gagal login, kunci akun, notifikasi Admin perusahaan yang sama).
+- `DatabaseSeeder`: dijalankan dalam `runAs(DEFAULT)`; dua `DB::table()->insert` (attendance, overtime) diberi `company_id` eksplisit.
+- `bootstrap/app.php`, `bootstrap/providers.php`: middleware dan provider tenant.
+
+**Hasil**: semua tes karakterisasi (halaman per role, alur payroll/absensi/kontrak/import, login, export Excel) lulus **tanpa snapshot diubah**.
+
+**Temuan untuk 1c** (belum diperbaiki):
+- Validasi masih global: `Rule::unique('departemen')` di `DepartemenController` (kode yang sama di perusahaan lain ditolak), `exists:karyawan,id` untuk `manager_ids` (HR perusahaan B bisa memilih karyawan perusahaan A sebagai manager). Pola sama perlu dicek di semua controller (`unique:`, `exists:`).
+- `User::idsRole()` dan `Role::where('nama', ...)` sudah terbatasi lewat scope dalam request, tetapi perlu dicek pemakaiannya di luar request (notifikasi dari console/job).
+- File PDF slip disimpan di `slip/{periode}/{nik}.pdf` tanpa folder per perusahaan (NIK bisa sama antar perusahaan → file tertimpa).
+- Cache dan job: belum ada pemakaian di kode lama (dicek ulang di 1c).
+- **Urutan tidak deterministik (ditemukan saat 1b di MySQL)**: `OvertimeController@index` (`orderByDesc('tanggal')`) dan `PayslipController@index` (`orderByDesc('payroll.periode')`) hanya mengurutkan satu kolom yang nilainya banyak kembar, dengan `paginate(10)`. Baris mana yang tampil di halaman 1 tidak ditentukan; setelah filter `company_id` ditambahkan, MySQL memilih rencana query lain sehingga isi halaman 1 `/lembur` dan `/slip` (role HR, Manager HR) berbeda dari snapshot. **Data dan jumlah baris sama**, hanya pilihan baris kembar yang berbeda. SQLite tidak terpengaruh. Menunggu keputusan pemilik (lihat ringkasan 1b).
+
+## 14. Keputusan 1b (2026-11-11)
+
+| # | Keputusan |
+|---|---|
+| 1 | Urutan tidak deterministik (§13): **ditambah tiebreaker `id`** di `OvertimeController@index` (`orderBy('id')`) dan `PayslipController@index` (`orderBy('payslip.id')`), lalu snapshot terkait dibuat ulang. |
+| 2 | **Migration dan seeder boleh membaca lintas perusahaan.** |
+| 3 | **Artisan dan scheduler tidak boleh melewati scope secara umum**: tugas berjalan per perusahaan dengan konteks eksplisit (`runAs`). Lintas perusahaan hanya lewat pemanggilan eksplisit `CurrentCompany::lintasPerusahaan($alasan, ...)` yang diberi komentar alasannya. |
+
+**Penerapan** (menggantikan butir 5 desain di §13):
+- Console tanpa konteks sekarang *fail closed* (query kosong, create ditolak), sama seperti request web tanpa user.
+- `CurrentCompany::lintasPerusahaan($alasan, fn)` membaca semua perusahaan; alasan wajib (string kosong ditolak); create di dalamnya tetap ditolak. Bingkai terdalam berlaku (`runAs` di dalam `lintasPerusahaan` membatasi lagi ke satu perusahaan).
+- Migration otomatis lintas perusahaan lewat event `MigrationsStarted`/`MigrationsEnded` (`TenancyServiceProvider`).
+- Seeder: `DatabaseSeeder` membuat data dalam `runAs(DEFAULT)`; bila seeder perlu membaca lintas perusahaan, pakai `lintasPerusahaan()` dengan alasan.
+- `kontrak:aktifkan` (scheduler 00:05): diulang per perusahaan dengan `runAs`, semua perusahaan diproses seperti sebelumnya.

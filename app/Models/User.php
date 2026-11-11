@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Domain\Company\Tenancy\BelongsToCompany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
+    use BelongsToCompany;
+
     use Notifiable;
 
     public const MAKS_GAGAL_LOGIN = 5;

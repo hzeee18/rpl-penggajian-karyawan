@@ -12,6 +12,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // multi-tenant: paling depan agar route model binding juga dibatasi perusahaan
+        $middleware->web(prepend: [\App\Domain\Company\Tenancy\TenantRequestContext::class]);
         $middleware->alias([
             'akses' => \App\Http\Middleware\CekAkses::class,
             'aktif' => \App\Http\Middleware\AkunAktif::class,
