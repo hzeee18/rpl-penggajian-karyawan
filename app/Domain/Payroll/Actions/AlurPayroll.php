@@ -17,6 +17,7 @@ use App\Domain\Payroll\Models\PeriodConfig;
 use App\Domain\Payroll\Models\RunEmployee;
 use App\Domain\Payroll\Models\TaxMonthlyHistory;
 use App\Domain\Payroll\Run\HitungRunKaryawan;
+use App\Models\Privilege;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -34,6 +35,7 @@ final class AlurPayroll
 
     public function buat(string $judul, string $periode): PayrollRun
     {
+        $this->pastikanHakSendiri('create');
         $config = PeriodConfig::first();
         if ($config === null) {
             throw ValidationException::withMessages(['periode' => 'Atur cut off payroll dulu di menu Cut Off.']);
@@ -53,6 +55,7 @@ final class AlurPayroll
     /** @param list<int> $pilihan id departemen / karyawan */
     public function mulaiPratinjau(PayrollRun $run, int $masterId, string $lingkup, array $pilihan): void
     {
+        $this->pastikanHakSendiri('update');
         $this->pastikanDraftDanSiap($run);
         $master = Master::where('is_active', true)->findOrFail($masterId);
         if ($master->current_version_id === null) {
@@ -73,6 +76,7 @@ final class AlurPayroll
     /** Ubah nilai akhir satu sel (override) atau kembalikan ke hasil rumus ($nilai = null). Tanpa audit log. */
     public function ubahSel(PayrollRun $run, RunEmployee $re, string $kode, ?string $nilai): void
     {
+        $this->pastikanHakSendiri('update');
         $this->pastikanDraftDanSiap($run);
         $item = $re->items()->where('code', $kode)->firstOrFail();
         if ($nilai !== null && ! preg_match('/^-?\d{1,13}(\.\d{1,2})?$/', $nilai)) {
@@ -88,6 +92,7 @@ final class AlurPayroll
 
     public function generate(PayrollRun $run): void
     {
+        $this->pastikanHakSendiri('create');
         $this->pastikanDraftDanSiap($run);
         if (! $run->employees()->exists()) {
             throw ValidationException::withMessages(['run' => 'Lihat preview dulu sebelum generate.']);
@@ -132,6 +137,7 @@ final class AlurPayroll
 
     public function hapus(PayrollRun $run): void
     {
+        $this->pastikanHakSendiri('delete');
         if (! $run->isDraft() || $run->sedangDiproses()) {
             throw ValidationException::withMessages(['run' => 'Hanya payroll draft yang tidak sedang diproses yang bisa dihapus.']);
         }
@@ -139,6 +145,18 @@ final class AlurPayroll
             DB::table('pay_run_reference_versions')->where('run_id', $run->id)->delete();
             $run->delete(); // fisik; rincian ikut terhapus (cascade)
         });
+    }
+
+    /**
+     * Payroll hanya dibuat/diproses oleh user yang ROLE-NYA SENDIRI punya hak Generate Payroll (keputusan
+     * AUDIT.md §26: role HR). Hak warisan (Manager HR mendapat hak HR di modul lama) tidak dihitung.
+     */
+    private function pastikanHakSendiri(string $aksi): void
+    {
+        $user = Auth::user();
+        if ($user === null || ! Privilege::cekAkses((int) $user->role_id, 'pay-run', $aksi)) {
+            throw new HttpException(403, 'Payroll hanya bisa dibuat dan diproses oleh role yang diberi hak Generate Payroll (HR).');
+        }
     }
 
     private function pastikanDraftDanSiap(PayrollRun $run): void

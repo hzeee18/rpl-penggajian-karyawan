@@ -44,7 +44,8 @@ Route::middleware(['auth', 'aktif'])->group(function () {
         Route::put('/roles/{role}/hak-akses', [Admin\RoleController::class, 'simpanHakAkses'])->middleware('akses:roles,update')->name('roles.simpanHakAkses');
         Route::delete('/roles/{role}', [Admin\RoleController::class, 'destroy'])->middleware('akses:roles,delete')->name('roles.destroy');
     });
-    Route::middleware('akses:menus')->group(function () {
+    // multi-tenant: menu bersifat global, hanya Super Admin (keputusan AUDIT.md §26)
+    Route::middleware(['super-admin', 'akses:menus'])->group(function () {
         Route::get('/menus', [Admin\MenuController::class, 'index'])->name('menus.index');
         Route::post('/menus', [Admin\MenuController::class, 'store'])->middleware('akses:menus,create')->name('menus.store');
         Route::put('/menus/{menu}', [Admin\MenuController::class, 'update'])->middleware('akses:menus,update')->name('menus.update');

@@ -40,9 +40,9 @@ class MultiManagerRumusTest extends TestCase
         $this->actingAs($hr)->post('/komponen', ['kode' => 'TJ', 'nama' => 'Tunjangan', 'jenis' => 'penambah', 'berlaku' => 'kontrak', 'rumus' => 'UM * 10%', 'status_berlaku' => 'aktif'])
             ->assertSessionHasNoErrors();
         $um = PayslipComponent::where('kode', 'UM')->first();
-        $this->actingAs($hr)->put('/komponen/' . $um->id, ['kode' => 'UM', 'nama' => 'Uang Makan', 'jenis' => 'penambah', 'rumus' => 'TJ + 1', 'status_berlaku' => 'aktif'])
+        $this->actingAs($hr)->put('/komponen/'.$um->id, ['kode' => 'UM', 'nama' => 'Uang Makan', 'jenis' => 'penambah', 'rumus' => 'TJ + 1', 'status_berlaku' => 'aktif'])
             ->assertSessionHasErrors('rumus');
-        $this->actingAs($hr)->put('/komponen/' . $um->id, ['kode' => 'UM', 'nama' => 'Uang Makan', 'jenis' => 'penambah', 'rumus' => 'GP * (15%', 'status_berlaku' => 'aktif'])
+        $this->actingAs($hr)->put('/komponen/'.$um->id, ['kode' => 'UM', 'nama' => 'Uang Makan', 'jenis' => 'penambah', 'rumus' => 'GP * (15%', 'status_berlaku' => 'aktif'])
             ->assertSessionHasErrors('rumus');
     }
 

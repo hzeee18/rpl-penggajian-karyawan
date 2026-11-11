@@ -56,6 +56,7 @@ final class PayrollDemoSeederTest extends TestCase
 
     public function test_seed_dua_perusahaan_terisolasi_dengan_data_lengkap(): void
     {
+        PayrollDemoSeeder::$fileTerUji = sys_get_temp_dir().'/ter-tidak-ada-'.uniqid().'.csv'; // jalur: file TER belum ada
         $this->seed(PayrollDemoSeeder::class);
 
         foreach (['DEMOA' => 12, 'DEMOB' => 10] as $kode => $jumlah) {
@@ -93,6 +94,7 @@ final class PayrollDemoSeederTest extends TestCase
 
     public function test_aturan_payroll_berbeda_per_perusahaan_dari_database(): void
     {
+        PayrollDemoSeeder::$fileTerUji = sys_get_temp_dir().'/ter-tidak-ada-'.uniqid().'.csv';
         $this->seed(PayrollDemoSeeder::class);
 
         // DEMOA: uang makan = kontrak / 22 x (hadir + cuti), lembur 25.000/jam, periode lintas bulan

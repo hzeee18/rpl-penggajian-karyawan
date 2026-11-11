@@ -121,7 +121,7 @@ final class SuperAdminTest extends TestCase
 
         $this->actingAs($admin)->put("/roles/{$hr->role_id}/hak-akses", ['akses' => [$menuPerusahaan => ['view' => 1, 'create' => 1]]]);
         $this->assertFalse(DB::table('privileges')->where('role_id', $hr->role_id)->where('menu_id', $menuPerusahaan)->exists());
-        $this->actingAs($admin)->get('/menus?q=perusahaan')->assertOk()->assertDontSee('>Perusahaan<', false);
+        $this->actingAs($admin)->get('/menus?q=perusahaan')->assertForbidden(); // Manajemen Menu khusus Super Admin (AUDIT.md §26)
         $this->actingAs($admin)->delete("/menus/{$menuPerusahaan}")->assertForbidden();
 
         // lapisan kedua: walau hak menu dipaksa masuk tabel, halaman tetap khusus Super Admin

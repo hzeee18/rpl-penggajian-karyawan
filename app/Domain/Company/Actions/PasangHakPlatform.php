@@ -64,6 +64,14 @@ final class PasangHakPlatform
                 ->update(['can_create' => false, 'can_update' => false, 'can_delete' => false, 'updated_at' => $now]);
         }
 
+        // Manajemen Menu (global) hanya Super Admin: cabut hak role perusahaan (keputusan AUDIT.md §26)
+        $menuMenus = DB::table('menus')->where('url', 'menus')->value('id');
+        if ($menuMenus !== null) {
+            DB::table('privileges')->where('menu_id', $menuMenus)
+                ->whereIn('role_id', DB::table('roles')->whereNotNull('company_id')->pluck('id'))
+                ->update(['can_view' => false, 'can_create' => false, 'can_update' => false, 'can_delete' => false, 'can_approve' => false, 'updated_at' => $now]);
+        }
+
         return (int) $roleId;
     }
 }

@@ -450,3 +450,17 @@ Semua diuji up → rollback → up di DB `penggajian_test` berisi data. Saran: b
 5. **Libur keagamaan 2026** diisi HR dari SKB 3 Menteri (§24).
 6. **Modul payroll lama**: masih aktif berdampingan; dinonaktifkan setelah modul baru diterima (lewat hak akses menu, tanpa menghapus kode/data).
 7. Tambahan di luar `docs/schema.sql` yang perlu disetujui: `pay_payslips.note`, `company_id` di tabel anak (`pay_contract_components`, `pay_import_batch_rows`, versi/baris referensi, variabel/parameter/item), `roles.company_key` VIRTUAL.
+
+## 26. Keputusan akhir pemilik dan tindak lanjut (2026-11-11)
+
+| # | Keputusan | Tindak lanjut |
+|---|---|---|
+| 1 | Backup DB dev sudah dibuat pemilik; 10 migration (§25) disetujui | **Sudah dijalankan di DB dev**: 0 pending, 120/120 rekening terenkripsi, role Super Admin + 17 menu payroll baru, HR Pajak lihat-saja, approver HR = `manager.hr`, data lama utuh. |
+| 2 | Manajemen Menu khusus Super Admin | `PasangHakPlatform` mencabut hak role perusahaan atas menu `menus`; route `/menus` memakai middleware `super-admin`. Untuk DB dev: migration baru `2026_11_19_000001_menu_khusus_super_admin` (**menunggu persetujuan**, mengubah data privileges). Snapshot Admin berubah (tautan Manajemen Menu hilang dari sidebar, `/menus` 403). |
+| 3 | Import karyawan tetap modul lama | Tidak ada perubahan. |
+| 4 | Payroll hanya dibuat role HR, approver lewat `users.approver_user_id` | `AlurPayroll` memeriksa hak **role user sendiri** (`Privilege::cekAkses`) untuk buat/preview/ubah sel/generate/hapus; hak warisan Manager HR dari modul lama tidak berlaku. |
+| 5 | Libur keagamaan diisi HR sendiri | Tidak ada perubahan (seeder hanya libur bertanggal tetap). |
+| 6 | Tambahan di luar `schema.sql` disetujui | `pay_payslips.note`, `company_id` di tabel anak, `roles.company_key` VIRTUAL. |
+| 7 | File TER dari pemilik | Dipindah ke `database/seeders/data/ter_pph21.csv` (lokasi yang dibaca seeder). Dicek strukturnya: kategori PTKP 8 status (A/B/C), TER A/B/C 44/40/41 lapisan mulai 0, tanpa celah/tumpang tindih, tarif tidak turun, lapisan terakhir tak terbatas. Kebenaran angka terhadap PP 58/2023 / PMK 168/2023 tanggung jawab pemilik. |
+
+Tes baru: `KeputusanAksesTest` (2). `PayrollDemoSeederTest` jalur "TER belum ada" sekarang memakai path file uji yang sengaja tidak ada, karena file resmi sudah tersedia.
