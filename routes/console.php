@@ -40,3 +40,17 @@ Artisan::command('super-admin:buat {username} {--email=} {--password=}', functio
 
     return 0;
 })->purpose('Buat akun Super Admin (lintas perusahaan, mengelola perusahaan dan tabel TER nasional)');
+
+// Payroll baru: beri hak akses bawaan menu payroll baru ke role satu perusahaan (HR, Admin, Manager, Karyawan).
+Artisan::command('payroll:aktifkan {kode : kode perusahaan}', function (string $kode) {
+    $id = \App\Domain\Company\Models\Company::where('code', $kode)->value('id');
+    if ($id === null) {
+        $this->error("Perusahaan {$kode} tidak ditemukan.");
+
+        return 1;
+    }
+    (new \App\Domain\Payroll\Actions\PasangMenuPayroll)->berikanHak((int) $id);
+    $this->info("Menu payroll baru aktif untuk perusahaan {$kode}.");
+
+    return 0;
+})->purpose('Aktifkan menu payroll baru (hak akses bawaan) untuk satu perusahaan');

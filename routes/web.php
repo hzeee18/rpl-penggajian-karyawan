@@ -138,4 +138,7 @@ Route::middleware(['auth', 'aktif'])->group(function () {
     });
     Route::get('/profil', [Controllers\ProfilController::class, 'index'])->middleware('akses:profil')->name('profil.index');
     Route::get('/kontrak-pdf/{kontrak}', [Controllers\ProfilController::class, 'kontrakPdf'])->name('kontrak.pdf');
+
+    // ===== Payroll baru (modul berdampingan dengan payroll lama) =====
+    require __DIR__.'/payroll-baru.php';
 });

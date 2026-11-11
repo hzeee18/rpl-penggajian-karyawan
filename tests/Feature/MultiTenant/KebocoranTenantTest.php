@@ -50,6 +50,8 @@ final class KebocoranTenantTest extends TestCase
         parent::setUp();
         Carbon::setTestNow(Carbon::parse('2026-11-11 10:00:00', 'Asia/Jakarta'));
         Storage::fake('local');
+        // modul payroll baru aktif di perusahaan DEFAULT agar halamannya ikut teruji
+        $this->artisan('payroll:aktifkan', ['kode' => 'DEFAULT']);
     }
 
     public function test_user_perusahaan_a_tidak_melihat_data_b_di_semua_halaman_api_export_dan_dashboard(): void
@@ -71,7 +73,11 @@ final class KebocoranTenantTest extends TestCase
 
         foreach (['admin', 'hr', 'manager.hr', 'rizky'] as $username) {
             $user = User::where('username', $username)->firstOrFail();
-            foreach ($this->daftarUrl($b['id'], hanyaBerparameter: true) as $url) {
+            // halaman payroll baru memakai ?ubah={id} (bukan route parameter)
+            $ubah = ['/pay/jabatan?ubah='.$b['id']['pay_position'], '/pay/libur?ubah='.$b['id']['pay_holiday'],
+                '/pay/tipe-leave?ubah='.$b['id']['pay_leave_type'], '/pay/komponen?ubah='.$b['id']['pay_component'],
+                '/pay/karyawan?ubah='.$b['id']['karyawan']];
+            foreach (array_merge($this->daftarUrl($b['id'], hanyaBerparameter: true), $ubah) as $url) {
                 $r = $this->actingAs($user)->get($url);
                 $this->assertNotSame(200, $r->getStatusCode() === 200 && ! $r->isRedirect() && str_contains($this->isi($r), self::PENANDA) ? 200 : 0, "{$username} membuka {$url}");
                 $this->assertTidakMemuat($r, [self::PENANDA], "{$username} {$url}");
@@ -157,7 +163,8 @@ final class KebocoranTenantTest extends TestCase
         if (! $hanyaBerparameter) {
             array_push($urls, '/cari?q=RB0', '/cari?q=a', '/karyawan?q=RB0', '/users?q=ptb', '/slip?q=RB0',
                 '/slip?periode=2026-10', '/laporan?periode=2026-10', '/laporan/excel?periode=2026-10', '/laporan/pdf?periode=2026-10',
-                '/absensi?periode=2026-11', '/lembur?periode=2026-11', '/cuti?periode=2026-11', '/payroll/rekap', '/payroll/riwayat');
+                '/absensi?periode=2026-11', '/lembur?periode=2026-11', '/cuti?periode=2026-11', '/payroll/rekap', '/payroll/riwayat',
+                '/pay/karyawan?q=RB0', '/pay/jabatan?q=RB', '/pay/komponen?q=rb');
         }
 
         return $urls;

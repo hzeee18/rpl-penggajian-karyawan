@@ -31,6 +31,8 @@ class DatabaseSeeder extends Seeder
 
         // data platform: role Super Admin, menu Perusahaan, hak akses (setelah menu & role dibuat di atas)
         (new \App\Domain\Company\Actions\PasangHakPlatform)->handle();
+        // menu modul payroll baru (tanpa hak akses bawaan, lihat PasangMenuPayroll)
+        (new \App\Domain\Payroll\Actions\PasangMenuPayroll)->handle();
     }
 
     private function isi(): void

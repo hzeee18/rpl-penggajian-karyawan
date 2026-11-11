@@ -245,10 +245,11 @@
             </table>
         </div>
         <div class="table-foot border-top">
-    <span>Menampilkan 1–10 dari 20 menu</span>
+    <span>Menampilkan 1–10 dari 27 menu</span>
             <ul class="pagination">
                                         <li class="page-item active"><a class="page-link" href="http://localhost:8000/menus?page=1">1</a></li>
                             <li class="page-item "><a class="page-link" href="http://localhost:8000/menus?page=2">2</a></li>
+                            <li class="page-item "><a class="page-link" href="http://localhost:8000/menus?page=3">3</a></li>
                         <li class="page-item"><a class="page-link" href="http://localhost:8000/menus?page=2">›</a></li>        </ul>
     </div>
     </div>
@@ -261,7 +262,7 @@
             <form method="post" action="http://localhost:8000/menus" class="card-body" >
             <input type="hidden" name="_token" value="TOKEN" autocomplete="off">             <div class="mb-field"><label class="form-label">Nama menu</label><input name="nama" value="" class="form-control" required></div>
         <div class="mb-field"><label class="form-label">Menu induk</label>
-            <select name="parent_id" class="form-select"><option value="">— Tanpa induk —</option><option value="16" >Master Data</option></select></div>
+            <select name="parent_id" class="form-select"><option value="">— Tanpa induk —</option><option value="16" >Master Data</option><option value="22" >Payroll Baru</option></select></div>
         <div class="mb-field"><label class="form-label">URL</label><input name="url" value="" class="form-control" placeholder="/karyawan"></div>
         <div class="row g-2 mb-field">
             <div class="col-8"><label class="form-label">Ikon (Lucide)</label><input name="icon" value="" class="form-control" placeholder="users"></div>

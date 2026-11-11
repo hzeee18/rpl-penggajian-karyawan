@@ -331,3 +331,22 @@ php artisan test --configuration=phpunit.mysql.xml    # MySQL penggajian_test (g
 |---|---|
 | `2026_11_12_000001_super_admin_dan_menu_perusahaan` | Ya (privileges HR Pajak, role/menu baru) → backup dulu |
 | `2026_11_12_000002_company_id_not_null` | Tidak (hanya constraint) |
+
+## 18. Fase 2: data master payroll baru (2026-11-11)
+
+**Skema** (migration baru, belum dijalankan di DB dev):
+- `2026_11_13_000001_create_pay_master_tables`: `audit_logs`, `pay_period_configs` (satu per perusahaan), `pay_holidays`, `pay_positions`, `pay_leave_types`, `pay_components` (uang `DECIMAL(15,2)`), unique per perusahaan.
+- `2026_11_13_000002_add_payroll_columns_to_karyawan`: kolom baru di `karyawan`: `position_id`, `resign_date`, `has_npwp`, `npwp` (terenkripsi), `bank_account_no` (terenkripsi, diisi dari `no_rekening`). Kolom lama tidak diubah.
+- `2026_11_13_000003_menu_payroll_baru`: grup menu "Payroll Baru" + 6 menu, **tanpa hak akses bawaan**.
+
+**Keputusan pemetaan (mengikuti jawaban pemilik soal "nomor karyawan")**: `karyawan.nik` (mis. `K0001`) dipakai sebagai nomor karyawan (`employee_no`) sekaligus kunci pencocokan CSV; status PTKP dari `pajak_id` (`pajak.status_ptkp`); tidak ada kolom duplikat.
+
+**Rekening**: modul lama tetap memakai `no_rekening` (teks biasa). `PayrollServiceProvider` menyalin terenkripsi ke `bank_account_no` setiap `no_rekening` berubah. Tampilan payroll hanya menampilkan 4 digit terakhir.
+
+**Aktivasi modul**: `php artisan payroll:aktifkan {kode_perusahaan}` memberi hak bawaan (HR kelola, Admin lihat) ke role perusahaan itu. Sampai diaktifkan, sidebar dan alur lama tidak berubah. Admin juga bisa memberi hak lewat Role & Privilege.
+
+**Halaman** (`/pay/...`): Karyawan Payroll, Jabatan, Kalender Libur, Tipe Leave, Katalog Komponen, Cut Off. Jabatan/tipe leave/komponen hanya dinonaktifkan; hari libur boleh dihapus. Semua perubahan dicatat `AuditLogger` (NPWP/rekening tidak pernah ditulis ke log). Nilai uang divalidasi `decimal:0,2` dan disimpan tanpa float.
+
+**Snapshot karakterisasi yang berubah (disengaja)**: halaman Admin (hitungan menu di dashboard, daftar Manajemen Menu, baris menu baru tanpa centang di Role & Privilege). Snapshot role lain identik.
+
+**Tes**: `MasterDataTest` (6), tes kebocoran diperluas ke halaman `/pay/*` (uji mutasi: daftar tanpa scope terdeteksi di `/pay/jabatan`).

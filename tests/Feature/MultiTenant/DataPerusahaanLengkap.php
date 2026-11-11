@@ -7,6 +7,13 @@ namespace Tests\Feature\MultiTenant;
 use App\Domain\Company\Actions\BuatPerusahaan;
 use App\Domain\Company\Models\Company;
 use App\Domain\Company\Tenancy\CurrentCompany;
+use App\Domain\Payroll\Actions\PasangMenuPayroll;
+use App\Domain\Payroll\Models\Component;
+use App\Domain\Payroll\Models\Employee;
+use App\Domain\Payroll\Models\Holiday;
+use App\Domain\Payroll\Models\LeaveType;
+use App\Domain\Payroll\Models\PeriodConfig;
+use App\Domain\Payroll\Models\Position;
 use App\Models\Approval;
 use App\Models\ApprovalMapping;
 use App\Models\Attendance;
@@ -97,11 +104,21 @@ trait DataPerusahaanLengkap
             LogAktivitas::create(['user_id' => $users['admin']->id, 'aktivitas' => "{$p} aktivitas", 'modul' => 'User', 'created_at' => now()]);
             ImportExcel::create(['user_id' => $users['hr']->id, 'jenis' => 'absensi', 'nama_file' => "{$p}.xlsx", 'status' => 'berhasil', 'baris' => 1]);
 
+            // payroll baru (Fase 2): menu aktif + data master bertanda
+            (new PasangMenuPayroll)->berikanHak((int) $company->id);
+            $jabatan = Position::create(['code' => 'RBJ', 'name' => "{$p} Jabatan"]);
+            $libur = Holiday::create(['holiday_date' => '2026-11-20', 'name' => "{$p} Libur"]);
+            $tipe = LeaveType::create(['code' => 'rb_tipe', 'name' => "{$p} Tipe Leave"]);
+            $komponenBaru = Component::create(['code' => 'rb_komponen', 'name' => "{$p} Komponen", 'type' => 'earning', 'default_amount' => '100.00']);
+            PeriodConfig::create(['start_day' => 21, 'end_day' => 20, 'start_in_previous_month' => true]);
+            Employee::findOrFail($kStaf->id)->fill(['position_id' => $jabatan->id, 'has_npwp' => true, 'npwp' => '99.999.999.9-999.999'])->save();
+
             return ['company' => $company, 'users' => $users, 'id' => [
                 'karyawan' => $kStaf->id, 'departemen' => $ops->id, 'komponen' => $um->id, 'kontrak' => $kontrak->id,
                 'attendance' => $absen->id, 'leave' => $cuti->id, 'overtime' => $lembur->id, 'payroll' => $payroll->id,
                 'payslip' => $slip->id, 'approval' => $approval->id, 'notifikasi' => $notif->id, 'user' => $users['hr']->id,
                 'role' => $role(Role::HR),
+                'pay_position' => $jabatan->id, 'pay_holiday' => $libur->id, 'pay_leave_type' => $tipe->id, 'pay_component' => $komponenBaru->id,
             ]];
         });
     }
