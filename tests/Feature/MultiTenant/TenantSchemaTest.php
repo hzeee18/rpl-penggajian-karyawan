@@ -94,10 +94,10 @@ final class TenantSchemaTest extends TestCase
         [$a, $b] = [$this->company('A'), $this->company('B')];
         $this->role($a, 'HR');
         $this->role($b, 'HR');
-        $this->role(null, 'Super Admin');
+        $this->role(null, 'Peran Platform Uji');
 
         try {
-            $this->role(null, 'Super Admin');
+            $this->role(null, 'Peran Platform Uji');
             $this->fail('Role platform dengan nama sama seharusnya ditolak');
         } catch (QueryException) {
         }

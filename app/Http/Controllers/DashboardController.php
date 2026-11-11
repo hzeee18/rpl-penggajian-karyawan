@@ -24,6 +24,10 @@ class DashboardController extends Controller
     public function index(Request $request, PayrollService $svc)
     {
         $user = $request->user();
+        // multi-tenant: Super Admin (akun platform) tidak punya dashboard perusahaan
+        if (app(\App\Domain\Company\Tenancy\CurrentCompany::class)->isSuperAdmin()) {
+            return redirect()->route('perusahaan.index');
+        }
         Kontrak::sinkronAktif();
         $master = MasterPayroll::aktif();
         $periode = now()->format('Y-m');
@@ -50,7 +54,7 @@ class DashboardController extends Controller
             'stat' => [
                 ['Pengguna Aktif', User::where('is_active', true)->count(), 'dari ' . User::count() . ' akun terdaftar'],
                 ['Role', Role::count(), Role::orderBy('id')->pluck('nama')->join(', ')],
-                ['Menu', Menu::whereNotNull('url')->count(), 'dipakai oleh ' . Role::count() . ' role'],
+                ['Menu', Menu::whereNotNull('url')->untukPerusahaan()->count(), 'dipakai oleh ' . Role::count() . ' role'],
                 ['Akun Nonaktif', $nonaktif, 'Dinonaktifkan · tidak bisa login'],
             ],
             'log' => \App\Models\LogAktivitas::with('user.role', 'user.karyawan')->latest('created_at')->latest('id')->take(5)->get(),

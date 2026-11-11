@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Company\Tenancy;
 
+use App\Domain\Company\Actions\PasangHakPlatform;
 use Closure;
 use Illuminate\Container\Attributes\Scoped;
+use Illuminate\Contracts\Session\Session;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
 /**
@@ -18,16 +21,21 @@ use InvalidArgumentException;
  *    - lintasPerusahaan($alasan)   : baca SEMUA perusahaan. Hanya untuk migration (otomatis) dan
  *                                    pemanggilan eksplisit yang alasannya ditulis. Create tetap ditolak.
  * 2. User login                    : company_id user (dibaca dengan Auth::hasUser(), tanpa memicu query user).
+ *                                    Super Admin (company_id NULL): perusahaan yang dipilih di sesi, atau tidak ada.
  * 3. Request web tanpa user        : tidak ada konteks.
  * 4. Fallback                      : hanya dipasang test harness (tests/TestCase.php) = perusahaan DEFAULT.
  * 5. Selain itu (artisan, scheduler, tinker, queue) tanpa konteks: tidak ada konteks.
  *
  * "Tidak ada konteks" = query bertenant kosong dan create ditolak (fail closed).
- * Super Admin (lintas perusahaan lewat UI) ditambahkan di fase 1d.
  */
 #[Scoped]
 final class CurrentCompany
 {
+    public const SESSION_KEY = 'tenant.company_id';
+
+    /** @var array<int|string, bool> */
+    private array $superAdminCache = [];
+
     /** @var list<array{0: 'company', 1: int}|array{0: 'lintas', 1: string}> */
     private array $frames = [];
 
@@ -45,8 +53,12 @@ final class CurrentCompany
 
         if (Auth::hasUser()) {
             $companyId = Auth::user()?->getAttribute('company_id');
+            if ($companyId !== null) {
+                return (int) $companyId;
+            }
 
-            return $companyId === null ? null : (int) $companyId;
+            // Super Admin: perusahaan yang dipilih di menu Perusahaan (disimpan di sesi)
+            return $this->isSuperAdmin() ? $this->perusahaanDipilih() : null;
         }
 
         if ($this->httpDepth > 0) {
@@ -54,6 +66,50 @@ final class CurrentCompany
         }
 
         return $this->fallback !== null ? ($this->fallback)() : null;
+    }
+
+    /** User login adalah Super Admin: company_id NULL dan role platform "Super Admin". */
+    public function isSuperAdmin(): bool
+    {
+        if (! Auth::hasUser()) {
+            return false;
+        }
+
+        $user = Auth::user();
+        if ($user === null || $user->getAttribute('company_id') !== null) {
+            return false;
+        }
+
+        // query builder (tanpa scope) agar tidak memanggil CurrentCompany lagi
+        return $this->superAdminCache[$user->getAuthIdentifier()] ??= DB::table('roles')
+            ->where('id', $user->getAttribute('role_id'))
+            ->whereNull('company_id')
+            ->value('nama') === PasangHakPlatform::SUPER_ADMIN;
+    }
+
+    /** Super Admin memilih perusahaan aktif (null = belum memilih / keluar). */
+    public function pilihPerusahaan(?int $companyId): void
+    {
+        $session = $this->session();
+        if ($session === null) {
+            return;
+        }
+
+        $companyId === null ? $session->forget(self::SESSION_KEY) : $session->put(self::SESSION_KEY, $companyId);
+    }
+
+    public function perusahaanDipilih(): ?int
+    {
+        $id = $this->session()?->get(self::SESSION_KEY);
+
+        return $id === null ? null : (int) $id;
+    }
+
+    private function session(): ?Session
+    {
+        $request = request();
+
+        return $request->hasSession() ? $request->session() : null;
     }
 
     /** True = baca tidak dibatasi perusahaan (hanya di dalam lintasPerusahaan / migration). */

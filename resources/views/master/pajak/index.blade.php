@@ -2,10 +2,12 @@
 @section('title', 'Pajak & Tarif TER')
 @section('breadcrumb', 'Master Data / Pajak & Tarif TER')
 @section('content')
+{{-- multi-tenant: tabel TER nasional, hanya Super Admin yang boleh mengubah (tombol ubah disembunyikan untuk yang lain) --}}
+@php $bisaUbahPajak = auth()->user()->bisa('pajak', 'update'); @endphp
 <x-page-header judul="Pajak & Tarif TER" sub="Golongan, lapisan, dan tarif TER PPh21. Bisa disesuaikan kalau aturan pajak berubah.">
     <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#modalRiwayat"><i data-lucide="history"></i> Riwayat</button>
     <a href="{{ route('import.index') }}" class="btn btn-light"><i data-lucide="upload"></i> Import Excel</a>
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalGolBaru"><i data-lucide="plus"></i> Tambah golongan</button>
+    @if ($bisaUbahPajak)<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalGolBaru"><i data-lucide="plus"></i> Tambah golongan</button>@endif
 </x-page-header>
 
 <div class="info-bar">
@@ -31,7 +33,7 @@
                         <div class="text-end"><div class="fw-semibold">{{ $g->tarif_count }}</div><div class="small text-muted">lapisan</div></div>
                     </a>
                 @endforeach
-                <button class="btn btn-dashed" data-bs-toggle="modal" data-bs-target="#modalGolBaru">+ Tambah golongan</button>
+                @if ($bisaUbahPajak)<button class="btn btn-dashed" data-bs-toggle="modal" data-bs-target="#modalGolBaru">+ Tambah golongan</button>@endif
             </div>
         </div>
 
@@ -61,8 +63,8 @@
                     <div class="my-2"><span class="small text-muted me-1">PTKP</span>@foreach ($aktif->pajak as $p)<span class="chip-ptkp">{{ $p->status_ptkp }}</span>@endforeach</div>
                     <div class="small text-muted">Berlaku sejak {{ $pilihVersi ? tgl($pilihVersi, 'j M Y') : '-' }} · dasar hukum {{ $tarif->first()?->dasar_hukum ?? 'PP 58/2023' }} · {{ $tarif->total() }} lapisan</div>
                 </div>
-                <form method="post" action="{{ route('pajak.golongan.destroy', $aktif) }}" data-confirm="Hapus golongan {{ $aktif->kode }} beserta lapisan tarifnya?">@csrf @method('delete')<button class="btn btn-ghost text-danger"><i data-lucide="trash-2"></i> Hapus</button></form>
-                <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#modalGolUbah"><i data-lucide="pencil"></i> Ubah</button>
+                @if ($bisaUbahPajak)<form method="post" action="{{ route('pajak.golongan.destroy', $aktif) }}" data-confirm="Hapus golongan {{ $aktif->kode }} beserta lapisan tarifnya?">@csrf @method('delete')<button class="btn btn-ghost text-danger"><i data-lucide="trash-2"></i> Hapus</button></form>
+                <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#modalGolUbah"><i data-lucide="pencil"></i> Ubah</button>@endif
             </div>
         </div>
         <form class="card-search d-flex gap-2 mt-3 border-top" method="get">

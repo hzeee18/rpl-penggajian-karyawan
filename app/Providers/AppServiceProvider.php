@@ -26,6 +26,13 @@ class AppServiceProvider extends ServiceProvider
                 return;
             }
             $role = $user->isManagerHr() ? 'Manager HR' : $user->role->nama;
+            // multi-tenant: Super Admin melihat perusahaan yang sedang dikerjakan
+            $labelPeran = $role;
+            $konteks = app(\App\Domain\Company\Tenancy\CurrentCompany::class);
+            if ($konteks->isSuperAdmin()) {
+                $kode = \App\Domain\Company\Models\Company::whereKey($konteks->perusahaanDipilih())->value('code');
+                $labelPeran = $role . ($kode ? ' · ' . $kode : '');
+            }
 
             // Figma: HR & Karyawan punya satu menu "Absensi, Cuti & Lembur" (pakai tab),
             // Manager punya "Absensi Tim" (absensi + cuti) dan "Lembur Tim".
@@ -64,7 +71,7 @@ class AppServiceProvider extends ServiceProvider
             $view->with('sidebarUtama', $menus->whereNotNull('url'))
                 ->with('sidebarGrup', $menus->whereNull('url'))
                 ->with('menuAktif', $aktif)
-                ->with('labelRole', $role)
+                ->with('labelRole', $labelPeran)
                 ->with('jumlahNotif', $user->notifikasi()->where('is_read', false)->count())
                 ->with('notifTerbaru', $user->notifikasi()->take(6)->get());
         });

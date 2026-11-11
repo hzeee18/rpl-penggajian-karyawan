@@ -43,8 +43,10 @@ class AuthController extends Controller
                 $user->increment('gagal_login');
                 if ($user->gagal_login >= User::MAKS_GAGAL_LOGIN) {
                     $user->update(['is_locked' => true]);
-                    Notifikasi::kirim(User::idsRole(Role::ADMIN), 'Akun terkunci',
-                        "Akun {$user->username} terkunci karena salah password " . User::MAKS_GAGAL_LOGIN . ' kali.', 'user', $user->id);
+                    if ($user->company_id !== null) { // akun platform (Super Admin) tidak dilaporkan ke Admin perusahaan
+                        Notifikasi::kirim(User::idsRole(Role::ADMIN), 'Akun terkunci',
+                            "Akun {$user->username} terkunci karena salah password " . User::MAKS_GAGAL_LOGIN . ' kali.', 'user', $user->id);
+                    }
 
                     return back()->withInput()->withErrors(['username' => 'Akun terkunci karena salah password ' . User::MAKS_GAGAL_LOGIN . ' kali. Hubungi Admin.']);
                 }
@@ -83,7 +85,7 @@ class AuthController extends Controller
         $data = $request->validate(['username' => 'required|string', 'email' => 'required|email']);
         $user = User::withoutGlobalScope(CompanyScope::class)->where('username', $data['username'])->where('email', $data['email'])->first();
 
-        if ($user) {
+        if ($user && $user->company_id !== null) { // akun platform (Super Admin) tidak dilaporkan ke Admin perusahaan
             $this->dalamPerusahaan($user, fn () => Notifikasi::kirim(User::idsRole(Role::ADMIN), 'Permintaan reset password',
                 "User {$user->username} meminta reset password.", 'user', $user->id));
         }
@@ -95,9 +97,16 @@ class AuthController extends Controller
     /** Jalankan dalam konteks perusahaan user (sebelum login belum ada konteks dari sesi). */
     private function dalamPerusahaan(?User $user, Closure $proses): mixed
     {
-        return $user?->company_id !== null
-            ? app(CurrentCompany::class)->runAs((int) $user->company_id, $proses)
-            : $proses();
+        if ($user === null) {
+            return $proses();
+        }
+
+        $konteks = app(CurrentCompany::class);
+
+        return $user->company_id !== null
+            ? $konteks->runAs((int) $user->company_id, $proses)
+            // lintas perusahaan: akun platform (Super Admin) tidak punya perusahaan; yang diubah hanya baris user itu sendiri
+            : $konteks->lintasPerusahaan('login akun platform (Super Admin)', $proses);
     }
 
     public function gantiPassword(Request $request)

@@ -18,3 +18,25 @@ Artisan::command('kontrak:aktifkan', function () {
 })->purpose('Aktifkan kontrak yang sudah disetujui dan mulai berlaku');
 
 \Illuminate\Support\Facades\Schedule::command('kontrak:aktifkan')->dailyAt('00:05');
+
+// Multi-tenant: buat akun Super Admin (platform, company_id NULL). Tidak bisa dibuat dari UI, disengaja.
+Artisan::command('super-admin:buat {username} {--email=} {--password=}', function (string $username) {
+    if (\Illuminate\Support\Facades\DB::table('users')->where('username', $username)->exists()) {
+        $this->error("Username {$username} sudah dipakai.");
+
+        return 1;
+    }
+    $roleId = (new \App\Domain\Company\Actions\PasangHakPlatform)->handle();
+    $password = $this->option('password') ?: \Illuminate\Support\Str::password(16, symbols: false);
+    \Illuminate\Support\Facades\DB::table('users')->insert([
+        'company_id' => null, 'role_id' => $roleId, 'username' => $username, 'email' => $this->option('email'),
+        'password' => \Illuminate\Support\Facades\Hash::make($password), 'is_active' => true,
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $this->info("Super Admin {$username} dibuat.");
+    if (! $this->option('password')) {
+        $this->line("Password awal: {$password} (segera ganti setelah login)");
+    }
+
+    return 0;
+})->purpose('Buat akun Super Admin (lintas perusahaan, mengelola perusahaan dan tabel TER nasional)');

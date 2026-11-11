@@ -60,8 +60,16 @@ final class IsolasiDasarTest extends TestCase
 
     public function test_seed_lama_tidak_menyisakan_company_id_kosong(): void
     {
+        // satu-satunya data platform (company_id NULL) yang sah: role Super Admin dan hak aksesnya
+        $roleSuper = DB::table('roles')->whereNull('company_id')->where('nama', 'Super Admin')->pluck('id');
+        $this->assertCount(1, $roleSuper);
+
         foreach (self::TENANT_TABLES as $table) {
-            $this->assertSame(0, DB::table($table)->whereNull('company_id')->count(), "{$table} punya company_id NULL");
+            $kosong = DB::table($table)->whereNull('company_id')
+                ->when($table === 'roles', fn ($q) => $q->whereNotIn('id', $roleSuper))
+                ->when($table === 'privileges', fn ($q) => $q->whereNotIn('role_id', $roleSuper))
+                ->count();
+            $this->assertSame(0, $kosong, "{$table} punya company_id NULL");
         }
     }
 

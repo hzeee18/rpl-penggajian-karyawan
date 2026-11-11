@@ -301,3 +301,16 @@ php artisan test --configuration=phpunit.mysql.xml    # MySQL penggajian_test (g
 | File | PDF slip `slip/{periode}/{nik}.pdf` | Menjadi `slip/{company_id}/{periode}/{nik}.pdf`. Slip lama tetap memakai path yang tersimpan di `payslip.file_pdf`. |
 | Export | Excel/PDF laporan dihitung sebelum stream dari query ber-scope | Aman. |
 | Cache, job, event | Tidak dipakai di kode lama | – (aturan konteks untuk job baru: wajib `runAs`). |
+
+## 16. Fase 1d: Super Admin, pemilihan perusahaan, privilege per perusahaan (2026-11-11)
+
+- **Role platform** "Super Admin" (`company_id NULL`) + menu global **Perusahaan** (`url perusahaan`) + hak Super Admin (dashboard v; perusahaan, pajak, users, roles, menus vcud). Isinya di `PasangHakPlatform` (idempoten), dipanggil migration `2026_11_12_000001` (hanya instalasi berisi data), `DatabaseSeeder` (instalasi baru), dan `super-admin:buat`.
+- **Akun Super Admin** hanya dibuat lewat `php artisan super-admin:buat {username} [--email=] [--password=]` (tidak bisa dari UI).
+- **Pemilihan perusahaan**: Super Admin memilih perusahaan aktif di menu Perusahaan (disimpan di sesi). Tanpa pilihan, data bertenant tertutup. Label sidebar: "Super Admin · KODE".
+- **Perusahaan baru** (`BuatPerusahaan`): role, hak akses, dan approval mapping disalin dari DEFAULT sebagai templat; setelah itu diatur Admin perusahaan masing-masing.
+- **Pajak & Tarif TER**: HR (semua perusahaan) lihat saja; tombol tambah/ubah/hapus disembunyikan bagi yang tidak punya hak ubah. Super Admin vcud.
+- **Pengamanan menu platform**: `Menu::untukPerusahaan()` menyembunyikan menu Perusahaan dari editor hak akses role, Manajemen Menu, dan hitungan di dashboard Admin; ubah/hapus menu platform hanya Super Admin; route `/perusahaan` memakai middleware `super-admin` (lapisan kedua, terlepas dari isi `privileges`).
+- **Login akun platform**: diproses lintas perusahaan dengan alasan tercatat; notifikasi "akun terkunci"/"lupa password" untuk akun Super Admin **tidak** dikirim ke Admin perusahaan (mencegah bocornya akun platform).
+- Kode lama yang disentuh: `User::role()` dan `Privilege::cekAkses()` tanpa scope (dibatasi `role_id` milik user sendiri), `DashboardController` (Super Admin diarahkan ke Perusahaan; hitungan menu), `RoleController`/`MenuController` (menu platform), `AppServiceProvider` (label), view Pajak (tombol ubah).
+- **Snapshot karakterisasi yang berubah (disengaja)**: halaman Pajak untuk HR dan Manager HR (tombol ubah hilang, keputusan §11 butir 2). Semua snapshot lain identik.
+- **Menunggu keputusan**: Manajemen Menu bersifat global, tetapi Admin tiap perusahaan masih bisa menambah/mengubah/menghapus menu non-platform (berdampak ke semua perusahaan). Usul: Manajemen Menu khusus Super Admin. Belum diubah.

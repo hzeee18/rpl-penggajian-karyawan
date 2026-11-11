@@ -51,6 +51,15 @@ Route::middleware(['auth', 'aktif'])->group(function () {
         Route::delete('/menus/{menu}', [Admin\MenuController::class, 'destroy'])->middleware('akses:menus,delete')->name('menus.destroy');
     });
 
+    // ===== Platform (Super Admin): perusahaan =====
+    Route::middleware(['super-admin', 'akses:perusahaan'])->prefix('perusahaan')->name('perusahaan.')->group(function () {
+        Route::get('/', [Controllers\Platform\PerusahaanController::class, 'index'])->name('index');
+        Route::post('/', [Controllers\Platform\PerusahaanController::class, 'store'])->middleware('akses:perusahaan,create')->name('store');
+        Route::put('/{perusahaan}', [Controllers\Platform\PerusahaanController::class, 'update'])->middleware('akses:perusahaan,update')->name('update');
+        Route::post('/keluar', [Controllers\Platform\PerusahaanController::class, 'keluar'])->name('keluar');
+        Route::post('/{perusahaan}/pilih', [Controllers\Platform\PerusahaanController::class, 'pilih'])->name('pilih');
+    });
+
     // ===== Master data (HR) =====
     crud('departemen', Master\DepartemenController::class);
     Route::post('/komponen/pratinjau', [Master\KomponenController::class, 'pratinjau'])->middleware('akses:komponen')->name('komponen.pratinjau');

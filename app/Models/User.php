@@ -31,7 +31,8 @@ class User extends Authenticatable
 
     public function role()
     {
-        return $this->belongsTo(Role::class);
+        // multi-tenant: role milik user sendiri; tanpa scope agar role platform (Super Admin, company_id NULL) terbaca
+        return $this->belongsTo(Role::class)->withoutGlobalScope(\App\Domain\Company\Tenancy\CompanyScope::class);
     }
 
     public function karyawan()

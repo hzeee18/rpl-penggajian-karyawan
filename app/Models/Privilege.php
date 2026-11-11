@@ -31,7 +31,8 @@ class Privilege extends Model
     /** Cek apakah role boleh melakukan aksi pada menu (url). */
     public static function cekAkses(int $roleId, string $menuUrl, string $aksi = 'view'): bool
     {
-        return static::where('role_id', $roleId)
+        // multi-tenant: dibatasi role_id user (role-nya sendiri); tanpa scope agar hak Super Admin (company_id NULL) terbaca
+        return static::withoutGlobalScope(\App\Domain\Company\Tenancy\CompanyScope::class)->where('role_id', $roleId)
             ->whereHas('menu', fn ($q) => $q->where('url', $menuUrl))
             ->where('can_' . $aksi, true)
             ->exists();

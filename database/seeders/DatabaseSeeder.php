@@ -28,6 +28,9 @@ class DatabaseSeeder extends Seeder
         $companyId = (int) \App\Domain\Company\Models\Company::where('code', \App\Domain\Company\Models\Company::DEFAULT_CODE)->value('id');
 
         app(\App\Domain\Company\Tenancy\CurrentCompany::class)->runAs($companyId, fn () => $this->isi());
+
+        // data platform: role Super Admin, menu Perusahaan, hak akses (setelah menu & role dibuat di atas)
+        (new \App\Domain\Company\Actions\PasangHakPlatform)->handle();
     }
 
     private function isi(): void

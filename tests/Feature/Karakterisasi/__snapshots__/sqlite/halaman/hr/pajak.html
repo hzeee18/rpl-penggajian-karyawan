@@ -172,13 +172,13 @@
         </header>
 
         <main class="content">
-            <div class="page-header">
+            
+<div class="page-header">
     <div>
         <h1>Pajak &amp; Tarif TER</h1>
         <p>Golongan, lapisan, dan tarif TER PPh21. Bisa disesuaikan kalau aturan pajak berubah.</p>    </div>
     <div class="aksi"><button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#modalRiwayat"><i data-lucide="history"></i> Riwayat</button>
-    <a href="http://localhost:8000/import" class="btn btn-light"><i data-lucide="upload"></i> Import Excel</a>
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalGolBaru"><i data-lucide="plus"></i> Tambah golongan</button></div></div>
+    <a href="http://localhost:8000/import" class="btn btn-light"><i data-lucide="upload"></i> Import Excel</a></div></div>
 
 <div class="info-bar">
     <div class="item"><div class="k">Metode</div><div class="v">TER bulanan</div></div>
@@ -211,8 +211,7 @@
                         <div class="me-auto"><div class="fw-semibold">Golongan C</div><div class="small text-muted">PTKP K/3</div></div>
                         <div class="text-end"><div class="fw-semibold">41</div><div class="small text-muted">lapisan</div></div>
                     </a>
-                                <button class="btn btn-dashed" data-bs-toggle="modal" data-bs-target="#modalGolBaru">+ Tambah golongan</button>
-            </div>
+                                            </div>
         </div>
 
         <div class="card">
@@ -236,9 +235,7 @@
                     <div class="my-2"><span class="small text-muted me-1">PTKP</span><span class="chip-ptkp">TK/0</span><span class="chip-ptkp">TK/1</span><span class="chip-ptkp">K/0</span></div>
                     <div class="small text-muted">Berlaku sejak 1 Jan 2024 · dasar hukum PP 58/2023, PMK 168/2023 · 44 lapisan</div>
                 </div>
-                <form method="post" action="http://localhost:8000/pajak/golongan/1" data-confirm="Hapus golongan A beserta lapisan tarifnya?"><input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="delete"><button class="btn btn-ghost text-danger"><i data-lucide="trash-2"></i> Hapus</button></form>
-                <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#modalGolUbah"><i data-lucide="pencil"></i> Ubah</button>
-            </div>
+                            </div>
         </div>
         <form class="card-search d-flex gap-2 mt-3 border-top" method="get">
             <input type="hidden" name="golongan" value="1">
