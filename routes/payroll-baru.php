@@ -106,6 +106,13 @@ Route::prefix('pay')->name('pay.')->group(function () {
         Route::put('/{id}', [PayrollBaru\ApproverController::class, 'update'])->whereNumber('id')->middleware('akses:pay-approver,update')->name('update');
     });
 
+    // Fase 7: slip gaji
+    Route::middleware('akses:pay-slip')->prefix('slip')->name('slip.')->group(function () {
+        Route::get('/', [PayrollBaru\SlipPayrollController::class, 'index'])->name('index');
+        Route::get('/{id}', [PayrollBaru\SlipPayrollController::class, 'show'])->whereNumber('id')->name('show');
+        Route::get('/{id}/unduh', [PayrollBaru\SlipPayrollController::class, 'unduh'])->whereNumber('id')->name('unduh');
+    });
+
     Route::middleware('akses:pay-karyawan')->prefix('karyawan')->name('karyawan.')->group(function () {
         Route::get('/', [PayrollBaru\KaryawanPayrollController::class, 'index'])->name('index');
         Route::put('/{id}', [PayrollBaru\KaryawanPayrollController::class, 'update'])->whereNumber('id')->middleware('akses:pay-karyawan,update')->name('update');

@@ -39,6 +39,8 @@ final class PasangMenuPayroll
         'pay-run' => ['Generate Payroll', 'calculator', ['HR' => 'vcud', 'Admin' => 'v']],
         'pay-approval' => ['Approval Payroll', 'circle-check', ['Manager' => 'va']],
         'pay-approver' => ['Approver Payroll', 'user-check', ['Admin' => 'vu']],
+        // Fase 7
+        'pay-slip' => ['Slip Gaji Payroll', 'file-text', ['Karyawan' => 'v', 'Manager' => 'v', 'HR' => 'v']],
     ];
 
     public function handle(): void

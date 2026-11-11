@@ -136,8 +136,9 @@ trait DataPerusahaanLengkap
 
             $runB = PayrollRun::create(['title' => "{$p} Payroll", 'period_start' => '2026-10-26', 'period_end' => '2026-11-25',
                 'status' => 'pending_approval', 'created_by' => $users['hr']->id, 'approver_user_id' => $users['manager']->id]);
-            $runB->employees()->create(['employee_id' => $kStaf->id, 'contract_id' => $kontrakBaruB->id, 'period_start' => '2026-10-26', 'period_end' => '2026-11-25',
+            $runEmployeeB = $runB->employees()->create(['employee_id' => $kStaf->id, 'contract_id' => $kontrakBaruB->id, 'period_start' => '2026-10-26', 'period_end' => '2026-11-25',
                 'employee_no' => 'RB03', 'nik' => 'RB03', 'full_name' => "{$p} Staf", 'ptkp_status' => 'TK/0', 'take_home_pay' => '1.00']);
+            $slipB = \App\Domain\Payroll\Models\Payslip::create(['run_employee_id' => $runEmployeeB->id, 'employee_id' => $kStaf->id, 'note' => "{$p} slip"]);
 
             return ['company' => $company, 'users' => $users, 'id' => [
                 'karyawan' => $kStaf->id, 'departemen' => $ops->id, 'komponen' => $um->id, 'kontrak' => $kontrak->id,
@@ -146,7 +147,7 @@ trait DataPerusahaanLengkap
                 'role' => $role(Role::HR),
                 'pay_position' => $jabatan->id, 'pay_holiday' => $libur->id, 'pay_leave_type' => $tipe->id, 'pay_component' => $komponenBaru->id, 'pay_contract' => $kontrakBaruB->id,
                 'pay_ref_version' => $refVersiB->id, 'pay_master_version' => $masterVersiB->id,
-                'pay_run' => $runB->id,
+                'pay_run' => $runB->id, 'pay_slip' => $slipB->id,
                 'pay_import' => $batchB->id, 'pay_attendance' => $absenB->id, 'pay_leave' => $leaveB->id, 'pay_overtime' => $lemburB->id,
             ]];
         });

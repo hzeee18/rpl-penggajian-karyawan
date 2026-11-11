@@ -48,7 +48,13 @@ final class PerusahaanController extends Controller
 
     public function update(Request $request, Company $perusahaan)
     {
-        $perusahaan->update($request->validate($this->aturan() + ['is_active' => 'boolean']));
+        $data = $request->validate($this->aturan() + ['is_active' => 'boolean', 'tanda_tangan' => 'nullable|image|mimes:png,jpg,jpeg|max:1024']);
+        if ($request->hasFile('tanda_tangan')) {
+            // disimpan di disk privat; hanya dipakai di PDF slip
+            $data['signature_path'] = $request->file('tanda_tangan')->storeAs("signatures/{$perusahaan->id}", 'tanda-tangan.'.$request->file('tanda_tangan')->extension(), 'local');
+        }
+        unset($data['tanda_tangan']);
+        $perusahaan->update($data);
 
         return redirect()->route('perusahaan.index', ['ubah' => $perusahaan->id])->with('sukses', 'Perusahaan diperbarui.');
     }

@@ -38,7 +38,7 @@
     </div>
 
     <x-panel :judul="$ubah->exists ? 'Ubah Perusahaan' : 'Tambah Perusahaan'" :sub="$ubah->exists ? $ubah->code . ' · ' . $ubah->name : 'Role dan hak akses bawaan disalin dari perusahaan DEFAULT'"
-             :action="$ubah->exists ? route('perusahaan.update', $ubah) : route('perusahaan.store')" :method="$ubah->exists ? 'put' : 'post'">
+             :action="$ubah->exists ? route('perusahaan.update', $ubah) : route('perusahaan.store')" :method="$ubah->exists ? 'put' : 'post'" enctype="multipart/form-data">
         @unless ($ubah->exists)
             <div class="mb-field"><label class="form-label">Kode perusahaan</label><input name="code" value="{{ old('code') }}" class="form-control" maxlength="32" required></div>
         @endunless
@@ -47,6 +47,8 @@
         <div class="mb-field"><label class="form-label">Penanda tangan slip</label><input name="signer_name" value="{{ old('signer_name', $ubah->signer_name) }}" class="form-control"></div>
         <div class="mb-field"><label class="form-label">Jabatan penanda tangan</label><input name="signer_title" value="{{ old('signer_title', $ubah->signer_title) }}" class="form-control"></div>
         @if ($ubah->exists)
+            <div class="mb-field"><label class="form-label">Gambar tanda tangan (PNG/JPG, maks. 1 MB)</label><input type="file" name="tanda_tangan" accept="image/png,image/jpeg" class="form-control">
+                <div class="form-text">{{ $ubah->signature_path ? 'Sudah ada. Unggah untuk mengganti.' : 'Belum ada.' }}</div></div>
             <input type="hidden" name="is_active" value="0">
             <div class="form-check mb-field"><input type="checkbox" name="is_active" value="1" class="form-check-input" id="aktif" @checked(old('is_active', $ubah->is_active))><label class="form-check-label" for="aktif">Aktif</label></div>
         @endif

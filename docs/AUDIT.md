@@ -397,3 +397,12 @@ php artisan test --configuration=phpunit.mysql.xml    # MySQL penggajian_test (g
 - Halaman Approver Payroll (Admin): mengatur approver tiap user HR (harus Manager aktif, bukan diri sendiri).
 - Tes: `AlurPayrollTest` (5), fixture `SiapkanPayroll`; tes kebocoran mencakup halaman run/approval.
 - **Menunggu keputusan**: Manager HR yang juga membuat payroll (role Manager dengan hak HR di modul lama) belum dicakup halaman Approver Payroll, karena halaman itu hanya menampilkan user ber-role HR.
+
+## 23. Fase 7: slip PDF berpassword dan akses karyawan (2026-11-11)
+
+- Migration `2026_11_18_000001_create_pay_payslips_table` (belum dijalankan di DB dev): `pay_payslips` (satu per karyawan per run). **Tambahan di luar schema**: kolom `note` untuk alasan PDF belum terbit. Menu "Slip Gaji Payroll" tanpa hak bawaan (bawaan saat diaktifkan: Karyawan, Manager, HR lihat).
+- Penerbitan: event `PayrollDisetujui` → job `TerbitkanSlip` (konteks perusahaan eksplisit) → baris slip + PDF dompdf dari **snapshot run** (bukan kontrak/master terkini): nama & alamat perusahaan, data karyawan, komponen penambah/pengurang dengan nilai akhir, THP, penanda tangan + gambar tanda tangan (`companies.signer_*`, `signature_path`).
+- Password PDF (keputusan pemilik): 2 digit **terakhir** angka nomor karyawan + 4 digit terakhir nomor rekening (`PasswordSlip`; rekening didekripsi hanya saat membuat PDF). Enkripsi lewat CPDF dompdf (`setEncryption`, hak cetak), owner password acak per file. Bila nomor karyawan/rekening tidak cukup, PDF **tidak** diterbitkan tanpa password; slip diberi catatan.
+- File di disk privat `payslips/{company_id}/{run_id}/{nomor}.pdf`; tanda tangan di `signatures/{company_id}/` (diunggah Super Admin di menu Perusahaan).
+- Akses: karyawan hanya slip miliknya (`employee_id = users.karyawan_id`), user dengan hak lihat Generate Payroll (HR) melihat slip perusahaannya; slip perusahaan lain 404.
+- Tes: `SlipTest` (7), tes kebocoran mencakup slip & unduh perusahaan lain.
