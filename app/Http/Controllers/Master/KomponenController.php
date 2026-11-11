@@ -122,7 +122,7 @@ class KomponenController extends Controller
         $request->merge(['kode' => strtoupper(trim((string) $request->kode))]);
         $sistem = $k?->isSistem();
         $data = $request->validate([
-            'kode' => ['required', 'regex:/^[A-Z][A-Z0-9_]{0,9}$/', Rule::unique('payslip_component', 'kode')->ignore($k),
+            'kode' => ['required', 'regex:/^[A-Z][A-Z0-9_]{0,9}$/', \App\Domain\Company\Tenancy\TenantRule::unique('payslip_component', 'kode')->ignore($k),
                 function ($a, $v, $gagal) use ($k) { if ($v !== 'GP' && array_key_exists($v, \App\Support\Rumus::VARIABEL)) $gagal('Kode ' . $v . ' sudah dipakai sebagai variabel bawaan.'); }],
             'nama' => 'required|max:100',
             'jenis' => 'required|in:penambah,pengurang',

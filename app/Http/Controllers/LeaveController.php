@@ -75,7 +75,7 @@ class LeaveController extends Controller
     private function validasi(Request $request): array
     {
         $data = $request->validate([
-            'karyawan_id' => 'required|exists:karyawan,id',
+            'karyawan_id' => ['required', \App\Domain\Company\Tenancy\TenantRule::exists('karyawan')],
             'jenis' => 'required|in:' . implode(',', array_keys(Leave::JENIS)),
             'tgl_mulai' => 'required|date',
             'tgl_selesai' => 'required|date|after_or_equal:tgl_mulai',

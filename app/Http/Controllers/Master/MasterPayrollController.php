@@ -73,7 +73,7 @@ class MasterPayrollController extends Controller
         }]]);
 
         return $request->validate([
-            'periode' => ['required', 'date_format:Y-m', Rule::unique('master_payroll', 'periode')->ignore($m)],
+            'periode' => ['required', 'date_format:Y-m', \App\Domain\Company\Tenancy\TenantRule::unique('master_payroll', 'periode')->ignore($m)],
         ], ['periode.unique' => 'Periode ini sudah dibuat. Pilih bulan lain atau ubah periode yang sudah ada.']) + $request->validate([
             'tgl_mulai' => 'required|date',
             'tgl_selesai' => 'required|date|after:tgl_mulai',

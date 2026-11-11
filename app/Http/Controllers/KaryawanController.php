@@ -108,10 +108,10 @@ class KaryawanController extends Controller
     private function validasi(Request $request, ?Karyawan $k = null): array
     {
         $data = $request->validate([
-            'nik' => ['required', 'max:20', Rule::unique('karyawan')->ignore($k)],
+            'nik' => ['required', 'max:20', \App\Domain\Company\Tenancy\TenantRule::unique('karyawan')->ignore($k)],
             'nama' => 'required|max:100',
             'jenis_kelamin' => 'nullable|in:L,P',
-            'departemen_id' => 'required|exists:departemen,id',
+            'departemen_id' => ['required', \App\Domain\Company\Tenancy\TenantRule::exists('departemen')],
             'jabatan' => 'required|max:100',
             'tgl_masuk' => 'required|date',
             'pajak_id' => 'required|exists:pajak,id',

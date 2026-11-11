@@ -80,7 +80,7 @@ class OvertimeController extends Controller
     private function validasi(Request $request): array
     {
         $data = $request->validate([
-            'karyawan_id' => 'required|exists:karyawan,id',
+            'karyawan_id' => ['required', \App\Domain\Company\Tenancy\TenantRule::exists('karyawan')],
             'tanggal' => 'required|date',
             'jam_mulai' => 'required|date_format:H:i',
             'jam_selesai' => 'required|date_format:H:i|different:jam_mulai',

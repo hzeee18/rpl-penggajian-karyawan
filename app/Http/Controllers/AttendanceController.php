@@ -123,7 +123,7 @@ class AttendanceController extends Controller
     public function simpanHarian(Request $request)
     {
         $data = $request->validate([
-            'karyawan_id' => 'required|exists:karyawan,id',
+            'karyawan_id' => ['required', \App\Domain\Company\Tenancy\TenantRule::exists('karyawan')],
             'tanggal' => 'required|date',
             'status' => 'nullable|in:hadir,terlambat,alfa,sakit,izin,cuti',
             'jam_masuk' => 'nullable|date_format:H:i',
@@ -305,8 +305,8 @@ class AttendanceController extends Controller
     private function validasi(Request $request, ?Attendance $a = null): array
     {
         $data = $request->validate([
-            'karyawan_id' => 'required|exists:karyawan,id',
-            'tanggal' => ['required', 'date', Rule::unique('attendance')->where('karyawan_id', $request->karyawan_id)->ignore($a)],
+            'karyawan_id' => ['required', \App\Domain\Company\Tenancy\TenantRule::exists('karyawan')],
+            'tanggal' => ['required', 'date', \App\Domain\Company\Tenancy\TenantRule::unique('attendance')->where('karyawan_id', $request->karyawan_id)->ignore($a)],
             'status' => 'required|in:' . implode(',', array_keys(Attendance::STATUS)),
             'jam_masuk' => 'nullable|required_unless:status,alfa|date_format:H:i',
             'jam_keluar' => 'nullable|date_format:H:i',

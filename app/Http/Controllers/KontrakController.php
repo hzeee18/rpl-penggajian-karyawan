@@ -194,7 +194,7 @@ class KontrakController extends Controller
     private function validasi(Request $request): array
     {
         $data = $request->validate([
-            'karyawan_id' => 'required|exists:karyawan,id',
+            'karyawan_id' => ['required', \App\Domain\Company\Tenancy\TenantRule::exists('karyawan')],
             'jenis' => 'required|in:PKWT,PKWTT',
             'tgl_mulai' => 'required|date',
             'tgl_akhir' => 'nullable|required_if:jenis,PKWT|date|after:tgl_mulai',

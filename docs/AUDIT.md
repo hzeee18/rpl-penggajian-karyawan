@@ -290,3 +290,14 @@ php artisan test --configuration=phpunit.mysql.xml    # MySQL penggajian_test (g
 - Migration otomatis lintas perusahaan lewat event `MigrationsStarted`/`MigrationsEnded` (`TenancyServiceProvider`).
 - Seeder: `DatabaseSeeder` membuat data dalam `runAs(DEFAULT)`; bila seeder perlu membaca lintas perusahaan, pakai `lintasPerusahaan()` dengan alasan.
 - `kontrak:aktifkan` (scheduler 00:05): diulang per perusahaan dengan `runAs`, semua perusahaan diproses seperti sebelumnya.
+
+## 15. Fase 1c: query yang melewati scope (2026-11-11)
+
+| Jenis | Temuan | Tindakan |
+|---|---|---|
+| `DB::table`, `DB::select`, raw | Tidak ada di `app/` | – (seeder sudah diperbaiki di 1b) |
+| Validasi `unique:`/`exists:` | 15 aturan di 10 controller memakai query builder (lintas perusahaan) | Diganti `TenantRule::unique/exists` (dibatasi perusahaan aktif). Tetap global dengan sengaja: `users.username`, `users.karyawan_id`, tabel nasional `pajak`/`golongan_ter`, `menus`. |
+| Join manual | `payslip` ⋈ `payroll` (PayslipController, CariController, DashboardController) | Aman: basis query `Payslip` ber-scope, join lewat FK ke data perusahaan yang sama. |
+| File | PDF slip `slip/{periode}/{nik}.pdf` | Menjadi `slip/{company_id}/{periode}/{nik}.pdf`. Slip lama tetap memakai path yang tersimpan di `payslip.file_pdf`. |
+| Export | Excel/PDF laporan dihitung sebelum stream dari query ber-scope | Aman. |
+| Cache, job, event | Tidak dipakai di kode lama | – (aturan konteks untuk job baru: wajib `runAs`). |

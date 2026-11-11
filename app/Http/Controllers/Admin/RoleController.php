@@ -36,7 +36,7 @@ class RoleController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate(['nama' => 'required|max:50|unique:roles,nama']);
+        $request->validate(['nama' => ['required', 'max:50', \App\Domain\Company\Tenancy\TenantRule::unique('roles', 'nama')]]);
         $role = Role::create(['nama' => $request->nama]);
         LogAktivitas::catat('Tambah role ' . $role->nama, 'Privilege');
 
