@@ -357,3 +357,13 @@ php artisan test --configuration=phpunit.mysql.xml    # MySQL penggajian_test (g
 - Action: `BuatKontrak` (nilai default katalog **disalin**; hanya komponen aktif & `is_contractable`), `PerbaruiKontrak` (kontrak lama nonaktif, versi baru dengan `previous_contract_id`, nilai disalin), `NonaktifkanKontrak` (manual). Semua dalam transaksi dan tercatat di `audit_logs`.
 - Tidak ada ubah kontrak di tempat; kontrak kedaluwarsa ditandai "Kedaluwarsa" dan dinonaktifkan manual oleh HR.
 - Tes: `KontrakTest` (5), tes kebocoran mencakup `/pay/kontrak?lihat=`/`?perbarui=` id perusahaan lain. Snapshot Admin berubah (+1 menu).
+
+## 20. Fase 4: absensi, leave, lembur + import CSV (2026-11-11)
+
+- Migration `2026_11_15_000001_create_pay_attendance_tables` (belum dijalankan di DB dev): `pay_attendances`, `pay_leaves` (satu baris per hari), `pay_overtimes` (CHECK durasi > 0 di MySQL), `pay_import_batches`, `pay_import_batch_rows`; semua ber-`company_id`. Menu Absensi/Leave/Lembur/Import Payroll tanpa hak bawaan.
+- `ValidatorKehadiran` dipakai import CSV **dan** input manual: NIK harus ada & aktif di perusahaan aktif; tipe leave aktif; format tetap (tanggal `YYYY-MM-DD`, jam `HH:MM`, angka maks. 2 desimal, 0–24); absensi dan leave di tanggal sama ditolak (dua arah, termasuk di dalam file yang sama); duplikat di file ditolak; leave rentang dipecah per hari kerja (Sabtu/Minggu dilewati); lembur boleh lebih dari satu per hari.
+- Alur import: unggah (CSV koma/titik koma, BOM Excel ditangani, header wajib sesuai template, maks. 5.000 baris) → preview (baris error merah) → perbaiki/hapus baris (validasi ulang seluruh batch) → simpan hanya bila semua baris valid (divalidasi ulang dalam transaksi) / batalkan. Template CSV bisa diunduh.
+- Penguncian periode final: titik pengecekan `KunciPeriode` sudah dipakai validator dan ubah/hapus manual; logikanya diisi di Fase 6.
+- **Keputusan menunggu konfirmasi**: import karyawan (`type = employees` di schema) **tidak** dibuat di modul baru; data inti karyawan tetap dari menu dan import lama.
+- Temuan teknis: default route Laravel ditambahkan setelah parameter URL, sehingga parameter controller skalar terisi berdasarkan posisi; controller kehadiran membaca `jenis` dari route by name.
+- Tes: `KehadiranImportTest` (5), tes kebocoran mencakup halaman dan id kehadiran/import perusahaan lain.

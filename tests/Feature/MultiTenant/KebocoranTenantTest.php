@@ -77,7 +77,9 @@ final class KebocoranTenantTest extends TestCase
             $ubah = ['/pay/jabatan?ubah='.$b['id']['pay_position'], '/pay/libur?ubah='.$b['id']['pay_holiday'],
                 '/pay/tipe-leave?ubah='.$b['id']['pay_leave_type'], '/pay/komponen?ubah='.$b['id']['pay_component'],
                 '/pay/karyawan?ubah='.$b['id']['karyawan'], '/pay/kontrak?lihat='.$b['id']['pay_contract'],
-                '/pay/kontrak?perbarui='.$b['id']['pay_contract'], '/pay/kontrak?status=semua'];
+                '/pay/kontrak?perbarui='.$b['id']['pay_contract'], '/pay/kontrak?status=semua',
+                '/pay/import/'.$b['id']['pay_import'], '/pay/absensi?periode=2026-11&ubah='.$b['id']['pay_attendance'],
+                '/pay/leave?periode=2026-11&ubah='.$b['id']['pay_leave'], '/pay/lembur?periode=2026-11&ubah='.$b['id']['pay_overtime']];
             foreach (array_merge($this->daftarUrl($b['id'], hanyaBerparameter: true), $ubah) as $url) {
                 $r = $this->actingAs($user)->get($url);
                 $this->assertNotSame(200, $r->getStatusCode() === 200 && ! $r->isRedirect() && str_contains($this->isi($r), self::PENANDA) ? 200 : 0, "{$username} membuka {$url}");
@@ -165,7 +167,8 @@ final class KebocoranTenantTest extends TestCase
             array_push($urls, '/cari?q=RB0', '/cari?q=a', '/karyawan?q=RB0', '/users?q=ptb', '/slip?q=RB0',
                 '/slip?periode=2026-10', '/laporan?periode=2026-10', '/laporan/excel?periode=2026-10', '/laporan/pdf?periode=2026-10',
                 '/absensi?periode=2026-11', '/lembur?periode=2026-11', '/cuti?periode=2026-11', '/payroll/rekap', '/payroll/riwayat',
-                '/pay/karyawan?q=RB0', '/pay/jabatan?q=RB', '/pay/komponen?q=rb');
+                '/pay/karyawan?q=RB0', '/pay/jabatan?q=RB', '/pay/komponen?q=rb',
+                '/pay/absensi?periode=2026-11', '/pay/leave?periode=2026-11', '/pay/lembur?periode=2026-11', '/pay/import');
         }
 
         return $urls;

@@ -7,10 +7,12 @@ namespace Tests\Feature\MultiTenant;
 use App\Domain\Company\Actions\BuatPerusahaan;
 use App\Domain\Company\Models\Company;
 use App\Domain\Company\Tenancy\CurrentCompany;
+use App\Domain\Payroll\Actions\BuatKontrak;
 use App\Domain\Payroll\Actions\PasangMenuPayroll;
 use App\Domain\Payroll\Models\Component;
 use App\Domain\Payroll\Models\Employee;
 use App\Domain\Payroll\Models\Holiday;
+use App\Domain\Payroll\Models\ImportBatch;
 use App\Domain\Payroll\Models\LeaveType;
 use App\Domain\Payroll\Models\PeriodConfig;
 use App\Domain\Payroll\Models\Position;
@@ -111,7 +113,12 @@ trait DataPerusahaanLengkap
             $tipe = LeaveType::create(['code' => 'rb_tipe', 'name' => "{$p} Tipe Leave"]);
             $komponenBaru = Component::create(['code' => 'rb_komponen', 'name' => "{$p} Komponen", 'type' => 'earning', 'default_amount' => '100.00']);
             PeriodConfig::create(['start_day' => 21, 'end_day' => 20, 'start_in_previous_month' => true]);
-            $kontrakBaruB = app(\App\Domain\Payroll\Actions\BuatKontrak::class)->handle(
+            $batchB = ImportBatch::create(['type' => 'attendances', 'file_name' => "{$p}.csv", 'status' => 'previewing']);
+            $batchB->rows()->create(['row_no' => 2, 'payload' => ['nik' => $p], 'is_valid' => false, 'error_message' => $p]);
+            $absenB = \App\Domain\Payroll\Models\Attendance::create(['employee_id' => $kStaf->id, 'attendance_date' => '2026-11-05', 'late_hours' => '0']);
+            $leaveB = \App\Domain\Payroll\Models\Leave::create(['employee_id' => $kStaf->id, 'leave_type_id' => $tipe->id, 'leave_date' => '2026-11-06', 'note' => "{$p} leave"]);
+            $lemburB = \App\Domain\Payroll\Models\Overtime::create(['employee_id' => $kStaf->id, 'overtime_date' => '2026-11-07', 'duration_hours' => '2', 'note' => "{$p} lembur"]);
+            $kontrakBaruB = app(BuatKontrak::class)->handle(
                 ['employee_id' => $kStaf->id, 'contract_name' => "{$p} Kontrak Payroll", 'start_date' => '2026-01-01'],
                 [$komponenBaru->id => '123456.00'],
             );
@@ -123,6 +130,7 @@ trait DataPerusahaanLengkap
                 'payslip' => $slip->id, 'approval' => $approval->id, 'notifikasi' => $notif->id, 'user' => $users['hr']->id,
                 'role' => $role(Role::HR),
                 'pay_position' => $jabatan->id, 'pay_holiday' => $libur->id, 'pay_leave_type' => $tipe->id, 'pay_component' => $komponenBaru->id, 'pay_contract' => $kontrakBaruB->id,
+                'pay_import' => $batchB->id, 'pay_attendance' => $absenB->id, 'pay_leave' => $leaveB->id, 'pay_overtime' => $lemburB->id,
             ]];
         });
     }

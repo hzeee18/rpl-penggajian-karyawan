@@ -27,6 +27,11 @@ final class PasangMenuPayroll
         'pay-cutoff' => ['Cut Off', 'calendar-range', ['HR' => 'vu', 'Admin' => 'v']],
         // Fase 3
         'pay-kontrak' => ['Kontrak Payroll', 'file-signature', ['HR' => 'vcud', 'Admin' => 'v']],
+        // Fase 4
+        'pay-absensi' => ['Absensi Payroll', 'calendar-check', ['HR' => 'vcud', 'Admin' => 'v']],
+        'pay-leave' => ['Leave Payroll', 'calendar-x', ['HR' => 'vcud', 'Admin' => 'v']],
+        'pay-lembur' => ['Lembur Payroll', 'clock', ['HR' => 'vcud', 'Admin' => 'v']],
+        'pay-import' => ['Import CSV', 'upload', ['HR' => 'vcud']],
     ];
 
     public function handle(): void
