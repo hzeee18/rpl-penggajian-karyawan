@@ -1,0 +1,10 @@
+{
+    "/import/template/absensi": {
+        "status": 200,
+        "tipe": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    },
+    "/laporan/excel?periode=2026-10": {
+        "status": 200,
+        "tipe": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }
+}

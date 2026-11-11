@@ -1,0 +1,130 @@
+{
+    "percobaan": [
+        {
+            "status": 302,
+            "ke": "http://localhost:8000/login",
+            "sukses": null,
+            "errors": {
+                "default": {
+                    "format": ":message",
+                    "messages": {
+                        "username": [
+                            "Username atau password salah. Sisa percobaan: 4."
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "status": 302,
+            "ke": "http://localhost:8000/login",
+            "sukses": null,
+            "errors": {
+                "default": {
+                    "format": ":message",
+                    "messages": {
+                        "username": [
+                            "Username atau password salah. Sisa percobaan: 3."
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "status": 302,
+            "ke": "http://localhost:8000/login",
+            "sukses": null,
+            "errors": {
+                "default": {
+                    "format": ":message",
+                    "messages": {
+                        "username": [
+                            "Username atau password salah. Sisa percobaan: 2."
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "status": 302,
+            "ke": "http://localhost:8000/login",
+            "sukses": null,
+            "errors": {
+                "default": {
+                    "format": ":message",
+                    "messages": {
+                        "username": [
+                            "Username atau password salah. Sisa percobaan: 1."
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "status": 302,
+            "ke": "http://localhost:8000/login",
+            "sukses": null,
+            "errors": {
+                "default": {
+                    "format": ":message",
+                    "messages": {
+                        "username": [
+                            "Akun terkunci karena salah password 5 kali. Hubungi Admin."
+                        ]
+                    }
+                }
+            }
+        }
+    ],
+    "password_benar_saat_terkunci": {
+        "status": 302,
+        "ke": "http://localhost:8000/login",
+        "sukses": null,
+        "errors": {
+            "default": {
+                "format": ":message",
+                "messages": {
+                    "username": [
+                        "Akun terkunci karena salah password 5 kali. Hubungi Admin."
+                    ]
+                }
+            }
+        }
+    },
+    "username_tidak_ada": {
+        "status": 302,
+        "ke": "http://localhost:8000/login",
+        "sukses": null,
+        "errors": {
+            "default": {
+                "format": ":message",
+                "messages": {
+                    "username": [
+                        "Username atau password salah."
+                    ]
+                }
+            }
+        }
+    },
+    "user": {
+        "gagal_login": 5,
+        "is_locked": true,
+        "is_active": true,
+        "last_login": null
+    },
+    "notifikasi_baru": [
+        {
+            "ke": "manager.it",
+            "judul": "Kontrak menunggu approval",
+            "pesan": "Kontrak Nadia Putri (K0006) perlu persetujuan Anda.",
+            "jenis_ref": "approval"
+        },
+        {
+            "ke": "admin",
+            "judul": "Akun terkunci",
+            "pesan": "Akun rizky terkunci karena salah password 5 kali.",
+            "jenis_ref": "user"
+        }
+    ],
+    "login": false
+}

@@ -1,0 +1,33 @@
+{
+    "nonaktif": {
+        "status": 302,
+        "ke": "http://localhost:8000/login",
+        "sukses": null,
+        "errors": {
+            "default": {
+                "format": ":message",
+                "messages": {
+                    "username": [
+                        "Akun tidak aktif. Hubungi Admin."
+                    ]
+                }
+            }
+        }
+    },
+    "sesi_terkunci": {
+        "status": 302,
+        "ke": "http://localhost:8000/login",
+        "sukses": null,
+        "errors": {
+            "default": {
+                "format": ":message",
+                "messages": {
+                    "username": [
+                        "Akun Anda tidak aktif atau terkunci. Hubungi Admin."
+                    ]
+                }
+            }
+        }
+    },
+    "login": false
+}

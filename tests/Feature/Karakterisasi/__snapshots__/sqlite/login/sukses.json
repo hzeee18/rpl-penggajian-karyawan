@@ -1,0 +1,25 @@
+{
+    "login": {
+        "status": 302,
+        "ke": "http://localhost:8000/dashboard",
+        "sukses": null,
+        "errors": []
+    },
+    "dashboard": 200,
+    "user": {
+        "gagal_login": 0,
+        "is_locked": false,
+        "is_active": true,
+        "last_login": "2026-11-11 10:00:00"
+    },
+    "logout": {
+        "status": 302,
+        "ke": "http://localhost:8000/login",
+        "sukses": null,
+        "errors": []
+    },
+    "setelah_logout": [
+        302,
+        "http://localhost:8000/login"
+    ]
+}

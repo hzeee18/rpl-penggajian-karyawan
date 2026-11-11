@@ -1,0 +1,43 @@
+{
+    "email_terdaftar": true,
+    "cocok": {
+        "status": 302,
+        "ke": "http://localhost:8000/login",
+        "sukses": "Permintaan reset password sudah dikirim ke Admin. Password baru akan diberikan oleh Admin.",
+        "errors": []
+    },
+    "notifikasi_setelah_cocok": [
+        {
+            "ke": "manager.it",
+            "judul": "Kontrak menunggu approval",
+            "pesan": "Kontrak Nadia Putri (K0006) perlu persetujuan Anda.",
+            "jenis_ref": "approval"
+        },
+        {
+            "ke": "admin",
+            "judul": "Permintaan reset password",
+            "pesan": "User rizky meminta reset password.",
+            "jenis_ref": "user"
+        }
+    ],
+    "tidak_cocok": {
+        "status": 302,
+        "ke": "http://localhost:8000/login",
+        "sukses": "Permintaan reset password sudah dikirim ke Admin. Password baru akan diberikan oleh Admin.",
+        "errors": []
+    },
+    "notifikasi_setelah_tidak_cocok": [
+        {
+            "ke": "manager.it",
+            "judul": "Kontrak menunggu approval",
+            "pesan": "Kontrak Nadia Putri (K0006) perlu persetujuan Anda.",
+            "jenis_ref": "approval"
+        },
+        {
+            "ke": "admin",
+            "judul": "Permintaan reset password",
+            "pesan": "User rizky meminta reset password.",
+            "jenis_ref": "user"
+        }
+    ]
+}
