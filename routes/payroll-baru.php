@@ -57,6 +57,30 @@ Route::prefix('pay')->name('pay.')->group(function () {
         Route::post('/{id}/batal', [PayrollBaru\ImportPayrollController::class, 'batal'])->whereNumber('id')->middleware('akses:pay-import,delete')->name('batal');
     });
 
+    // Fase 5: tabel referensi + master payroll berversi
+    Route::middleware('akses:pay-referensi')->prefix('referensi')->name('referensi.')->group(function () {
+        $c = PayrollBaru\ReferensiController::class;
+        Route::get('/', [$c, 'index'])->name('index');
+        Route::post('/', [$c, 'store'])->middleware('akses:pay-referensi,create')->name('store');
+        Route::get('/versi/{id}', [$c, 'versi'])->whereNumber('id')->name('versi');
+        Route::post('/versi/{id}/baris', [$c, 'simpanBaris'])->whereNumber('id')->middleware('akses:pay-referensi,update')->name('baris.store');
+        Route::put('/versi/{id}/baris/{baris}', [$c, 'ubahBaris'])->whereNumber(['id', 'baris'])->middleware('akses:pay-referensi,update')->name('baris.update');
+        Route::delete('/versi/{id}/baris/{baris}', [$c, 'hapusBaris'])->whereNumber(['id', 'baris'])->middleware('akses:pay-referensi,update')->name('baris.destroy');
+        Route::post('/versi/{id}/terbitkan', [$c, 'terbitkan'])->whereNumber('id')->middleware('akses:pay-referensi,update')->name('terbitkan');
+        Route::post('/versi/{id}/salin', [$c, 'salin'])->whereNumber('id')->middleware('akses:pay-referensi,create')->name('salin');
+    });
+
+    Route::middleware('akses:pay-master')->prefix('master')->name('master.')->group(function () {
+        $c = PayrollBaru\MasterPayrollBaruController::class;
+        Route::get('/', [$c, 'index'])->name('index');
+        Route::post('/', [$c, 'store'])->middleware('akses:pay-master,create')->name('store');
+        Route::get('/versi/{id}', [$c, 'versi'])->whereNumber('id')->name('versi');
+        Route::post('/versi/{id}/{jenis}', [$c, 'simpanIsi'])->whereNumber('id')->whereIn('jenis', ['variabel', 'param', 'item'])->middleware('akses:pay-master,update')->name('isi.store');
+        Route::delete('/versi/{id}/{jenis}/{isi}', [$c, 'hapusIsi'])->whereNumber(['id', 'isi'])->whereIn('jenis', ['variabel', 'param', 'item'])->middleware('akses:pay-master,update')->name('isi.destroy');
+        Route::post('/versi/{id}/terbitkan', [$c, 'terbitkan'])->whereNumber('id')->middleware('akses:pay-master,update')->name('terbitkan');
+        Route::post('/versi/{id}/salin', [$c, 'salin'])->whereNumber('id')->middleware('akses:pay-master,create')->name('salin');
+    });
+
     Route::middleware('akses:pay-karyawan')->prefix('karyawan')->name('karyawan.')->group(function () {
         Route::get('/', [PayrollBaru\KaryawanPayrollController::class, 'index'])->name('index');
         Route::put('/{id}', [PayrollBaru\KaryawanPayrollController::class, 'update'])->whereNumber('id')->middleware('akses:pay-karyawan,update')->name('update');

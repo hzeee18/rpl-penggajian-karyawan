@@ -32,6 +32,9 @@ final class PasangMenuPayroll
         'pay-leave' => ['Leave Payroll', 'calendar-x', ['HR' => 'vcud', 'Admin' => 'v']],
         'pay-lembur' => ['Lembur Payroll', 'clock', ['HR' => 'vcud', 'Admin' => 'v']],
         'pay-import' => ['Import CSV', 'upload', ['HR' => 'vcud']],
+        // Fase 5
+        'pay-referensi' => ['Tabel Referensi', 'table-2', ['HR' => 'vcud', 'Admin' => 'v']],
+        'pay-master' => ['Master Payroll', 'sigma', ['HR' => 'vcud', 'Admin' => 'v']],
     ];
 
     public function handle(): void

@@ -367,3 +367,22 @@ php artisan test --configuration=phpunit.mysql.xml    # MySQL penggajian_test (g
 - **Keputusan menunggu konfirmasi**: import karyawan (`type = employees` di schema) **tidak** dibuat di modul baru; data inti karyawan tetap dari menu dan import lama.
 - Temuan teknis: default route Laravel ditambahkan setelah parameter URL, sehingga parameter controller skalar terisi berdasarkan posisi; controller kehadiran membaca `jenis` dari route by name.
 - Tes: `KehadiranImportTest` (5), tes kebocoran mencakup halaman dan id kehadiran/import perusahaan lain.
+
+## 21. Fase 5: tabel referensi dan mesin rumus (2026-11-11)
+
+**Skema** (migration `2026_11_16_000001`, belum dijalankan di DB dev): `pay_reference_tables` (+`company_key` STORED, `company_id NULL` = nasional), `pay_reference_table_versions`, `pay_reference_table_rows`, `pay_masters`, `pay_master_versions`, `pay_variables`, `pay_params`, `pay_items` (+ CHECK di MySQL sesuai schema). Menu Tabel Referensi & Master Payroll tanpa hak bawaan.
+
+**Mesin rumus** (`app/Domain/Payroll/Engine`):
+- Parser sendiri (tanpa `eval`, tanpa SQL dari input HR), hasil AST di-cache. Operator `+ - * / = != <> < <= > >= AND OR NOT`, fungsi whitelist: `IF` (malas), `MIN`, `MAX`, `ROUND` (half-up), `FLOOR`, `CEIL`, `ABS`, `WORKDAYS` (Senin-Jumat minus libur perusahaan), `DAYS`, `MONTHS_BETWEEN`, `LOOKUP`, `LOOKUP_TEXT`, `CONTRACT('kode')`.
+- Semua angka bcmath (string) skala 20 digit; nilai akhir tiap komponen dibulatkan half-up ke rupiah.
+- Variabel `base`: baris sumber diambil dengan query Eloquent terparameter (absensi, leave, lembur, libur, karyawan, kontrak dalam periode), lalu `filter_expression`/`value_expression` dievaluasi per baris memakai mesin yang sama atas field whitelist (`row.date`, `row.type`, `row.hours`, ...); agregat count/sum/avg/min/max/count_distinct_date.
+- Variabel bawaan: `period_start`, `period_end`, `join_date`, `resign_date`, `ptkp_status`, `has_npwp`, `workdays`; `gross_taxable` khusus komponen PPh21.
+- Urutan: parameter → variabel (sort_order) → komponen normal (sort_order) → komponen `pph21` selalu terakhir (bruto = nilai akhir penambah kena pajak). Override (Fase 6) dipakai sebagai nilai akhir dan mengalir ke komponen sesudahnya.
+- `ValidasiMaster`: rumus hanya merujuk yang ada **di atasnya** (mencegah sirkular), kode unik lintas variabel/parameter/komponen, field `row.x` sesuai sumber, komponen di `CONTRACT()` dan tabel di `LOOKUP()` harus ada, maksimal satu PPh21.
+- Tabel referensi: milik perusahaan didahulukan, lalu nasional; versi terbit yang berlaku pada akhir periode (`effective_from`); versi yang dipakai dicatat (untuk Fase 6).
+
+**Alur**: master dibuat dengan versi 1 draft → isi variabel/parameter/komponen (nama, jenis, kena pajak disalin dari katalog) → terbit hanya bila valid → versi terbit tidak bisa diubah, salin ke versi baru. Uji rumus untuk satu karyawan dan periode di halaman versi. Tabel nasional hanya dibuat/diubah Super Admin (`BelongsToCompanyOrNational`).
+
+**Tes**: `MesinRumusTest` (49, unit), `KalkulatorTest` (5, skenario Perusahaan A dengan tarif TER **fiktif**), `MasterReferensiTest` (2), tes kebocoran mencakup halaman referensi/master perusahaan lain.
+
+**Catatan proses**: percobaan menjalankan tes MySQL paralel lewat git worktree dihentikan: `vendor` berbagi (junction) membuat autoload Composer memakai kode folder utama, jadi hasilnya bukan verifikasi commit yang terisolasi. Tes MySQL kembali dijalankan berurutan.

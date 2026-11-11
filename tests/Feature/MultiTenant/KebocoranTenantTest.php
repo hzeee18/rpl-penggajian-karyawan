@@ -78,7 +78,8 @@ final class KebocoranTenantTest extends TestCase
                 '/pay/tipe-leave?ubah='.$b['id']['pay_leave_type'], '/pay/komponen?ubah='.$b['id']['pay_component'],
                 '/pay/karyawan?ubah='.$b['id']['karyawan'], '/pay/kontrak?lihat='.$b['id']['pay_contract'],
                 '/pay/kontrak?perbarui='.$b['id']['pay_contract'], '/pay/kontrak?status=semua',
-                '/pay/import/'.$b['id']['pay_import'], '/pay/absensi?periode=2026-11&ubah='.$b['id']['pay_attendance'],
+                '/pay/import/'.$b['id']['pay_import'], '/pay/referensi/versi/'.$b['id']['pay_ref_version'],
+                '/pay/master/versi/'.$b['id']['pay_master_version'], '/pay/absensi?periode=2026-11&ubah='.$b['id']['pay_attendance'],
                 '/pay/leave?periode=2026-11&ubah='.$b['id']['pay_leave'], '/pay/lembur?periode=2026-11&ubah='.$b['id']['pay_overtime']];
             foreach (array_merge($this->daftarUrl($b['id'], hanyaBerparameter: true), $ubah) as $url) {
                 $r = $this->actingAs($user)->get($url);
@@ -168,7 +169,7 @@ final class KebocoranTenantTest extends TestCase
                 '/slip?periode=2026-10', '/laporan?periode=2026-10', '/laporan/excel?periode=2026-10', '/laporan/pdf?periode=2026-10',
                 '/absensi?periode=2026-11', '/lembur?periode=2026-11', '/cuti?periode=2026-11', '/payroll/rekap', '/payroll/riwayat',
                 '/pay/karyawan?q=RB0', '/pay/jabatan?q=RB', '/pay/komponen?q=rb',
-                '/pay/absensi?periode=2026-11', '/pay/leave?periode=2026-11', '/pay/lembur?periode=2026-11', '/pay/import');
+                '/pay/absensi?periode=2026-11', '/pay/leave?periode=2026-11', '/pay/lembur?periode=2026-11', '/pay/import', '/pay/referensi', '/pay/master');
         }
 
         return $urls;

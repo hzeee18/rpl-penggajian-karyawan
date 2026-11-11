@@ -118,6 +118,12 @@ trait DataPerusahaanLengkap
             $absenB = \App\Domain\Payroll\Models\Attendance::create(['employee_id' => $kStaf->id, 'attendance_date' => '2026-11-05', 'late_hours' => '0']);
             $leaveB = \App\Domain\Payroll\Models\Leave::create(['employee_id' => $kStaf->id, 'leave_type_id' => $tipe->id, 'leave_date' => '2026-11-06', 'note' => "{$p} leave"]);
             $lemburB = \App\Domain\Payroll\Models\Overtime::create(['employee_id' => $kStaf->id, 'overtime_date' => '2026-11-07', 'duration_hours' => '2', 'note' => "{$p} lembur"]);
+            $refB = \App\Domain\Payroll\Models\ReferenceTable::create(['code' => 'rb_tabel', 'name' => "{$p} Tabel"]);
+            $refVersiB = \App\Domain\Payroll\Models\ReferenceTableVersion::create(['reference_table_id' => $refB->id, 'version_no' => 1, 'status' => 'draft']);
+            $refVersiB->rows()->create(['key_value' => $p, 'result_text' => $p]);
+            $masterB = app(\App\Domain\Payroll\Actions\KelolaMasterPayroll::class)->buatMaster(['code' => 'rb_master', 'name' => "{$p} Master"]);
+            $masterVersiB = $masterB->versions()->firstOrFail();
+            $masterVersiB->params()->create(['code' => 'rb_param', 'name' => "{$p} Param", 'value' => '1']);
             $kontrakBaruB = app(BuatKontrak::class)->handle(
                 ['employee_id' => $kStaf->id, 'contract_name' => "{$p} Kontrak Payroll", 'start_date' => '2026-01-01'],
                 [$komponenBaru->id => '123456.00'],
@@ -130,6 +136,7 @@ trait DataPerusahaanLengkap
                 'payslip' => $slip->id, 'approval' => $approval->id, 'notifikasi' => $notif->id, 'user' => $users['hr']->id,
                 'role' => $role(Role::HR),
                 'pay_position' => $jabatan->id, 'pay_holiday' => $libur->id, 'pay_leave_type' => $tipe->id, 'pay_component' => $komponenBaru->id, 'pay_contract' => $kontrakBaruB->id,
+                'pay_ref_version' => $refVersiB->id, 'pay_master_version' => $masterVersiB->id,
                 'pay_import' => $batchB->id, 'pay_attendance' => $absenB->id, 'pay_leave' => $leaveB->id, 'pay_overtime' => $lemburB->id,
             ]];
         });
