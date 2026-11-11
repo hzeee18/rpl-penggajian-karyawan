@@ -386,3 +386,14 @@ php artisan test --configuration=phpunit.mysql.xml    # MySQL penggajian_test (g
 **Tes**: `MesinRumusTest` (49, unit), `KalkulatorTest` (5, skenario Perusahaan A dengan tarif TER **fiktif**), `MasterReferensiTest` (2), tes kebocoran mencakup halaman referensi/master perusahaan lain.
 
 **Catatan proses**: percobaan menjalankan tes MySQL paralel lewat git worktree dihentikan: `vendor` berbagi (junction) membuat autoload Composer memakai kode folder utama, jadi hasilnya bukan verifikasi commit yang terisolasi. Tes MySQL kembali dijalankan berurutan.
+
+## 22. Fase 6: alur payroll (2026-11-11)
+
+- Migration `2026_11_17_000001_create_pay_runs_tables` (belum dijalankan di DB dev; **mengubah data `users`**: backup dulu): `users.approver_user_id` (+ isi awal HR → Manager HR perusahaan yang sama), `pay_runs`, `pay_run_employees` (kolom generated `blocking_key` + unique `uq_pre_one_active_per_period`), `pay_run_items`, `pay_run_reference_versions`, `pay_tax_monthly_histories`. Menu Generate Payroll, Approval Payroll, Approver Payroll tanpa hak bawaan.
+- Alur: buat run (periode dari cut off) → preview lewat queue job (`ProsesPratinjau`, per potongan 200 karyawan, konteks perusahaan eksplisit) → ubah sel (override, tanpa audit log; komponen turunan termasuk PPh21 dihitung ulang dari nilai override; "kembalikan ke hasil rumus") → generate lewat queue (`ProsesGenerate`: hitung ulang data terbaru dengan override dipertahankan, `is_blocking = 1`, status `pending_approval`, approver dari `users.approver_user_id`, kunci versi master dan versi tabel referensi yang dipakai) → Manager approver menyetujui (status `approved`, isi `pay_tax_monthly_histories`, event `PayrollDisetujui` untuk Fase 7) atau menolak dengan alasan (`is_blocking = 0`, karyawan bebas untuk payroll baru).
+- Hanya karyawan aktif dengan kontrak `is_active = 1`; yang sudah punya payroll aktif di periode beririsan, tanpa kontrak, atau rumusnya error dilewati dan dicatat di `skipped_employees`. Peringatan kontrak kedaluwarsa ditampilkan sebelum preview.
+- Draft dihapus fisik; selain draft tidak bisa dihapus/diubah. Hanya approver yang bisa melihat dan memutuskan (user lain 404/403).
+- `KunciPeriode` diisi: absensi/leave/lembur di periode karyawan yang sudah di-generate (pending/approved) ditolak; run yang ditolak melepas kunci.
+- Halaman Approver Payroll (Admin): mengatur approver tiap user HR (harus Manager aktif, bukan diri sendiri).
+- Tes: `AlurPayrollTest` (5), fixture `SiapkanPayroll`; tes kebocoran mencakup halaman run/approval.
+- **Menunggu keputusan**: Manager HR yang juga membuat payroll (role Manager dengan hak HR di modul lama) belum dicakup halaman Approver Payroll, karena halaman itu hanya menampilkan user ber-role HR.

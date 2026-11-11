@@ -35,6 +35,10 @@ final class PasangMenuPayroll
         // Fase 5
         'pay-referensi' => ['Tabel Referensi', 'table-2', ['HR' => 'vcud', 'Admin' => 'v']],
         'pay-master' => ['Master Payroll', 'sigma', ['HR' => 'vcud', 'Admin' => 'v']],
+        // Fase 6
+        'pay-run' => ['Generate Payroll', 'calculator', ['HR' => 'vcud', 'Admin' => 'v']],
+        'pay-approval' => ['Approval Payroll', 'circle-check', ['Manager' => 'va']],
+        'pay-approver' => ['Approver Payroll', 'user-check', ['Admin' => 'vu']],
     ];
 
     public function handle(): void

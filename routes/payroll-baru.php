@@ -81,6 +81,31 @@ Route::prefix('pay')->name('pay.')->group(function () {
         Route::post('/versi/{id}/salin', [$c, 'salin'])->whereNumber('id')->middleware('akses:pay-master,create')->name('salin');
     });
 
+    // Fase 6: alur payroll (preview, edit sel, generate, approval)
+    Route::middleware('akses:pay-run')->prefix('run')->name('run.')->group(function () {
+        $c = PayrollBaru\RunController::class;
+        Route::get('/', [$c, 'index'])->name('index');
+        Route::post('/', [$c, 'store'])->middleware('akses:pay-run,create')->name('store');
+        Route::get('/{id}', [$c, 'show'])->whereNumber('id')->name('show');
+        Route::post('/{id}/pratinjau', [$c, 'pratinjau'])->whereNumber('id')->middleware('akses:pay-run,update')->name('pratinjau');
+        Route::put('/{id}/karyawan/{karyawan}', [$c, 'ubahSel'])->whereNumber(['id', 'karyawan'])->middleware('akses:pay-run,update')->name('sel');
+        Route::post('/{id}/generate', [$c, 'generate'])->whereNumber('id')->middleware('akses:pay-run,create')->name('generate');
+        Route::delete('/{id}', [$c, 'destroy'])->whereNumber('id')->middleware('akses:pay-run,delete')->name('destroy');
+    });
+
+    Route::middleware('akses:pay-approval')->prefix('approval')->name('approval.')->group(function () {
+        $c = PayrollBaru\ApprovalPayrollController::class;
+        Route::get('/', [$c, 'index'])->name('index');
+        Route::get('/{id}', [$c, 'show'])->whereNumber('id')->name('show');
+        Route::post('/{id}/setujui', [$c, 'setujui'])->whereNumber('id')->middleware('akses:pay-approval,approve')->name('setujui');
+        Route::post('/{id}/tolak', [$c, 'tolak'])->whereNumber('id')->middleware('akses:pay-approval,approve')->name('tolak');
+    });
+
+    Route::middleware('akses:pay-approver')->prefix('approver')->name('approver.')->group(function () {
+        Route::get('/', [PayrollBaru\ApproverController::class, 'index'])->name('index');
+        Route::put('/{id}', [PayrollBaru\ApproverController::class, 'update'])->whereNumber('id')->middleware('akses:pay-approver,update')->name('update');
+    });
+
     Route::middleware('akses:pay-karyawan')->prefix('karyawan')->name('karyawan.')->group(function () {
         Route::get('/', [PayrollBaru\KaryawanPayrollController::class, 'index'])->name('index');
         Route::put('/{id}', [PayrollBaru\KaryawanPayrollController::class, 'update'])->whereNumber('id')->middleware('akses:pay-karyawan,update')->name('update');

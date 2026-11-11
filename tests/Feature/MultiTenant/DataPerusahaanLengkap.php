@@ -8,14 +8,18 @@ use App\Domain\Company\Actions\BuatPerusahaan;
 use App\Domain\Company\Models\Company;
 use App\Domain\Company\Tenancy\CurrentCompany;
 use App\Domain\Payroll\Actions\BuatKontrak;
+use App\Domain\Payroll\Actions\KelolaMasterPayroll;
 use App\Domain\Payroll\Actions\PasangMenuPayroll;
 use App\Domain\Payroll\Models\Component;
 use App\Domain\Payroll\Models\Employee;
 use App\Domain\Payroll\Models\Holiday;
 use App\Domain\Payroll\Models\ImportBatch;
 use App\Domain\Payroll\Models\LeaveType;
+use App\Domain\Payroll\Models\PayrollRun;
 use App\Domain\Payroll\Models\PeriodConfig;
 use App\Domain\Payroll\Models\Position;
+use App\Domain\Payroll\Models\ReferenceTable;
+use App\Domain\Payroll\Models\ReferenceTableVersion;
 use App\Models\Approval;
 use App\Models\ApprovalMapping;
 use App\Models\Attendance;
@@ -118,10 +122,10 @@ trait DataPerusahaanLengkap
             $absenB = \App\Domain\Payroll\Models\Attendance::create(['employee_id' => $kStaf->id, 'attendance_date' => '2026-11-05', 'late_hours' => '0']);
             $leaveB = \App\Domain\Payroll\Models\Leave::create(['employee_id' => $kStaf->id, 'leave_type_id' => $tipe->id, 'leave_date' => '2026-11-06', 'note' => "{$p} leave"]);
             $lemburB = \App\Domain\Payroll\Models\Overtime::create(['employee_id' => $kStaf->id, 'overtime_date' => '2026-11-07', 'duration_hours' => '2', 'note' => "{$p} lembur"]);
-            $refB = \App\Domain\Payroll\Models\ReferenceTable::create(['code' => 'rb_tabel', 'name' => "{$p} Tabel"]);
-            $refVersiB = \App\Domain\Payroll\Models\ReferenceTableVersion::create(['reference_table_id' => $refB->id, 'version_no' => 1, 'status' => 'draft']);
+            $refB = ReferenceTable::create(['code' => 'rb_tabel', 'name' => "{$p} Tabel"]);
+            $refVersiB = ReferenceTableVersion::create(['reference_table_id' => $refB->id, 'version_no' => 1, 'status' => 'draft']);
             $refVersiB->rows()->create(['key_value' => $p, 'result_text' => $p]);
-            $masterB = app(\App\Domain\Payroll\Actions\KelolaMasterPayroll::class)->buatMaster(['code' => 'rb_master', 'name' => "{$p} Master"]);
+            $masterB = app(KelolaMasterPayroll::class)->buatMaster(['code' => 'rb_master', 'name' => "{$p} Master"]);
             $masterVersiB = $masterB->versions()->firstOrFail();
             $masterVersiB->params()->create(['code' => 'rb_param', 'name' => "{$p} Param", 'value' => '1']);
             $kontrakBaruB = app(BuatKontrak::class)->handle(
@@ -130,6 +134,11 @@ trait DataPerusahaanLengkap
             );
             Employee::findOrFail($kStaf->id)->fill(['position_id' => $jabatan->id, 'has_npwp' => true, 'npwp' => '99.999.999.9-999.999'])->save();
 
+            $runB = PayrollRun::create(['title' => "{$p} Payroll", 'period_start' => '2026-10-26', 'period_end' => '2026-11-25',
+                'status' => 'pending_approval', 'created_by' => $users['hr']->id, 'approver_user_id' => $users['manager']->id]);
+            $runB->employees()->create(['employee_id' => $kStaf->id, 'contract_id' => $kontrakBaruB->id, 'period_start' => '2026-10-26', 'period_end' => '2026-11-25',
+                'employee_no' => 'RB03', 'nik' => 'RB03', 'full_name' => "{$p} Staf", 'ptkp_status' => 'TK/0', 'take_home_pay' => '1.00']);
+
             return ['company' => $company, 'users' => $users, 'id' => [
                 'karyawan' => $kStaf->id, 'departemen' => $ops->id, 'komponen' => $um->id, 'kontrak' => $kontrak->id,
                 'attendance' => $absen->id, 'leave' => $cuti->id, 'overtime' => $lembur->id, 'payroll' => $payroll->id,
@@ -137,6 +146,7 @@ trait DataPerusahaanLengkap
                 'role' => $role(Role::HR),
                 'pay_position' => $jabatan->id, 'pay_holiday' => $libur->id, 'pay_leave_type' => $tipe->id, 'pay_component' => $komponenBaru->id, 'pay_contract' => $kontrakBaruB->id,
                 'pay_ref_version' => $refVersiB->id, 'pay_master_version' => $masterVersiB->id,
+                'pay_run' => $runB->id,
                 'pay_import' => $batchB->id, 'pay_attendance' => $absenB->id, 'pay_leave' => $leaveB->id, 'pay_overtime' => $lemburB->id,
             ]];
         });
