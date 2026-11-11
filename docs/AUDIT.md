@@ -314,3 +314,20 @@ php artisan test --configuration=phpunit.mysql.xml    # MySQL penggajian_test (g
 - Kode lama yang disentuh: `User::role()` dan `Privilege::cekAkses()` tanpa scope (dibatasi `role_id` milik user sendiri), `DashboardController` (Super Admin diarahkan ke Perusahaan; hitungan menu), `RoleController`/`MenuController` (menu platform), `AppServiceProvider` (label), view Pajak (tombol ubah).
 - **Snapshot karakterisasi yang berubah (disengaja)**: halaman Pajak untuk HR dan Manager HR (tombol ubah hilang, keputusan §11 butir 2). Semua snapshot lain identik.
 - **Menunggu keputusan**: Manajemen Menu bersifat global, tetapi Admin tiap perusahaan masih bisa menambah/mengubah/menghapus menu non-platform (berdampak ke semua perusahaan). Usul: Manajemen Menu khusus Super Admin. Belum diubah.
+
+## 17. Fase 1e: tes kebocoran tenant dan company_id NOT NULL (2026-11-11)
+
+- **Tes kebocoran** (`KebocoranTenantTest` + fixture `DataPerusahaanLengkap`): perusahaan kedua diisi data di 21 tabel bertenant dengan penanda `RAHASIA-B`. Daftar URL diambil otomatis dari router (semua GET, parameter diisi id), ditambah varian cari/filter/export:
+  - 5 user perusahaan A membuka semua URL: penanda B tidak pernah muncul (HTML, JSON `/cari`, isi Excel; PDF dilewati karena terkompresi, datanya dari query yang sama).
+  - id milik B dibuka dari A: tidak pernah tampil (403/404, atau redirect ke data A).
+  - 17 route model binding milik B selalu 403/404.
+  - user perusahaan B (4 role) tidak melihat penanda data A.
+  - Uji mutasi: tanpa `BelongsToCompany` di `Karyawan`, tes gagal di `/users/create` dan `/karyawan/{id}` (tes terbukti mendeteksi kebocoran).
+- **Migration `2026_11_12_000002_company_id_not_null`**: 18 tabel data perusahaan menjadi NOT NULL (`users`, `roles`, `privileges` tetap nullable untuk data platform). Menolak berjalan bila masih ada NULL. Diverifikasi di DB test MySQL berisi data: rollback hanya mengubah nullability 18 kolom tersebut.
+- Hasil: 77 tes lulus di SQLite dan MySQL.
+
+### Migration yang menunggu persetujuan untuk DB dev
+| Migration | Mengubah data lama? |
+|---|---|
+| `2026_11_12_000001_super_admin_dan_menu_perusahaan` | Ya (privileges HR Pajak, role/menu baru) → backup dulu |
+| `2026_11_12_000002_company_id_not_null` | Tidak (hanya constraint) |

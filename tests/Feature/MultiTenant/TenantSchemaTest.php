@@ -54,19 +54,25 @@ final class TenantSchemaTest extends TestCase
     {
         $default = $this->companyId('DEFAULT');
         $lain = $this->company('LAIN');
-        $tanpa = $this->karyawan(null, 'K-NULL');
-        $milikLain = $this->karyawan($lain, 'K-LAIN');
-
+        // roles tetap nullable setelah migration NOT NULL (data platform), jadi dipakai untuk menguji backfill
+        $tanpa = $this->role(null, 'Role Tanpa Perusahaan');
+        $milikLain = $this->role($lain, 'Role Lain');
         $backfill = require database_path('migrations/2026_11_11_000003_backfill_company_id_default.php');
+        // down() tidak diuji di sini: setelah migration NOT NULL, rollback yang sah selalu membatalkan NOT NULL dulu
+        // (diuji lewat migrate:rollback di DB test MySQL, lihat AUDIT.md §17)
         $backfill->up();
 
-        $this->assertSame($default, (int) DB::table('karyawan')->where('id', $tanpa)->value('company_id'));
-        $this->assertSame($lain, (int) DB::table('karyawan')->where('id', $milikLain)->value('company_id'));
+        $this->assertSame($default, (int) DB::table('roles')->where('id', $tanpa)->value('company_id'));
+        $this->assertSame($lain, (int) DB::table('roles')->where('id', $milikLain)->value('company_id'));
+    }
 
-        $backfill->down();
+    public function test_company_id_wajib_di_tabel_data_perusahaan(): void
+    {
+        $notNull = require database_path('migrations/2026_11_12_000002_company_id_not_null.php');
+        $this->assertSame(array_values(array_diff(self::TENANT_TABLES, ['users', 'roles', 'privileges'])), $notNull::TABLES);
 
-        $this->assertNull(DB::table('karyawan')->where('id', $tanpa)->value('company_id'));
-        $this->assertSame($lain, (int) DB::table('karyawan')->where('id', $milikLain)->value('company_id'));
+        $this->expectException(QueryException::class);
+        $this->karyawan(null, 'K-NULL');
     }
 
     public function test_nik_karyawan_unik_per_perusahaan(): void
