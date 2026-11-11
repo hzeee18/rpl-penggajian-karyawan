@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tambah user · Penggajian Karyawan</title>
+    <link rel="icon" href="http://localhost:8000/img/logo-unindra.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css" rel="stylesheet">
+    <link href="http://localhost:8000/css/app.css?v=24" rel="stylesheet">
+    <meta name="turbo-cache-control" content="no-preview">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/id.js"></script>
+    <script src="http://localhost:8000/js/form.js?v=9"></script>
+    <script src="http://localhost:8000/js/app.js?v=6"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.12/dist/turbo.es2017-umd.js"></script>
+    </head>
+<body>
+<div class="d-flex">
+    
+    <aside class="sidebar offcanvas-lg offcanvas-start" tabindex="-1" id="sidebar">
+        <div class="sidebar-brand">
+            <img src="http://localhost:8000/img/logo-unindra.png" alt="Logo Unindra">
+            <div>
+                <div class="nama">Penggajian Karyawan</div>
+                <div class="kampus">Universitas Indraprasta PGRI</div>
+            </div>
+        </div>
+
+        <div class="nav-label">Menu Admin</div>
+                    <a href="http://localhost:8000/dashboard" class="nav-item-link ">
+                <i data-lucide="layout-grid"></i> Dashboard
+            </a>
+                    <a href="http://localhost:8000/users" class="nav-item-link active">
+                <i data-lucide="users"></i> Manajemen User
+            </a>
+                    <a href="http://localhost:8000/roles" class="nav-item-link ">
+                <i data-lucide="shield"></i> Role &amp; Privilege
+            </a>
+                    <a href="http://localhost:8000/menus" class="nav-item-link ">
+                <i data-lucide="layers"></i> Manajemen Menu
+            </a>
+                
+        <div class="sidebar-user mt-auto">
+            <span class="avatar">AD</span>
+            <div class="text-truncate">
+                <div class="nama text-truncate">admin</div>
+                <div class="peran text-truncate">Administrator</div>
+            </div>
+        </div>
+        <form method="post" action="http://localhost:8000/logout"><input type="hidden" name="_token" value="TOKEN" autocomplete="off">            <button class="nav-item-link"><i data-lucide="log-out"></i> Keluar</button>
+        </form>
+    </aside>
+
+    <div class="main flex-grow-1">
+        
+        <header class="topbar">
+            <button class="btn-topbar d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-label="Menu"><i data-lucide="menu"></i></button>
+            <div class="me-auto">
+                <div class="crumb">Administrasi / Manajemen User</div>
+                <div class="judul">Tambah user</div>
+            </div>
+
+            <form class="topbar-search d-none d-md-block" action="http://localhost:8000/dashboard" data-cari="http://localhost:8000/cari" role="search">
+                <i data-lucide="search"></i>
+                <input name="q" class="form-control" placeholder="Cari menu..." value="" autocomplete="off" aria-autocomplete="list">
+                <div class="cari-hasil" hidden></div>
+            </form>
+
+            <div class="dropdown">
+                <button class="btn-topbar" data-bs-toggle="dropdown" aria-label="Notifikasi">
+                    <i data-lucide="bell"></i>
+                                    </button>
+                <div class="dropdown-menu dropdown-menu-end p-0 notif-menu">
+                    <div class="d-flex justify-content-between align-items-center px-3 py-3 border-bottom">
+                        <strong>Notifikasi </strong>
+                        <a href="http://localhost:8000/notifikasi" class="small fw-semibold">Lihat semua</a>
+                    </div>
+                                            <div class="empty">
+    <i data-lucide="bell-off"></i>
+    <span class="judul-empty">Belum ada notifikasi</span>
+    <div class="small">Kabar soal approval, lembur, dan slip gaji akan muncul di sini.</div>    </div>
+                                    </div>
+            </div>
+
+            <div class="dropdown">
+                <button class="btn-avatar" data-bs-toggle="dropdown" aria-label="Menu profil"><span class="avatar">AD</span></button>
+                <div class="dropdown-menu dropdown-menu-end" style="width:240px">
+                    <div class="px-3 py-2 border-bottom mb-1">
+                        <div class="fw-semibold">admin</div>
+                        <div class="small text-muted">admin · Admin</div>
+                    </div>
+                                        <button class="dropdown-item d-flex gap-2" data-bs-toggle="modal" data-bs-target="#modalPassword"><i data-lucide="key-round"></i> Ganti kata sandi</button>
+                    <div class="dropdown-divider"></div>
+                    <form method="post" action="http://localhost:8000/logout"><input type="hidden" name="_token" value="TOKEN" autocomplete="off">                        <button class="dropdown-item d-flex gap-2 text-danger"><i data-lucide="log-out"></i> Keluar</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <main class="content">
+            <div class="page-header">
+    <div>
+        <h1>Tambah user</h1>
+        <p>Akun dipakai untuk login. Hubungkan ke data karyawan kalau bukan Admin.</p>    </div>
+    </div>
+<div class="card" style="max-width:640px">
+    <form method="post" action="http://localhost:8000/users" class="card-body">
+        <input type="hidden" name="_token" value="TOKEN" autocomplete="off">         <div class="mb-3">
+            <label class="form-label">Karyawan</label>
+            <select name="karyawan_id" class="form-select">
+                <option value="">— Tidak terhubung karyawan (mis. Admin) —</option>
+                <option value="60" >K0060 · Abyasa Mandala</option><option value="105" >K0105 · Ade Mardhiyah</option><option value="67" >K0067 · Ajiono Widiastuti</option><option value="83" >K0083 · Anita Maryati</option><option value="29" >K0029 · Arsipatra Halimah</option><option value="92" >K0092 · Asman Hartati</option><option value="15" >K0015 · Atma Mandasari</option><option value="86" >K0086 · Ayu Kurniawan</option><option value="110" >K0110 · Ayu Wulandari</option><option value="43" >K0043 · Bagus Tampubolon</option><option value="33" >K0033 · Bajragin Utami</option><option value="62" >K0062 · Bakianto Lailasari</option><option value="69" >K0069 · Bakianto Wahyuni</option><option value="54" >K0054 · Bakijan Andriani</option><option value="91" >K0091 · Bakijan Lazuardi</option><option value="80" >K0080 · Cengkir Nashiruddin</option><option value="70" >K0070 · Chelsea Purwanti</option><option value="63" >K0063 · Cici Lailasari</option><option value="45" >K0045 · Dadap Laksita</option><option value="73" >K0073 · Darmanto Simbolon</option><option value="36" >K0036 · Dwi Fujiati</option><option value="82" >K0082 · Edi Tarihoran</option><option value="49" >K0049 · Emas Pangestu</option><option value="112" >K0112 · Endra Farida</option><option value="50" >K0050 · Estiono Sitorus</option><option value="76" >K0076 · Gaman Habibi</option><option value="37" >K0037 · Gamanto Hartati</option><option value="35" >K0035 · Gatot Pratiwi</option><option value="115" >K0115 · Gawati Saptono</option><option value="89" >K0089 · Ghaliyati Nasyidah</option><option value="96" >K0096 · Hafshah Suwarno</option><option value="97" >K0097 · Harjo Mansur</option><option value="19" >K0019 · Harsanto Lestari</option><option value="31" >K0031 · Hasta Mansur</option><option value="47" >K0047 · Humaira Namaga</option><option value="118" >K0118 · Icha Rajasa</option><option value="74" >K0074 · Icha Wulandari</option><option value="18" >K0018 · Ika Manullang</option><option value="48" >K0048 · Ira Tampubolon</option><option value="116" >K0116 · Irma Kuswandari</option><option value="46" >K0046 · Irma Utami</option><option value="114" >K0114 · Jaga Permadi</option><option value="42" >K0042 · Jaiman Usada</option><option value="20" >K0020 · Jaka Hastuti</option><option value="17" >K0017 · Jarwa Simbolon</option><option value="107" >K0107 · Jessica Hutagalung</option><option value="61" >K0061 · Kamal Thamrin</option><option value="52" >K0052 · Kamaria Wasita</option><option value="53" >K0053 · Kania Prasetya</option><option value="71" >K0071 · Karma Dongoran</option><option value="32" >K0032 · Karma Suartini</option><option value="58" >K0058 · Kawaca Usamah</option><option value="23" >K0023 · Kiandra Prakasa</option><option value="87" >K0087 · Labuh Tarihoran</option><option value="66" >K0066 · Lalita Mulyani</option><option value="24" >K0024 · Lanjar Rajata</option><option value="99" >K0099 · Laras Purwanti</option><option value="72" >K0072 · Lintang Mansur</option><option value="85" >K0085 · Luwar Nasyidah</option><option value="59" >K0059 · Mahdi Hardiansyah</option><option value="65" >K0065 · Maida Mandala</option><option value="30" >K0030 · Mala Usada</option><option value="75" >K0075 · Margana Pertiwi</option><option value="88" >K0088 · Mariadi Susanti</option><option value="108" >K0108 · Maya Simbolon</option><option value="28" >K0028 · Michelle Winarno</option><option value="41" >K0041 · Mitra Laksmiwati</option><option value="25" >K0025 · Mutia Halimah</option><option value="44" >K0044 · Najib Rahmawati</option><option value="40" >K0040 · Narji Purnawati</option><option value="26" >K0026 · Niyaga Winarno</option><option value="90" >K0090 · Nurul Januar</option><option value="111" >K0111 · Okto Pudjiastuti</option><option value="93" >K0093 · Ophelia Aryani</option><option value="22" >K0022 · Paiman Aryani</option><option value="38" >K0038 · Pandu Simanjuntak</option><option value="27" >K0027 · Pangestu Hastuti</option><option value="119" >K0119 · Paulin Haryanti</option><option value="103" >K0103 · Purwa Sihombing</option><option value="78" >K0078 · Putri Najmudin</option><option value="98" >K0098 · Qori Saefullah</option><option value="34" >K0034 · Rama Lazuardi</option><option value="84" >K0084 · Ratna Hutapea</option><option value="16" >K0016 · Sadina Rahayu</option><option value="104" >K0104 · Salwa Palastri</option><option value="56" >K0056 · Samiah Budiyanto</option><option value="102" >K0102 · Samsul Pudjiastuti</option><option value="55" >K0055 · Septi Widodo</option><option value="68" >K0068 · Suci Pertiwi</option><option value="101" >K0101 · Tami Purwanti</option><option value="120" >K0120 · Tania Najmudin</option><option value="95" >K0095 · Taufik Sudiati</option><option value="100" >K0100 · Tina Hardiansyah</option><option value="106" >K0106 · Tirta Januar</option><option value="113" >K0113 · Ulva Fujiati</option><option value="64" >K0064 · Umar Wastuti</option><option value="117" >K0117 · Umi Nurdiyanti</option><option value="57" >K0057 · Usyi Maryati</option><option value="81" >K0081 · Warsa Suryono</option><option value="51" >K0051 · Xanana Hassanah</option><option value="39" >K0039 · Yessi Hidayat</option><option value="77" >K0077 · Yulia Nasyiah</option><option value="94" >K0094 · Yuni Lailasari</option><option value="79" >K0079 · Yusuf Kuswandari</option><option value="21" >K0021 · Zulfa Latupono</option><option value="109" >K0109 · Zulfa Utama</option>            </select>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3"><label class="form-label">Username</label><input name="username" value="" class="form-control" required></div>
+            <div class="col-md-6 mb-3"><label class="form-label">Email</label><input type="email" name="email" value="" class="form-control"></div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Role</label>
+                <select name="role_id" class="form-select" required><option value="1" >Admin</option><option value="2" >HR</option><option value="3" >Manager</option><option value="4" >Karyawan</option></select>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Kata sandi </label>
+                <input type="password" name="password" class="form-control" minlength="8" required>
+            </div>
+        </div>
+        <div class="form-check mb-3"><input type="checkbox" name="is_active" value="1" class="form-check-input" id="aktif" checked><label for="aktif" class="form-check-label">Akun aktif</label></div>
+        <a href="http://localhost:8000/users" class="btn btn-light">Batal</a>
+        <button class="btn btn-primary">Simpan</button>
+    </form>
+</div>
+        </main>
+
+        <footer class="footer">Powered by <b>Kelompok 6 RPL</b> · Kelas X7N · Universitas Indraprasta PGRI · 2026</footer>
+    </div>
+</div>
+
+<div class="drawer-backdrop" data-tutup-drawer></div>
+<div class="toast-wrap">
+    </div>
+<script>
+    document.querySelectorAll('.toast-item[data-auto="1"]').forEach(t => setTimeout(() => t.remove(), 4000));
+</script>
+
+
+<div class="modal fade" id="modalPassword" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" method="post" action="http://localhost:8000/ganti-password">
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="put">            <div class="modal-header"><h5 class="modal-title fs-6 fw-semibold">Ganti kata sandi</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="mb-3"><label class="form-label">Kata sandi lama</label><input type="password" name="password_lama" class="form-control" required></div>
+                <div class="mb-3"><label class="form-label">Kata sandi baru</label><input type="password" name="password" class="form-control" minlength="8" required><div class="form-text">Minimal 8 karakter.</div></div>
+                <div class="mb-1"><label class="form-label">Ulangi kata sandi baru</label><input type="password" name="password_confirmation" class="form-control" required></div>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button><button class="btn btn-primary">Simpan</button></div>
+        </form>
+    </div>
+</div>
+
+
+<div class="modal fade" id="modalKonfirmasi" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:400px">
+        <div class="modal-content p-2">
+            <div class="modal-body">
+                <h5 class="fw-bold fs-5 mb-2" id="konfJudul">Lanjutkan?</h5>
+                <p class="text-secondary mb-0" id="konfPesan"></p>
+            </div>
+            <div class="modal-footer border-0 pt-0"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button><button type="button" id="konfOk" class="btn btn-primary">Ya</button></div>
+        </div>
+    </div>
+</div>
+
+<script>window.__errors = []; window.__bukaModalPassword = false;</script>
+</body>
+</html>

@@ -1,0 +1,553 @@
+<!doctype html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Pajak &amp; Tarif TER · Penggajian Karyawan</title>
+    <link rel="icon" href="http://localhost:8000/img/logo-unindra.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css" rel="stylesheet">
+    <link href="http://localhost:8000/css/app.css?v=24" rel="stylesheet">
+    <meta name="turbo-cache-control" content="no-preview">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/id.js"></script>
+    <script src="http://localhost:8000/js/form.js?v=9"></script>
+    <script src="http://localhost:8000/js/app.js?v=6"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.12/dist/turbo.es2017-umd.js"></script>
+    </head>
+<body>
+<div class="d-flex">
+    
+    <aside class="sidebar offcanvas-lg offcanvas-start" tabindex="-1" id="sidebar">
+        <div class="sidebar-brand">
+            <img src="http://localhost:8000/img/logo-unindra.png" alt="Logo Unindra">
+            <div>
+                <div class="nama">Penggajian Karyawan</div>
+                <div class="kampus">Universitas Indraprasta PGRI</div>
+            </div>
+        </div>
+
+        <div class="nav-label">Menu HR</div>
+                    <a href="http://localhost:8000/dashboard" class="nav-item-link ">
+                <i data-lucide="layout-grid"></i> Dashboard
+            </a>
+                    <a href="http://localhost:8000/karyawan" class="nav-item-link ">
+                <i data-lucide="users"></i> Data Karyawan
+            </a>
+                    <a href="http://localhost:8000/kontrak" class="nav-item-link ">
+                <i data-lucide="file-text"></i> Kontrak
+            </a>
+                    <a href="http://localhost:8000/absensi" class="nav-item-link ">
+                <i data-lucide="calendar"></i> Absensi, Cuti &amp; Lembur
+            </a>
+                    <a href="http://localhost:8000/import" class="nav-item-link ">
+                <i data-lucide="upload"></i> Import Excel
+            </a>
+                    <a href="http://localhost:8000/payroll" class="nav-item-link ">
+                <i data-lucide="wallet"></i> Proses Payroll
+            </a>
+                    <a href="http://localhost:8000/laporan" class="nav-item-link ">
+                <i data-lucide="history"></i> Riwayat Payroll
+            </a>
+                            <div class="nav-label">Master Data</div>
+                            <a href="http://localhost:8000/departemen" class="nav-item-link ">
+                    <i data-lucide="building-2"></i> Departemen
+                </a>
+                            <a href="http://localhost:8000/pajak" class="nav-item-link active">
+                    <i data-lucide="percent"></i> Pajak &amp; Tarif TER
+                </a>
+                            <a href="http://localhost:8000/komponen" class="nav-item-link ">
+                    <i data-lucide="layers"></i> Komponen Gaji
+                </a>
+                            <a href="http://localhost:8000/master-payroll" class="nav-item-link ">
+                    <i data-lucide="sliders-horizontal"></i> Periode
+                </a>
+                    
+        <div class="sidebar-user mt-auto">
+            <span class="avatar">DL</span>
+            <div class="text-truncate">
+                <div class="nama text-truncate">Dewi Lestari</div>
+                <div class="peran text-truncate">Staf HR</div>
+            </div>
+        </div>
+        <form method="post" action="http://localhost:8000/logout"><input type="hidden" name="_token" value="TOKEN" autocomplete="off">            <button class="nav-item-link"><i data-lucide="log-out"></i> Keluar</button>
+        </form>
+    </aside>
+
+    <div class="main flex-grow-1">
+        
+        <header class="topbar">
+            <button class="btn-topbar d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-label="Menu"><i data-lucide="menu"></i></button>
+            <div class="me-auto">
+                <div class="crumb">Master Data / Pajak &amp; Tarif TER</div>
+                <div class="judul">Pajak &amp; Tarif TER</div>
+            </div>
+
+            <form class="topbar-search d-none d-md-block" action="http://localhost:8000/karyawan" data-cari="http://localhost:8000/cari" role="search">
+                <i data-lucide="search"></i>
+                <input name="q" class="form-control" placeholder="Cari karyawan, slip gaji, atau menu..." value="" autocomplete="off" aria-autocomplete="list">
+                <div class="cari-hasil" hidden></div>
+            </form>
+
+            <div class="dropdown">
+                <button class="btn-topbar" data-bs-toggle="dropdown" aria-label="Notifikasi">
+                    <i data-lucide="bell"></i>
+                                    </button>
+                <div class="dropdown-menu dropdown-menu-end p-0 notif-menu">
+                    <div class="d-flex justify-content-between align-items-center px-3 py-3 border-bottom">
+                        <strong>Notifikasi </strong>
+                        <a href="http://localhost:8000/notifikasi" class="small fw-semibold">Lihat semua</a>
+                    </div>
+                                            <a href="http://localhost:8000/notifikasi/68" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Payroll final</span>
+                                <span class="d-block small text-secondary">Payroll periode Oktober 2026 sudah disetujui. Slip gaji sudah terbit.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/56" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Slip gaji tersedia</span>
+                                <span class="d-block small text-secondary">Slip gaji periode Oktober 2026 sudah bisa dilihat dan diunduh.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/51" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Payroll final</span>
+                                <span class="d-block small text-secondary">Payroll periode September 2026 sudah disetujui. Slip gaji sudah terbit.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/39" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Slip gaji tersedia</span>
+                                <span class="d-block small text-secondary">Slip gaji periode September 2026 sudah bisa dilihat dan diunduh.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/34" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Payroll final</span>
+                                <span class="d-block small text-secondary">Payroll periode Agustus 2026 sudah disetujui. Slip gaji sudah terbit.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/22" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Slip gaji tersedia</span>
+                                <span class="d-block small text-secondary">Slip gaji periode Agustus 2026 sudah bisa dilihat dan diunduh.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                    </div>
+            </div>
+
+            <div class="dropdown">
+                <button class="btn-avatar" data-bs-toggle="dropdown" aria-label="Menu profil"><span class="avatar">DL</span></button>
+                <div class="dropdown-menu dropdown-menu-end" style="width:240px">
+                    <div class="px-3 py-2 border-bottom mb-1">
+                        <div class="fw-semibold">Dewi Lestari</div>
+                        <div class="small text-muted">hr · HR</div>
+                    </div>
+                                            <a class="dropdown-item d-flex gap-2" href="http://localhost:8000/profil"><i data-lucide="user"></i> Profil saya</a>
+                                        <button class="dropdown-item d-flex gap-2" data-bs-toggle="modal" data-bs-target="#modalPassword"><i data-lucide="key-round"></i> Ganti kata sandi</button>
+                    <div class="dropdown-divider"></div>
+                    <form method="post" action="http://localhost:8000/logout"><input type="hidden" name="_token" value="TOKEN" autocomplete="off">                        <button class="dropdown-item d-flex gap-2 text-danger"><i data-lucide="log-out"></i> Keluar</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <main class="content">
+            <div class="page-header">
+    <div>
+        <h1>Pajak &amp; Tarif TER</h1>
+        <p>Golongan, lapisan, dan tarif TER PPh21. Bisa disesuaikan kalau aturan pajak berubah.</p>    </div>
+    <div class="aksi"><button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#modalRiwayat"><i data-lucide="history"></i> Riwayat</button>
+    <a href="http://localhost:8000/import" class="btn btn-light"><i data-lucide="upload"></i> Import Excel</a>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalGolBaru"><i data-lucide="plus"></i> Tambah golongan</button></div></div>
+
+<div class="info-bar">
+    <div class="item"><div class="k">Metode</div><div class="v">TER bulanan</div></div>
+    <div class="item"><div class="k">Masa Desember</div><div class="v">Tarif Pasal 17</div></div>
+    <div class="item"><div class="k">Biaya jabatan</div><div class="v">5%, maks Rp 500.000</div></div>
+    <div class="item"><div class="k">Berlaku sejak</div><div class="v">1 Jan 2024</div></div>
+    <button class="btn btn-light ms-auto" data-bs-toggle="modal" data-bs-target="#modalPengaturan"><i data-lucide="sliders-horizontal"></i> Pengaturan</button>
+</div>
+
+<div class="pajak-grid">
+    <div>
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-start">
+                <span>Golongan TER<span class="sub">3 golongan aktif</span></span>
+                <span class="badge badge-soft-neutral">PP 58/2023</span>
+            </div>
+            <div class="card-body">
+                                    <a href="http://localhost:8000/pajak?golongan=1" class="gol-card aktif">
+                        <span class="huruf">A</span>
+                        <div class="me-auto"><div class="fw-semibold">Golongan A</div><div class="small text-muted">PTKP TK/0 · TK/1 · K/0</div></div>
+                        <div class="text-end"><div class="fw-semibold">44</div><div class="small text-muted">lapisan</div></div>
+                    </a>
+                                    <a href="http://localhost:8000/pajak?golongan=2" class="gol-card ">
+                        <span class="huruf">B</span>
+                        <div class="me-auto"><div class="fw-semibold">Golongan B</div><div class="small text-muted">PTKP TK/2 · TK/3 · K/1 · K/2</div></div>
+                        <div class="text-end"><div class="fw-semibold">40</div><div class="small text-muted">lapisan</div></div>
+                    </a>
+                                    <a href="http://localhost:8000/pajak?golongan=3" class="gol-card ">
+                        <span class="huruf">C</span>
+                        <div class="me-auto"><div class="fw-semibold">Golongan C</div><div class="small text-muted">PTKP K/3</div></div>
+                        <div class="text-end"><div class="fw-semibold">41</div><div class="small text-muted">lapisan</div></div>
+                    </a>
+                                <button class="btn btn-dashed" data-bs-toggle="modal" data-bs-target="#modalGolBaru">+ Tambah golongan</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Simulasi cepat<span class="sub">Cek golongan, lapisan, dan PPh21 sebulan</span></div>
+            <form class="card-body" method="get">
+                <input type="hidden" name="golongan" value="1">
+                <label class="form-label">Penghasilan bruto / bulan</label>
+                <input data-rupiah name="sim_bruto" value="Rp 8.000.000" class="form-control mb-3">
+                <label class="form-label">Status PTKP</label>
+                <select name="sim_ptkp" class="form-select mb-3" onchange="this.form.submit()"><option value="3" >K/0</option><option value="6" >K/1</option><option value="7" >K/2</option><option value="8" >K/3</option><option value="1" >TK/0</option><option value="2" selected>TK/1</option><option value="4" >TK/2</option><option value="5" >TK/3</option></select>
+                                    <div class="simulasi-hasil"><div class="small">Golongan A · lapisan 7 · tarif 1,50%</div><div class="fs-5 fw-bold">PPh21 Rp 120.000</div></div>
+                            </form>
+        </div>
+    </div>
+
+        <div class="card">
+        <div class="card-body pb-0">
+            <div class="d-flex flex-wrap align-items-start gap-2">
+                <div class="me-auto">
+                    <div class="d-flex align-items-center gap-2"><span class="fs-5 fw-bold">Golongan A</span><span class="badge badge-soft-success">Aktif</span></div>
+                    <div class="my-2"><span class="small text-muted me-1">PTKP</span><span class="chip-ptkp">TK/0</span><span class="chip-ptkp">TK/1</span><span class="chip-ptkp">K/0</span></div>
+                    <div class="small text-muted">Berlaku sejak 1 Jan 2024 · dasar hukum PP 58/2023, PMK 168/2023 · 44 lapisan</div>
+                </div>
+                <form method="post" action="http://localhost:8000/pajak/golongan/1" data-confirm="Hapus golongan A beserta lapisan tarifnya?"><input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="delete"><button class="btn btn-ghost text-danger"><i data-lucide="trash-2"></i> Hapus</button></form>
+                <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#modalGolUbah"><i data-lucide="pencil"></i> Ubah</button>
+            </div>
+        </div>
+        <form class="card-search d-flex gap-2 mt-3 border-top" method="get">
+            <input type="hidden" name="golongan" value="1">
+            <div class="input-search flex-grow-1"><input name="nominal" value="" class="form-control" placeholder="Cari nominal, misalnya 8.000.000"><i data-lucide="search"></i></div>
+            <select name="versi" class="form-select" style="width:220px" onchange="this.form.submit()"><option value="2024-01-01" selected>Versi: 1 Jan 2024 (aktif)</option></select>
+        </form>
+        <div class="table-responsive">
+            <table class="table">
+                <thead><tr><th style="width:60px">No</th><th>Penghasilan bruto / bulan</th><th class="text-end">Tarif</th></tr></thead>
+                <tbody>
+                                    <tr class="">
+                        <td>1</td>
+                        <td>Rp 0 – Rp 5.400.000</td>
+                        <td class="text-end">0,00%</td>
+                    </tr>
+                                    <tr class="">
+                        <td>2</td>
+                        <td>Rp 5.400.001 – Rp 5.650.000</td>
+                        <td class="text-end">0,25%</td>
+                    </tr>
+                                    <tr class="">
+                        <td>3</td>
+                        <td>Rp 5.650.001 – Rp 5.950.000</td>
+                        <td class="text-end">0,50%</td>
+                    </tr>
+                                    <tr class="">
+                        <td>4</td>
+                        <td>Rp 5.950.001 – Rp 6.300.000</td>
+                        <td class="text-end">0,75%</td>
+                    </tr>
+                                    <tr class="">
+                        <td>5</td>
+                        <td>Rp 6.300.001 – Rp 6.750.000</td>
+                        <td class="text-end">1,00%</td>
+                    </tr>
+                                    <tr class="">
+                        <td>6</td>
+                        <td>Rp 6.750.001 – Rp 7.500.000</td>
+                        <td class="text-end">1,25%</td>
+                    </tr>
+                                    <tr class="">
+                        <td>7</td>
+                        <td>Rp 7.500.001 – Rp 8.550.000</td>
+                        <td class="text-end">1,50%</td>
+                    </tr>
+                                    <tr class="">
+                        <td>8</td>
+                        <td>Rp 8.550.001 – Rp 9.650.000</td>
+                        <td class="text-end">1,75%</td>
+                    </tr>
+                                    <tr class="">
+                        <td>9</td>
+                        <td>Rp 9.650.001 – Rp 10.050.000</td>
+                        <td class="text-end">2,00%</td>
+                    </tr>
+                                    <tr class="">
+                        <td>10</td>
+                        <td>Rp 10.050.001 – Rp 10.350.000</td>
+                        <td class="text-end">2,25%</td>
+                    </tr>
+                                </tbody>
+            </table>
+        </div>
+        <div class="table-foot border-top">
+    <span>Menampilkan 1–10 dari 44 lapisan</span>
+            <ul class="pagination">
+                                        <li class="page-item active"><a class="page-link" href="http://localhost:8000/pajak?page=1">1</a></li>
+                            <li class="page-item "><a class="page-link" href="http://localhost:8000/pajak?page=2">2</a></li>
+                            <li class="page-item "><a class="page-link" href="http://localhost:8000/pajak?page=3">3</a></li>
+                        <li class="page-item"><a class="page-link" href="http://localhost:8000/pajak?page=2">›</a></li>        </ul>
+    </div>
+    </div>
+    </div>
+
+
+<div class="modal fade" id="modalGolBaru" tabindex="-1"><div class="modal-dialog modal-dialog-centered">
+    <form class="modal-content" method="post" action="http://localhost:8000/pajak/golongan"><input type="hidden" name="_token" value="TOKEN" autocomplete="off">        <div class="modal-header"><h5 class="modal-title fs-6 fw-semibold">Tambah golongan TER</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+            <label class="form-label">Kode</label><input name="kode" class="form-control mb-3" placeholder="D" required>
+            <label class="form-label">Nama</label><input name="nama" class="form-control" placeholder="TER D (...)" required>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button><button class="btn btn-primary">Simpan</button></div>
+    </form>
+</div></div>
+
+
+<div class="modal fade" id="modalGolUbah" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title fs-6 fw-semibold">Ubah Golongan A</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+            <form method="post" action="http://localhost:8000/pajak/golongan/1" class="mb-4"><input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="put">                <div class="row g-3">
+                    <div class="col-3"><label class="form-label">Kode</label><input name="kode" value="A" class="form-control" required></div>
+                    <div class="col-9"><label class="form-label">Nama</label><input name="nama" value="TER A (TK/0, TK/1, K/0)" class="form-control" required></div>
+                    <div class="col-12"><label class="form-label">Status PTKP di golongan ini</label>
+                        <div class="multi-chip"><label><input type="checkbox" name="ptkp[]" value="3" checked><span>K/0</span></label><label><input type="checkbox" name="ptkp[]" value="6" ><span>K/1</span></label><label><input type="checkbox" name="ptkp[]" value="7" ><span>K/2</span></label><label><input type="checkbox" name="ptkp[]" value="8" ><span>K/3</span></label><label><input type="checkbox" name="ptkp[]" value="1" checked><span>TK/0</span></label><label><input type="checkbox" name="ptkp[]" value="2" checked><span>TK/1</span></label><label><input type="checkbox" name="ptkp[]" value="4" ><span>TK/2</span></label><label><input type="checkbox" name="ptkp[]" value="5" ><span>TK/3</span></label></div></div>
+                    <div class="col-12 d-flex justify-content-between align-items-center">
+                        <div class="form-check"><input type="checkbox" name="is_active" value="1" id="golAktif" class="form-check-input" checked><label for="golAktif" class="form-check-label">Golongan aktif</label></div>
+                        <button class="btn btn-primary">Simpan golongan</button>
+                    </div>
+                </div>
+            </form>
+            <form method="post" action="http://localhost:8000/pajak/tarif" class="border-top pt-3"><input type="hidden" name="_token" value="TOKEN" autocomplete="off">                <input type="hidden" name="golongan_ter_id" value="1"><input type="hidden" name="dasar_hukum" value="PP 58/2023">
+                <div class="fw-semibold mb-2">Tambah lapisan tarif</div>
+                <div class="row g-2 align-items-end">
+                    <div class="col-2"><label class="form-label">Lapisan</label><input type="number" name="lapisan" value="45" class="form-control" required></div>
+                    <div class="col-3"><label class="form-label">Bruto dari</label><input type="number" name="batas_bawah" class="form-control" required></div>
+                    <div class="col-3"><label class="form-label">Sampai</label><input type="number" name="batas_atas" class="form-control" placeholder="kosong = ke atas"></div>
+                    <div class="col-2"><label class="form-label">Tarif %</label><input type="number" step="0.01" name="persen" class="form-control" required></div>
+                    <div class="col-2"><label class="form-label">Berlaku</label><input type="date" name="berlaku_mulai" value="2024-01-01" class="form-control" required></div>
+                </div>
+                <div class="text-end mt-3"><button class="btn btn-light">Tambah lapisan</button></div>
+            </form>
+        </div>
+    </div>
+</div></div>
+
+
+<div class="modal fade" id="modalPengaturan" tabindex="-1"><div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title fs-6 fw-semibold">Pengaturan pajak</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body small">
+            <p><b>Metode perhitungan: TER bulanan (PP 58/2023).</b> Januari–November, PPh21 = bruto sebulan × tarif TER sesuai golongan dari status PTKP karyawan.</p>
+            <p><b>Masa pajak Desember: tarif Pasal 17.</b> Pajak setahun dihitung ulang lalu dikurangi yang sudah dipotong Januari–November.</p>
+            <p class="mb-0 text-muted">Status PTKP dan golongannya diatur lewat tombol Ubah di tiap golongan.</p>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-primary" data-bs-dismiss="modal">Tutup</button></div>
+    </div>
+</div></div>
+
+<div class="modal fade" id="modalRiwayat" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-riwayat">
+<div class="modal-content">
+    <div class="modal-header">
+        <button type="button" class="btn btn-ghost btn-sm me-2 px-2 d-none" data-riwayat-kembali title="Kembali ke daftar"><i data-lucide="arrow-left"></i></button>
+        <h5 class="modal-title" data-riwayat-judul>Riwayat Peraturan Pajak</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body">
+        <div class="riwayat-daftar">
+                            <div class="versi aktif ">
+                    <div class="garis"><span class="titik"></span></div>
+                    <div class="kartu">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="flex-grow-1">
+                                <div class="judul">PP 58/2023, PMK 168/2023</div>
+                                <div class="rentang">1 Jan 2024 – sekarang</div>
+                            </div>
+                            <span class="badge badge-soft-success">Aktif</span>                            <a href="#rp-0" class="lihat" data-riwayat-buka="#rp-0" data-judul="PP 58/2023, PMK 168/2023">Lihat <i data-lucide="chevron-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+                            <div class="versi  ">
+                    <div class="garis"><span class="titik"></span></div>
+                    <div class="kartu">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="flex-grow-1">
+                                <div class="judul">UU 7/2021 (HPP)</div>
+                                <div class="rentang">1 Jan 2022 – 31 Des 2023</div>
+                            </div>
+                            <span class="badge badge-soft-neutral">Tidak berlaku</span>                            <a href="#rp-1" class="lihat" data-riwayat-buka="#rp-1" data-judul="UU 7/2021 (HPP)">Lihat <i data-lucide="chevron-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+                            <div class="versi  akhir">
+                    <div class="garis"><span class="titik"></span></div>
+                    <div class="kartu">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="flex-grow-1">
+                                <div class="judul">UU 36/2008 (PPh)</div>
+                                <div class="rentang">1 Jan 2009 – 31 Des 2021</div>
+                            </div>
+                            <span class="badge badge-soft-neutral">Tidak berlaku</span>                            <a href="#rp-2" class="lihat" data-riwayat-buka="#rp-2" data-judul="UU 36/2008 (PPh)">Lihat <i data-lucide="chevron-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+                    </div>
+
+                    <div class="riwayat-detail d-none" id="rp-0">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="badge badge-soft-neutral"><i data-lucide="eye" style="width:12px;height:12px"></i> Hanya lihat</span>
+                    <span class="small text-muted">Berlaku 1 Jan 2024 – sekarang</span>
+                </div>
+                <p class="small text-secondary mb-3">Januari–November pakai tarif efektif rata-rata (TER) bulanan dari bruto sebulan. Masa pajak Desember dihitung ulang setahun pakai tarif Pasal 17 di bawah.</p>
+
+                                    <div class="fw-semibold mb-2">Tarif TER bulanan</div>
+                    <ul class="nav tab-nav mb-2" role="tablist">
+                        <li><a href="#rp-0-A" class="active" data-bs-toggle="tab">Golongan A</a></li><li><a href="#rp-0-B" class="" data-bs-toggle="tab">Golongan B</a></li><li><a href="#rp-0-C" class="" data-bs-toggle="tab">Golongan C</a></li>                    </ul>
+                    <div class="tab-content mb-3">
+                                                                                <div class="tab-pane fade show active" id="rp-0-A">
+                                <div class="small text-muted mb-2">PTKP TK/0 · TK/1 · K/0 · 44 lapisan</div>
+                                <div class="tabel-baca"><table class="table table-sm mb-0">
+                                    <thead><tr><th style="width:48px">No</th><th>Bruto sebulan</th><th class="text-end">Tarif</th></tr></thead>
+                                    <tbody><tr><td>1</td><td>Rp 0 – Rp 5.400.000</td><td class="text-end">0,00%</td></tr><tr><td>2</td><td>Rp 5.400.001 – Rp 5.650.000</td><td class="text-end">0,25%</td></tr><tr><td>3</td><td>Rp 5.650.001 – Rp 5.950.000</td><td class="text-end">0,50%</td></tr><tr><td>4</td><td>Rp 5.950.001 – Rp 6.300.000</td><td class="text-end">0,75%</td></tr><tr><td>5</td><td>Rp 6.300.001 – Rp 6.750.000</td><td class="text-end">1,00%</td></tr><tr><td>6</td><td>Rp 6.750.001 – Rp 7.500.000</td><td class="text-end">1,25%</td></tr><tr><td>7</td><td>Rp 7.500.001 – Rp 8.550.000</td><td class="text-end">1,50%</td></tr><tr><td>8</td><td>Rp 8.550.001 – Rp 9.650.000</td><td class="text-end">1,75%</td></tr><tr><td>9</td><td>Rp 9.650.001 – Rp 10.050.000</td><td class="text-end">2,00%</td></tr><tr><td>10</td><td>Rp 10.050.001 – Rp 10.350.000</td><td class="text-end">2,25%</td></tr><tr><td>11</td><td>Rp 10.350.001 – Rp 10.700.000</td><td class="text-end">2,50%</td></tr><tr><td>12</td><td>Rp 10.700.001 – Rp 11.050.000</td><td class="text-end">3,00%</td></tr><tr><td>13</td><td>Rp 11.050.001 – Rp 11.600.000</td><td class="text-end">3,50%</td></tr><tr><td>14</td><td>Rp 11.600.001 – Rp 12.500.000</td><td class="text-end">4,00%</td></tr><tr><td>15</td><td>Rp 12.500.001 – Rp 13.750.000</td><td class="text-end">5,00%</td></tr><tr><td>16</td><td>Rp 13.750.001 – Rp 15.100.000</td><td class="text-end">6,00%</td></tr><tr><td>17</td><td>Rp 15.100.001 – Rp 16.950.000</td><td class="text-end">7,00%</td></tr><tr><td>18</td><td>Rp 16.950.001 – Rp 19.750.000</td><td class="text-end">8,00%</td></tr><tr><td>19</td><td>Rp 19.750.001 – Rp 24.150.000</td><td class="text-end">9,00%</td></tr><tr><td>20</td><td>Rp 24.150.001 – Rp 26.450.000</td><td class="text-end">10,00%</td></tr><tr><td>21</td><td>Rp 26.450.001 – Rp 28.000.000</td><td class="text-end">11,00%</td></tr><tr><td>22</td><td>Rp 28.000.001 – Rp 30.050.000</td><td class="text-end">12,00%</td></tr><tr><td>23</td><td>Rp 30.050.001 – Rp 32.400.000</td><td class="text-end">13,00%</td></tr><tr><td>24</td><td>Rp 32.400.001 – Rp 35.400.000</td><td class="text-end">14,00%</td></tr><tr><td>25</td><td>Rp 35.400.001 – Rp 39.100.000</td><td class="text-end">15,00%</td></tr><tr><td>26</td><td>Rp 39.100.001 – Rp 43.850.000</td><td class="text-end">16,00%</td></tr><tr><td>27</td><td>Rp 43.850.001 – Rp 47.800.000</td><td class="text-end">17,00%</td></tr><tr><td>28</td><td>Rp 47.800.001 – Rp 51.400.000</td><td class="text-end">18,00%</td></tr><tr><td>29</td><td>Rp 51.400.001 – Rp 56.300.000</td><td class="text-end">19,00%</td></tr><tr><td>30</td><td>Rp 56.300.001 – Rp 62.200.000</td><td class="text-end">20,00%</td></tr><tr><td>31</td><td>Rp 62.200.001 – Rp 68.600.000</td><td class="text-end">21,00%</td></tr><tr><td>32</td><td>Rp 68.600.001 – Rp 77.500.000</td><td class="text-end">22,00%</td></tr><tr><td>33</td><td>Rp 77.500.001 – Rp 89.000.000</td><td class="text-end">23,00%</td></tr><tr><td>34</td><td>Rp 89.000.001 – Rp 103.000.000</td><td class="text-end">24,00%</td></tr><tr><td>35</td><td>Rp 103.000.001 – Rp 125.000.000</td><td class="text-end">25,00%</td></tr><tr><td>36</td><td>Rp 125.000.001 – Rp 157.000.000</td><td class="text-end">26,00%</td></tr><tr><td>37</td><td>Rp 157.000.001 – Rp 206.000.000</td><td class="text-end">27,00%</td></tr><tr><td>38</td><td>Rp 206.000.001 – Rp 337.000.000</td><td class="text-end">28,00%</td></tr><tr><td>39</td><td>Rp 337.000.001 – Rp 454.000.000</td><td class="text-end">29,00%</td></tr><tr><td>40</td><td>Rp 454.000.001 – Rp 550.000.000</td><td class="text-end">30,00%</td></tr><tr><td>41</td><td>Rp 550.000.001 – Rp 695.000.000</td><td class="text-end">31,00%</td></tr><tr><td>42</td><td>Rp 695.000.001 – Rp 910.000.000</td><td class="text-end">32,00%</td></tr><tr><td>43</td><td>Rp 910.000.001 – Rp 1.400.000.000</td><td class="text-end">33,00%</td></tr><tr><td>44</td><td>Rp 1.400.000.001 – ke atas</td><td class="text-end">34,00%</td></tr></tbody>
+                                </table></div>
+                            </div>
+                                                                                <div class="tab-pane fade " id="rp-0-B">
+                                <div class="small text-muted mb-2">PTKP TK/2 · TK/3 · K/1 · K/2 · 40 lapisan</div>
+                                <div class="tabel-baca"><table class="table table-sm mb-0">
+                                    <thead><tr><th style="width:48px">No</th><th>Bruto sebulan</th><th class="text-end">Tarif</th></tr></thead>
+                                    <tbody><tr><td>1</td><td>Rp 0 – Rp 6.200.000</td><td class="text-end">0,00%</td></tr><tr><td>2</td><td>Rp 6.200.001 – Rp 6.500.000</td><td class="text-end">0,25%</td></tr><tr><td>3</td><td>Rp 6.500.001 – Rp 6.850.000</td><td class="text-end">0,50%</td></tr><tr><td>4</td><td>Rp 6.850.001 – Rp 7.300.000</td><td class="text-end">0,75%</td></tr><tr><td>5</td><td>Rp 7.300.001 – Rp 9.200.000</td><td class="text-end">1,00%</td></tr><tr><td>6</td><td>Rp 9.200.001 – Rp 10.750.000</td><td class="text-end">1,50%</td></tr><tr><td>7</td><td>Rp 10.750.001 – Rp 11.250.000</td><td class="text-end">2,00%</td></tr><tr><td>8</td><td>Rp 11.250.001 – Rp 11.600.000</td><td class="text-end">2,50%</td></tr><tr><td>9</td><td>Rp 11.600.001 – Rp 12.600.000</td><td class="text-end">3,00%</td></tr><tr><td>10</td><td>Rp 12.600.001 – Rp 13.600.000</td><td class="text-end">4,00%</td></tr><tr><td>11</td><td>Rp 13.600.001 – Rp 14.950.000</td><td class="text-end">5,00%</td></tr><tr><td>12</td><td>Rp 14.950.001 – Rp 16.400.000</td><td class="text-end">6,00%</td></tr><tr><td>13</td><td>Rp 16.400.001 – Rp 18.450.000</td><td class="text-end">7,00%</td></tr><tr><td>14</td><td>Rp 18.450.001 – Rp 21.850.000</td><td class="text-end">8,00%</td></tr><tr><td>15</td><td>Rp 21.850.001 – Rp 26.000.000</td><td class="text-end">9,00%</td></tr><tr><td>16</td><td>Rp 26.000.001 – Rp 27.700.000</td><td class="text-end">10,00%</td></tr><tr><td>17</td><td>Rp 27.700.001 – Rp 29.350.000</td><td class="text-end">11,00%</td></tr><tr><td>18</td><td>Rp 29.350.001 – Rp 31.450.000</td><td class="text-end">12,00%</td></tr><tr><td>19</td><td>Rp 31.450.001 – Rp 33.950.000</td><td class="text-end">13,00%</td></tr><tr><td>20</td><td>Rp 33.950.001 – Rp 37.100.000</td><td class="text-end">14,00%</td></tr><tr><td>21</td><td>Rp 37.100.001 – Rp 41.100.000</td><td class="text-end">15,00%</td></tr><tr><td>22</td><td>Rp 41.100.001 – Rp 45.800.000</td><td class="text-end">16,00%</td></tr><tr><td>23</td><td>Rp 45.800.001 – Rp 49.500.000</td><td class="text-end">17,00%</td></tr><tr><td>24</td><td>Rp 49.500.001 – Rp 53.800.000</td><td class="text-end">18,00%</td></tr><tr><td>25</td><td>Rp 53.800.001 – Rp 58.500.000</td><td class="text-end">19,00%</td></tr><tr><td>26</td><td>Rp 58.500.001 – Rp 64.000.000</td><td class="text-end">20,00%</td></tr><tr><td>27</td><td>Rp 64.000.001 – Rp 71.000.000</td><td class="text-end">21,00%</td></tr><tr><td>28</td><td>Rp 71.000.001 – Rp 80.000.000</td><td class="text-end">22,00%</td></tr><tr><td>29</td><td>Rp 80.000.001 – Rp 93.000.000</td><td class="text-end">23,00%</td></tr><tr><td>30</td><td>Rp 93.000.001 – Rp 109.000.000</td><td class="text-end">24,00%</td></tr><tr><td>31</td><td>Rp 109.000.001 – Rp 129.000.000</td><td class="text-end">25,00%</td></tr><tr><td>32</td><td>Rp 129.000.001 – Rp 163.000.000</td><td class="text-end">26,00%</td></tr><tr><td>33</td><td>Rp 163.000.001 – Rp 211.000.000</td><td class="text-end">27,00%</td></tr><tr><td>34</td><td>Rp 211.000.001 – Rp 374.000.000</td><td class="text-end">28,00%</td></tr><tr><td>35</td><td>Rp 374.000.001 – Rp 459.000.000</td><td class="text-end">29,00%</td></tr><tr><td>36</td><td>Rp 459.000.001 – Rp 555.000.000</td><td class="text-end">30,00%</td></tr><tr><td>37</td><td>Rp 555.000.001 – Rp 704.000.000</td><td class="text-end">31,00%</td></tr><tr><td>38</td><td>Rp 704.000.001 – Rp 957.000.000</td><td class="text-end">32,00%</td></tr><tr><td>39</td><td>Rp 957.000.001 – Rp 1.405.000.000</td><td class="text-end">33,00%</td></tr><tr><td>40</td><td>Rp 1.405.000.001 – ke atas</td><td class="text-end">34,00%</td></tr></tbody>
+                                </table></div>
+                            </div>
+                                                                                <div class="tab-pane fade " id="rp-0-C">
+                                <div class="small text-muted mb-2">PTKP K/3 · 41 lapisan</div>
+                                <div class="tabel-baca"><table class="table table-sm mb-0">
+                                    <thead><tr><th style="width:48px">No</th><th>Bruto sebulan</th><th class="text-end">Tarif</th></tr></thead>
+                                    <tbody><tr><td>1</td><td>Rp 0 – Rp 6.600.000</td><td class="text-end">0,00%</td></tr><tr><td>2</td><td>Rp 6.600.001 – Rp 6.950.000</td><td class="text-end">0,25%</td></tr><tr><td>3</td><td>Rp 6.950.001 – Rp 7.350.000</td><td class="text-end">0,50%</td></tr><tr><td>4</td><td>Rp 7.350.001 – Rp 7.800.000</td><td class="text-end">0,75%</td></tr><tr><td>5</td><td>Rp 7.800.001 – Rp 8.850.000</td><td class="text-end">1,00%</td></tr><tr><td>6</td><td>Rp 8.850.001 – Rp 9.800.000</td><td class="text-end">1,25%</td></tr><tr><td>7</td><td>Rp 9.800.001 – Rp 10.950.000</td><td class="text-end">1,50%</td></tr><tr><td>8</td><td>Rp 10.950.001 – Rp 11.200.000</td><td class="text-end">1,75%</td></tr><tr><td>9</td><td>Rp 11.200.001 – Rp 12.050.000</td><td class="text-end">2,00%</td></tr><tr><td>10</td><td>Rp 12.050.001 – Rp 12.950.000</td><td class="text-end">3,00%</td></tr><tr><td>11</td><td>Rp 12.950.001 – Rp 14.150.000</td><td class="text-end">4,00%</td></tr><tr><td>12</td><td>Rp 14.150.001 – Rp 15.550.000</td><td class="text-end">5,00%</td></tr><tr><td>13</td><td>Rp 15.550.001 – Rp 17.050.000</td><td class="text-end">6,00%</td></tr><tr><td>14</td><td>Rp 17.050.001 – Rp 19.500.000</td><td class="text-end">7,00%</td></tr><tr><td>15</td><td>Rp 19.500.001 – Rp 22.700.000</td><td class="text-end">8,00%</td></tr><tr><td>16</td><td>Rp 22.700.001 – Rp 26.600.000</td><td class="text-end">9,00%</td></tr><tr><td>17</td><td>Rp 26.600.001 – Rp 28.100.000</td><td class="text-end">10,00%</td></tr><tr><td>18</td><td>Rp 28.100.001 – Rp 30.100.000</td><td class="text-end">11,00%</td></tr><tr><td>19</td><td>Rp 30.100.001 – Rp 32.600.000</td><td class="text-end">12,00%</td></tr><tr><td>20</td><td>Rp 32.600.001 – Rp 35.400.000</td><td class="text-end">13,00%</td></tr><tr><td>21</td><td>Rp 35.400.001 – Rp 38.900.000</td><td class="text-end">14,00%</td></tr><tr><td>22</td><td>Rp 38.900.001 – Rp 43.000.000</td><td class="text-end">15,00%</td></tr><tr><td>23</td><td>Rp 43.000.001 – Rp 47.400.000</td><td class="text-end">16,00%</td></tr><tr><td>24</td><td>Rp 47.400.001 – Rp 51.200.000</td><td class="text-end">17,00%</td></tr><tr><td>25</td><td>Rp 51.200.001 – Rp 55.800.000</td><td class="text-end">18,00%</td></tr><tr><td>26</td><td>Rp 55.800.001 – Rp 60.400.000</td><td class="text-end">19,00%</td></tr><tr><td>27</td><td>Rp 60.400.001 – Rp 66.700.000</td><td class="text-end">20,00%</td></tr><tr><td>28</td><td>Rp 66.700.001 – Rp 74.500.000</td><td class="text-end">21,00%</td></tr><tr><td>29</td><td>Rp 74.500.001 – Rp 83.200.000</td><td class="text-end">22,00%</td></tr><tr><td>30</td><td>Rp 83.200.001 – Rp 95.600.000</td><td class="text-end">23,00%</td></tr><tr><td>31</td><td>Rp 95.600.001 – Rp 110.000.000</td><td class="text-end">24,00%</td></tr><tr><td>32</td><td>Rp 110.000.001 – Rp 134.000.000</td><td class="text-end">25,00%</td></tr><tr><td>33</td><td>Rp 134.000.001 – Rp 169.000.000</td><td class="text-end">26,00%</td></tr><tr><td>34</td><td>Rp 169.000.001 – Rp 221.000.000</td><td class="text-end">27,00%</td></tr><tr><td>35</td><td>Rp 221.000.001 – Rp 390.000.000</td><td class="text-end">28,00%</td></tr><tr><td>36</td><td>Rp 390.000.001 – Rp 463.000.000</td><td class="text-end">29,00%</td></tr><tr><td>37</td><td>Rp 463.000.001 – Rp 561.000.000</td><td class="text-end">30,00%</td></tr><tr><td>38</td><td>Rp 561.000.001 – Rp 709.000.000</td><td class="text-end">31,00%</td></tr><tr><td>39</td><td>Rp 709.000.001 – Rp 965.000.000</td><td class="text-end">32,00%</td></tr><tr><td>40</td><td>Rp 965.000.001 – Rp 1.419.000.000</td><td class="text-end">33,00%</td></tr><tr><td>41</td><td>Rp 1.419.000.001 – ke atas</td><td class="text-end">34,00%</td></tr></tbody>
+                                </table></div>
+                            </div>
+                                            </div>
+                
+                <div class="fw-semibold mb-2">Tarif Pasal 17 (setahun) · masa Desember</div>
+                <div class="tabel-baca mb-3"><table class="table table-sm mb-0">
+                    <thead><tr><th>Penghasilan kena pajak setahun</th><th class="text-end">Tarif</th></tr></thead>
+                    <tbody><tr><td>Rp 0 – Rp 60 jt</td><td class="text-end">5%</td></tr><tr><td>Rp 60 jt – Rp 250 jt</td><td class="text-end">15%</td></tr><tr><td>Rp 250 jt – Rp 500 jt</td><td class="text-end">25%</td></tr><tr><td>Rp 500 jt – Rp 5 M</td><td class="text-end">30%</td></tr><tr><td>di atas Rp 5 M</td><td class="text-end">35%</td></tr></tbody>
+                </table></div>
+
+                <div class="fw-semibold mb-2">PTKP setahun</div>
+                <div class="tabel-baca"><table class="table table-sm mb-0">
+                    <thead><tr><th>Status</th><th class="text-end">PTKP</th></tr></thead>
+                    <tbody>
+                                                    <tr><td>K/0</td><td class="text-end">Rp 58.500.000</td></tr><tr><td>K/1</td><td class="text-end">Rp 63.000.000</td></tr><tr><td>K/2</td><td class="text-end">Rp 67.500.000</td></tr><tr><td>K/3</td><td class="text-end">Rp 72.000.000</td></tr><tr><td>TK/0</td><td class="text-end">Rp 54.000.000</td></tr><tr><td>TK/1</td><td class="text-end">Rp 58.500.000</td></tr><tr><td>TK/2</td><td class="text-end">Rp 63.000.000</td></tr><tr><td>TK/3</td><td class="text-end">Rp 67.500.000</td></tr>                                            </tbody>
+                </table></div>
+                            </div>
+                    <div class="riwayat-detail d-none" id="rp-1">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="badge badge-soft-neutral"><i data-lucide="eye" style="width:12px;height:12px"></i> Hanya lihat</span>
+                    <span class="small text-muted">Berlaku 1 Jan 2022 – 31 Des 2023</span>
+                </div>
+                <p class="small text-secondary mb-3">Belum ada TER. PPh21 bulanan = PPh21 setahun dari penghasilan neto dikurangi PTKP, pakai tarif progresif di bawah, lalu dibagi 12. Lapisan pertama naik jadi Rp 60 juta dan ada lapisan baru 35%.</p>
+
+                
+                <div class="fw-semibold mb-2">Tarif Pasal 17 (setahun)</div>
+                <div class="tabel-baca mb-3"><table class="table table-sm mb-0">
+                    <thead><tr><th>Penghasilan kena pajak setahun</th><th class="text-end">Tarif</th></tr></thead>
+                    <tbody><tr><td>Rp 0 – Rp 60 jt</td><td class="text-end">5%</td></tr><tr><td>Rp 60 jt – Rp 250 jt</td><td class="text-end">15%</td></tr><tr><td>Rp 250 jt – Rp 500 jt</td><td class="text-end">25%</td></tr><tr><td>Rp 500 jt – Rp 5 M</td><td class="text-end">30%</td></tr><tr><td>di atas Rp 5 M</td><td class="text-end">35%</td></tr></tbody>
+                </table></div>
+
+                <div class="fw-semibold mb-2">PTKP setahun</div>
+                <div class="tabel-baca"><table class="table table-sm mb-0">
+                    <thead><tr><th>Status</th><th class="text-end">PTKP</th></tr></thead>
+                    <tbody>
+                                                    <tr><td>TK/0</td><td class="text-end">Rp 54.000.000</td></tr><tr><td>TK/1</td><td class="text-end">Rp 58.500.000</td></tr><tr><td>TK/2</td><td class="text-end">Rp 63.000.000</td></tr><tr><td>TK/3</td><td class="text-end">Rp 67.500.000</td></tr><tr><td>K/0</td><td class="text-end">Rp 58.500.000</td></tr><tr><td>K/1</td><td class="text-end">Rp 63.000.000</td></tr><tr><td>K/2</td><td class="text-end">Rp 67.500.000</td></tr><tr><td>K/3</td><td class="text-end">Rp 72.000.000</td></tr>                                            </tbody>
+                </table></div>
+                <div class="small text-muted mt-2">Sumber PTKP: PMK 101/2016.</div>            </div>
+                    <div class="riwayat-detail d-none" id="rp-2">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="badge badge-soft-neutral"><i data-lucide="eye" style="width:12px;height:12px"></i> Hanya lihat</span>
+                    <span class="small text-muted">Berlaku 1 Jan 2009 – 31 Des 2021</span>
+                </div>
+                <p class="small text-secondary mb-3">Belum ada TER. PPh21 bulanan = PPh21 setahun dari penghasilan neto dikurangi PTKP, pakai tarif progresif di bawah, lalu dibagi 12.</p>
+
+                
+                <div class="fw-semibold mb-2">Tarif Pasal 17 (setahun)</div>
+                <div class="tabel-baca mb-3"><table class="table table-sm mb-0">
+                    <thead><tr><th>Penghasilan kena pajak setahun</th><th class="text-end">Tarif</th></tr></thead>
+                    <tbody><tr><td>Rp 0 – Rp 50 jt</td><td class="text-end">5%</td></tr><tr><td>Rp 50 jt – Rp 250 jt</td><td class="text-end">15%</td></tr><tr><td>Rp 250 jt – Rp 500 jt</td><td class="text-end">25%</td></tr><tr><td>di atas Rp 500 jt</td><td class="text-end">30%</td></tr></tbody>
+                </table></div>
+
+                <div class="fw-semibold mb-2">PTKP setahun</div>
+                <div class="tabel-baca"><table class="table table-sm mb-0">
+                    <thead><tr><th>Status</th><th class="text-end">PTKP</th></tr></thead>
+                    <tbody>
+                                                    <tr><td>TK/0</td><td class="text-end">Rp 54.000.000</td></tr><tr><td>TK/1</td><td class="text-end">Rp 58.500.000</td></tr><tr><td>TK/2</td><td class="text-end">Rp 63.000.000</td></tr><tr><td>TK/3</td><td class="text-end">Rp 67.500.000</td></tr><tr><td>K/0</td><td class="text-end">Rp 58.500.000</td></tr><tr><td>K/1</td><td class="text-end">Rp 63.000.000</td></tr><tr><td>K/2</td><td class="text-end">Rp 67.500.000</td></tr><tr><td>K/3</td><td class="text-end">Rp 72.000.000</td></tr>                                            </tbody>
+                </table></div>
+                <div class="small text-muted mt-2">Sumber PTKP: PMK 101/2016 (berlaku 2016–2021).</div>            </div>
+            </div>
+    <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Tutup</button></div>
+</div></div></div>
+        </main>
+
+        <footer class="footer">Powered by <b>Kelompok 6 RPL</b> · Kelas X7N · Universitas Indraprasta PGRI · 2026</footer>
+    </div>
+</div>
+
+<div class="drawer-backdrop" data-tutup-drawer></div>
+<div class="toast-wrap">
+    </div>
+<script>
+    document.querySelectorAll('.toast-item[data-auto="1"]').forEach(t => setTimeout(() => t.remove(), 4000));
+</script>
+
+
+<div class="modal fade" id="modalPassword" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" method="post" action="http://localhost:8000/ganti-password">
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="put">            <div class="modal-header"><h5 class="modal-title fs-6 fw-semibold">Ganti kata sandi</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="mb-3"><label class="form-label">Kata sandi lama</label><input type="password" name="password_lama" class="form-control" required></div>
+                <div class="mb-3"><label class="form-label">Kata sandi baru</label><input type="password" name="password" class="form-control" minlength="8" required><div class="form-text">Minimal 8 karakter.</div></div>
+                <div class="mb-1"><label class="form-label">Ulangi kata sandi baru</label><input type="password" name="password_confirmation" class="form-control" required></div>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button><button class="btn btn-primary">Simpan</button></div>
+        </form>
+    </div>
+</div>
+
+
+<div class="modal fade" id="modalKonfirmasi" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:400px">
+        <div class="modal-content p-2">
+            <div class="modal-body">
+                <h5 class="fw-bold fs-5 mb-2" id="konfJudul">Lanjutkan?</h5>
+                <p class="text-secondary mb-0" id="konfPesan"></p>
+            </div>
+            <div class="modal-footer border-0 pt-0"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button><button type="button" id="konfOk" class="btn btn-primary">Ya</button></div>
+        </div>
+    </div>
+</div>
+
+<script>window.__errors = []; window.__bukaModalPassword = false;</script>
+</body>
+</html>

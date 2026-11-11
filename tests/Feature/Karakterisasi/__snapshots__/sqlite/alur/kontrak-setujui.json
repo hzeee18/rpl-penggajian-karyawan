@@ -1,0 +1,46 @@
+{
+    "respon": {
+        "status": 302,
+        "ke": "http://localhost:8000/approval",
+        "sukses": "Kontrak disetujui dan aktif sesuai tanggal mulainya.",
+        "gagal": null,
+        "errors": []
+    },
+    "kontrak": [
+        {
+            "nomor": "PKWT/IT/0016/VII/2026",
+            "jenis": "PKWT",
+            "tgl_mulai": "2026-06-30T17:00:00.000000Z",
+            "tgl_akhir": "2026-11-29T17:00:00.000000Z",
+            "gaji_pokok": 8000000,
+            "status_approval": "disetujui",
+            "is_active": true
+        },
+        {
+            "nomor": "PKWT/IT/0017/XII/2026",
+            "jenis": "PKWT",
+            "tgl_mulai": "2026-11-30T17:00:00.000000Z",
+            "tgl_akhir": "2027-11-29T17:00:00.000000Z",
+            "gaji_pokok": 8000000,
+            "status_approval": "disetujui",
+            "is_active": false
+        }
+    ],
+    "notifikasi_baru": [
+        {
+            "user_id": 5,
+            "judul": "Kontrak menunggu approval",
+            "jenis_ref": "approval"
+        },
+        {
+            "user_id": 4,
+            "judul": "Kontrak disetujui",
+            "jenis_ref": "kontrak"
+        },
+        {
+            "user_id": 7,
+            "judul": "Kontrak baru disetujui",
+            "jenis_ref": "kontrak"
+        }
+    ]
+}

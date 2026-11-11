@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dashboard · Penggajian Karyawan</title>
+    <link rel="icon" href="http://localhost:8000/img/logo-unindra.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css" rel="stylesheet">
+    <link href="http://localhost:8000/css/app.css?v=24" rel="stylesheet">
+    <meta name="turbo-cache-control" content="no-preview">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/id.js"></script>
+    <script src="http://localhost:8000/js/form.js?v=9"></script>
+    <script src="http://localhost:8000/js/app.js?v=6"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.12/dist/turbo.es2017-umd.js"></script>
+    </head>
+<body>
+<div class="d-flex">
+    
+    <aside class="sidebar offcanvas-lg offcanvas-start" tabindex="-1" id="sidebar">
+        <div class="sidebar-brand">
+            <img src="http://localhost:8000/img/logo-unindra.png" alt="Logo Unindra">
+            <div>
+                <div class="nama">Penggajian Karyawan</div>
+                <div class="kampus">Universitas Indraprasta PGRI</div>
+            </div>
+        </div>
+
+        <div class="nav-label">Menu Karyawan</div>
+                    <a href="http://localhost:8000/dashboard" class="nav-item-link active">
+                <i data-lucide="layout-grid"></i> Dashboard
+            </a>
+                    <a href="http://localhost:8000/profil" class="nav-item-link ">
+                <i data-lucide="user"></i> Profil &amp; Kontrak
+            </a>
+                    <a href="http://localhost:8000/absensi" class="nav-item-link ">
+                <i data-lucide="calendar"></i> Absensi, Cuti &amp; Lembur
+            </a>
+                    <a href="http://localhost:8000/slip" class="nav-item-link ">
+                <i data-lucide="file-text"></i> Slip Gaji
+            </a>
+                
+        <div class="sidebar-user mt-auto">
+            <span class="avatar">RM</span>
+            <div class="text-truncate">
+                <div class="nama text-truncate">Rizky Maulana</div>
+                <div class="peran text-truncate">Programmer</div>
+            </div>
+        </div>
+        <form method="post" action="http://localhost:8000/logout"><input type="hidden" name="_token" value="TOKEN" autocomplete="off">            <button class="nav-item-link"><i data-lucide="log-out"></i> Keluar</button>
+        </form>
+    </aside>
+
+    <div class="main flex-grow-1">
+        
+        <header class="topbar">
+            <button class="btn-topbar d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-label="Menu"><i data-lucide="menu"></i></button>
+            <div class="me-auto">
+                <div class="crumb">Beranda</div>
+                <div class="judul">Dashboard</div>
+            </div>
+
+            <form class="topbar-search d-none d-md-block" action="http://localhost:8000/slip" data-cari="http://localhost:8000/cari" role="search">
+                <i data-lucide="search"></i>
+                <input name="q" class="form-control" placeholder="Cari slip gaji atau menu..." value="" autocomplete="off" aria-autocomplete="list">
+                <div class="cari-hasil" hidden></div>
+            </form>
+
+            <div class="dropdown">
+                <button class="btn-topbar" data-bs-toggle="dropdown" aria-label="Notifikasi">
+                    <i data-lucide="bell"></i>
+                                    </button>
+                <div class="dropdown-menu dropdown-menu-end p-0 notif-menu">
+                    <div class="d-flex justify-content-between align-items-center px-3 py-3 border-bottom">
+                        <strong>Notifikasi </strong>
+                        <a href="http://localhost:8000/notifikasi" class="small fw-semibold">Lihat semua</a>
+                    </div>
+                                            <a href="http://localhost:8000/notifikasi/58" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Slip gaji tersedia</span>
+                                <span class="d-block small text-secondary">Slip gaji periode Oktober 2026 sudah bisa dilihat dan diunduh.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/41" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Slip gaji tersedia</span>
+                                <span class="d-block small text-secondary">Slip gaji periode September 2026 sudah bisa dilihat dan diunduh.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/24" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Slip gaji tersedia</span>
+                                <span class="d-block small text-secondary">Slip gaji periode Agustus 2026 sudah bisa dilihat dan diunduh.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/7" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Slip gaji tersedia</span>
+                                <span class="d-block small text-secondary">Slip gaji periode Juli 2026 sudah bisa dilihat dan diunduh.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                    </div>
+            </div>
+
+            <div class="dropdown">
+                <button class="btn-avatar" data-bs-toggle="dropdown" aria-label="Menu profil"><span class="avatar">RM</span></button>
+                <div class="dropdown-menu dropdown-menu-end" style="width:240px">
+                    <div class="px-3 py-2 border-bottom mb-1">
+                        <div class="fw-semibold">Rizky Maulana</div>
+                        <div class="small text-muted">rizky · Karyawan</div>
+                    </div>
+                                            <a class="dropdown-item d-flex gap-2" href="http://localhost:8000/profil"><i data-lucide="user"></i> Profil saya</a>
+                                        <button class="dropdown-item d-flex gap-2" data-bs-toggle="modal" data-bs-target="#modalPassword"><i data-lucide="key-round"></i> Ganti kata sandi</button>
+                    <div class="dropdown-divider"></div>
+                    <form method="post" action="http://localhost:8000/logout"><input type="hidden" name="_token" value="TOKEN" autocomplete="off">                        <button class="dropdown-item d-flex gap-2 text-danger"><i data-lucide="log-out"></i> Keluar</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <main class="content">
+            <div class="page-header">
+    <div>
+        <h1>Dashboard Karyawan</h1>
+        <p>Programmer · Departemen Teknologi Informasi</p>    </div>
+    </div>
+
+        <div class="hero-gaji mb-4">
+        <div class="me-auto">
+            <div class="small opacity-75">Gaji bersih Oktober 2026</div>
+            <div class="fs-2 fw-bold">Rp 11.627.109</div>
+            <div class="small opacity-75">Slip terbit 29 Okt 2026 setelah disetujui Manager HR</div>
+        </div>
+        <div class="kotak"><div class="small opacity-75">Total penambah</div><div class="fw-semibold">Rp 12.111.572</div></div>
+        <div class="kotak"><div class="small opacity-75">Total pengurang</div><div class="fw-semibold">Rp 484.463</div></div>
+        <a href="http://localhost:8000/slip/363/unduh" class="btn btn-light"><i data-lucide="file-down"></i> Unduh Slip PDF</a>
+    </div>
+
+<div class="row g-3 mb-4">
+            <div class="col-sm-6 col-xl-3">
+            <div class="card stat-card h-100"><div class="card-body">
+                <div class="label">Kehadiran November</div>
+                <div class="angka">10/23 hari</div>
+                <div class="ket">0 sakit · 1 cuti · 1 alfa</div>
+            </div></div>
+        </div>
+            <div class="col-sm-6 col-xl-3">
+            <div class="card stat-card h-100"><div class="card-body">
+                <div class="label">Sisa Cuti Tahunan</div>
+                <div class="angka">6 hari</div>
+                <div class="ket">Jatah 12 hari per tahun</div>
+            </div></div>
+        </div>
+            <div class="col-sm-6 col-xl-3">
+            <div class="card stat-card h-100"><div class="card-body">
+                <div class="label">Lembur November</div>
+                <div class="angka">4 jam</div>
+                <div class="ket">Rp 356.069 · estimasi</div>
+            </div></div>
+        </div>
+            <div class="col-sm-6 col-xl-3">
+            <div class="card stat-card h-100"><div class="card-body">
+                <div class="label">Masa Kerja</div>
+                <div class="angka">5 th 11 bln</div>
+                <div class="ket">Berhak THR 1× gaji pokok</div>
+            </div></div>
+        </div>
+    </div>
+
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">Riwayat Cuti & Lembur <a href="http://localhost:8000/absensi" class="fw-semibold small">Lihat semua</a></div>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead><tr><th>Jenis</th><th>Tanggal</th><th>Keterangan</th><th>Sumber</th></tr></thead>
+                    <tbody>
+                                            <tr><td class="fw-semibold">Cuti</td><td>6 Nov 2026 (1 hari)</td><td class="text-secondary">Cuti tahunan</td><td><span class="badge badge-soft-neutral">Diinput HR</span></td></tr>
+                                            <tr><td class="fw-semibold">Lembur</td><td>5 Nov 2026 · 17:00–19:00</td><td class="text-secondary">Stock opname</td><td><span class="badge badge-soft-neutral">Diinput Manager</span></td></tr>
+                                            <tr><td class="fw-semibold">Lembur</td><td>30 Okt 2026 · 17:00–19:00</td><td class="text-secondary">Stock opname</td><td><span class="badge badge-soft-neutral">Diinput Manager</span></td></tr>
+                                            <tr><td class="fw-semibold">Sakit</td><td>15 Okt 2026 (1 hari)</td><td class="text-secondary">Surat dokter</td><td><span class="badge badge-soft-neutral">Diinput HR</span></td></tr>
+                                            <tr><td class="fw-semibold">Lembur</td><td>7 Okt 2026 · 18:00–21:00</td><td class="text-secondary">Perbaikan mesin</td><td><span class="badge badge-soft-neutral">Diinput HR</span></td></tr>
+                                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header">Rincian Kehadiran November<span class="sub">Menentukan uang makan & transport</span></div>
+            <div class="card-body">
+                                    <div class="d-flex justify-content-between mb-3"><div><div class="fw-semibold">Hadir</div><div class="small text-muted">Dapat uang makan + transport</div></div><div class="fw-semibold">10 hari</div></div>
+                                    <div class="d-flex justify-content-between mb-3"><div><div class="fw-semibold">Sakit</div><div class="small text-muted">Tidak memotong gaji</div></div><div class="fw-semibold">0 hari</div></div>
+                                    <div class="d-flex justify-content-between mb-3"><div><div class="fw-semibold">Cuti / Izin</div><div class="small text-muted">Cuti mengurangi jatah tahunan</div></div><div class="fw-semibold">1 hari</div></div>
+                                    <div class="d-flex justify-content-between mb-3"><div><div class="fw-semibold">Alfa</div><div class="small text-muted">Tanpa tunjangan, potong gaji pokok</div></div><div class="fw-semibold">1 hari</div></div>
+                            </div>
+        </div>
+    </div>
+</div>
+        </main>
+
+        <footer class="footer">Powered by <b>Kelompok 6 RPL</b> · Kelas X7N · Universitas Indraprasta PGRI · 2026</footer>
+    </div>
+</div>
+
+<div class="drawer-backdrop" data-tutup-drawer></div>
+<div class="toast-wrap">
+    </div>
+<script>
+    document.querySelectorAll('.toast-item[data-auto="1"]').forEach(t => setTimeout(() => t.remove(), 4000));
+</script>
+
+
+<div class="modal fade" id="modalPassword" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" method="post" action="http://localhost:8000/ganti-password">
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="put">            <div class="modal-header"><h5 class="modal-title fs-6 fw-semibold">Ganti kata sandi</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="mb-3"><label class="form-label">Kata sandi lama</label><input type="password" name="password_lama" class="form-control" required></div>
+                <div class="mb-3"><label class="form-label">Kata sandi baru</label><input type="password" name="password" class="form-control" minlength="8" required><div class="form-text">Minimal 8 karakter.</div></div>
+                <div class="mb-1"><label class="form-label">Ulangi kata sandi baru</label><input type="password" name="password_confirmation" class="form-control" required></div>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button><button class="btn btn-primary">Simpan</button></div>
+        </form>
+    </div>
+</div>
+
+
+<div class="modal fade" id="modalKonfirmasi" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:400px">
+        <div class="modal-content p-2">
+            <div class="modal-body">
+                <h5 class="fw-bold fs-5 mb-2" id="konfJudul">Lanjutkan?</h5>
+                <p class="text-secondary mb-0" id="konfPesan"></p>
+            </div>
+            <div class="modal-footer border-0 pt-0"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button><button type="button" id="konfOk" class="btn btn-primary">Ya</button></div>
+        </div>
+    </div>
+</div>
+
+<script>window.__errors = []; window.__bukaModalPassword = false;</script>
+</body>
+</html>

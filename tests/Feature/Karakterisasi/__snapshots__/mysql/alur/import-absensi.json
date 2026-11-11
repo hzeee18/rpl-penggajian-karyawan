@@ -1,0 +1,48 @@
+{
+    "upload_dengan_error": {
+        "status": 302,
+        "ke": "http://localhost:8000/import?lihat=1",
+        "sukses": null,
+        "gagal": "Import gagal: 1 baris error. Perbaiki file lalu upload ulang.",
+        "errors": []
+    },
+    "upload": {
+        "status": 302,
+        "ke": "http://localhost:8000/import/preview",
+        "sukses": null,
+        "gagal": null,
+        "errors": []
+    },
+    "simpan": {
+        "status": 302,
+        "ke": "http://localhost:8000/import",
+        "sukses": "1 baris data Absensi berhasil di-import.",
+        "gagal": null,
+        "errors": []
+    },
+    "tersimpan": [
+        {
+            "jam_masuk": "08:00:00",
+            "jam_keluar": "17:00:00",
+            "status": "hadir"
+        }
+    ],
+    "log_import": [
+        {
+            "jenis": "absensi",
+            "nama_file": "absensi.csv",
+            "status": "error",
+            "baris": 2,
+            "baris_error": 1,
+            "catatan": "Baris 3: NIK TIDAKADA tidak ditemukan"
+        },
+        {
+            "jenis": "absensi",
+            "nama_file": "absensi.csv",
+            "status": "berhasil",
+            "baris": 1,
+            "baris_error": 0,
+            "catatan": null
+        }
+    ]
+}

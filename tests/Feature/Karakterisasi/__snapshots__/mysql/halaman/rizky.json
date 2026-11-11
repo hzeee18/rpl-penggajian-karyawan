@@ -1,0 +1,216 @@
+{
+    "/dashboard": {
+        "status": 200,
+        "tipe": "text/html"
+    },
+    "/notifikasi": {
+        "status": 200,
+        "tipe": "text/html"
+    },
+    "/profil": {
+        "status": 200,
+        "tipe": "text/html"
+    },
+    "/cari?q=a": {
+        "status": 200,
+        "tipe": "application/json"
+    },
+    "/users": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/users/create": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/users/4/edit": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/roles": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/roles/2/hak-akses": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/menus": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/departemen": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/departemen/create": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/departemen/1/edit": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/komponen": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/komponen/create": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/komponen/1/edit": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/pajak": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/master-payroll": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/karyawan": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/karyawan/create": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/karyawan/5": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/karyawan/5/edit": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/kontrak": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/kontrak/create": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/kontrak/10": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/kontrak/10/edit": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/kontrak-pdf/10": {
+        "status": 200,
+        "tipe": "application/pdf",
+        "pdf": true
+    },
+    "/absensi": {
+        "status": 200,
+        "tipe": "text/html"
+    },
+    "/absensi?periode=2026-10": {
+        "status": 200,
+        "tipe": "text/html"
+    },
+    "/absensi/create": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/absensi/377/edit": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/cuti": {
+        "status": 200,
+        "tipe": "text/html"
+    },
+    "/cuti/create": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/cuti/1/edit": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/lembur": {
+        "status": 200,
+        "tipe": "text/html"
+    },
+    "/lembur/create": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/lembur/1/edit": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/import": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/payroll": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/payroll/rekap": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/payroll/riwayat": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/payroll/4": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/payroll/4/karyawan/5": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/laporan": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/laporan?periode=2026-10": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/laporan/4": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/laporan/pdf?periode=2026-10": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/approval": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/approval/1": {
+        "status": 403,
+        "tipe": "text/html"
+    },
+    "/slip": {
+        "status": 200,
+        "tipe": "text/html"
+    },
+    "/slip?periode=2026-10": {
+        "status": 200,
+        "tipe": "text/html"
+    },
+    "/slip/363": {
+        "status": 200,
+        "tipe": "text/html"
+    },
+    "/slip/363/unduh": {
+        "status": 200,
+        "tipe": "application/pdf",
+        "pdf": true
+    }
+}

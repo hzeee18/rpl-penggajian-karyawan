@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Absensi, Cuti &amp; Lembur · Penggajian Karyawan</title>
+    <link rel="icon" href="http://localhost:8000/img/logo-unindra.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css" rel="stylesheet">
+    <link href="http://localhost:8000/css/app.css?v=24" rel="stylesheet">
+    <meta name="turbo-cache-control" content="no-preview">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/id.js"></script>
+    <script src="http://localhost:8000/js/form.js?v=9"></script>
+    <script src="http://localhost:8000/js/app.js?v=6"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.12/dist/turbo.es2017-umd.js"></script>
+    </head>
+<body>
+<div class="d-flex">
+    
+    <aside class="sidebar offcanvas-lg offcanvas-start" tabindex="-1" id="sidebar">
+        <div class="sidebar-brand">
+            <img src="http://localhost:8000/img/logo-unindra.png" alt="Logo Unindra">
+            <div>
+                <div class="nama">Penggajian Karyawan</div>
+                <div class="kampus">Universitas Indraprasta PGRI</div>
+            </div>
+        </div>
+
+        <div class="nav-label">Menu Karyawan</div>
+                    <a href="http://localhost:8000/dashboard" class="nav-item-link ">
+                <i data-lucide="layout-grid"></i> Dashboard
+            </a>
+                    <a href="http://localhost:8000/profil" class="nav-item-link ">
+                <i data-lucide="user"></i> Profil &amp; Kontrak
+            </a>
+                    <a href="http://localhost:8000/absensi" class="nav-item-link active">
+                <i data-lucide="calendar"></i> Absensi, Cuti &amp; Lembur
+            </a>
+                    <a href="http://localhost:8000/slip" class="nav-item-link ">
+                <i data-lucide="file-text"></i> Slip Gaji
+            </a>
+                
+        <div class="sidebar-user mt-auto">
+            <span class="avatar">RM</span>
+            <div class="text-truncate">
+                <div class="nama text-truncate">Rizky Maulana</div>
+                <div class="peran text-truncate">Programmer</div>
+            </div>
+        </div>
+        <form method="post" action="http://localhost:8000/logout"><input type="hidden" name="_token" value="TOKEN" autocomplete="off">            <button class="nav-item-link"><i data-lucide="log-out"></i> Keluar</button>
+        </form>
+    </aside>
+
+    <div class="main flex-grow-1">
+        
+        <header class="topbar">
+            <button class="btn-topbar d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-label="Menu"><i data-lucide="menu"></i></button>
+            <div class="me-auto">
+                <div class="crumb">Absensi, Cuti &amp; Lembur</div>
+                <div class="judul">Absensi, Cuti &amp; Lembur</div>
+            </div>
+
+            <form class="topbar-search d-none d-md-block" action="http://localhost:8000/slip" data-cari="http://localhost:8000/cari" role="search">
+                <i data-lucide="search"></i>
+                <input name="q" class="form-control" placeholder="Cari slip gaji atau menu..." value="" autocomplete="off" aria-autocomplete="list">
+                <div class="cari-hasil" hidden></div>
+            </form>
+
+            <div class="dropdown">
+                <button class="btn-topbar" data-bs-toggle="dropdown" aria-label="Notifikasi">
+                    <i data-lucide="bell"></i>
+                                    </button>
+                <div class="dropdown-menu dropdown-menu-end p-0 notif-menu">
+                    <div class="d-flex justify-content-between align-items-center px-3 py-3 border-bottom">
+                        <strong>Notifikasi </strong>
+                        <a href="http://localhost:8000/notifikasi" class="small fw-semibold">Lihat semua</a>
+                    </div>
+                                            <a href="http://localhost:8000/notifikasi/58" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Slip gaji tersedia</span>
+                                <span class="d-block small text-secondary">Slip gaji periode Oktober 2026 sudah bisa dilihat dan diunduh.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/41" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Slip gaji tersedia</span>
+                                <span class="d-block small text-secondary">Slip gaji periode September 2026 sudah bisa dilihat dan diunduh.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/24" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Slip gaji tersedia</span>
+                                <span class="d-block small text-secondary">Slip gaji periode Agustus 2026 sudah bisa dilihat dan diunduh.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/7" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Slip gaji tersedia</span>
+                                <span class="d-block small text-secondary">Slip gaji periode Juli 2026 sudah bisa dilihat dan diunduh.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                    </div>
+            </div>
+
+            <div class="dropdown">
+                <button class="btn-avatar" data-bs-toggle="dropdown" aria-label="Menu profil"><span class="avatar">RM</span></button>
+                <div class="dropdown-menu dropdown-menu-end" style="width:240px">
+                    <div class="px-3 py-2 border-bottom mb-1">
+                        <div class="fw-semibold">Rizky Maulana</div>
+                        <div class="small text-muted">rizky · Karyawan</div>
+                    </div>
+                                            <a class="dropdown-item d-flex gap-2" href="http://localhost:8000/profil"><i data-lucide="user"></i> Profil saya</a>
+                                        <button class="dropdown-item d-flex gap-2" data-bs-toggle="modal" data-bs-target="#modalPassword"><i data-lucide="key-round"></i> Ganti kata sandi</button>
+                    <div class="dropdown-divider"></div>
+                    <form method="post" action="http://localhost:8000/logout"><input type="hidden" name="_token" value="TOKEN" autocomplete="off">                        <button class="dropdown-item d-flex gap-2 text-danger"><i data-lucide="log-out"></i> Keluar</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <main class="content">
+            <div class="page-header">
+    <div>
+        <h1>Absensi, Cuti &amp; Lembur</h1>
+        <p>Riwayat kehadiran, cuti &amp; lembur kamu. Semua data diinput HR, kamu cukup melihat.</p>    </div>
+    <div class="aksi"><form method="get" class="position-relative">
+        <label class="btn btn-light mb-0"><i data-lucide="calendar"></i> Oktober 2026
+            <input type="month" name="periode" value="2026-10" onchange="this.form.submit()" onclick="try{this.showPicker()}catch(e){}" style="position:absolute;inset:0;opacity:0;cursor:pointer"></label>
+    </form></div></div>
+
+<div class="stat-row">
+            <div class="card stat-card"><div class="card-body py-3"><div class="label">Hadir</div><div class="angka fs-4 mt-1">19/20 hari</div></div></div>
+            <div class="card stat-card"><div class="card-body py-3"><div class="label">Sakit / izin</div><div class="angka fs-4 mt-1">1 hari</div></div></div>
+            <div class="card stat-card"><div class="card-body py-3"><div class="label">Cuti</div><div class="angka fs-4 mt-1">0 hari</div></div></div>
+            <div class="card stat-card"><div class="card-body py-3"><div class="label">Alfa</div><div class="angka fs-4 mt-1">0 hari</div></div></div>
+            <div class="card stat-card"><div class="card-body py-3"><div class="label">Lembur</div><div class="angka fs-4 mt-1">8 jam</div></div></div>
+            <div class="card stat-card"><div class="card-body py-3"><div class="label">Sisa cuti tahunan</div><div class="angka fs-4 mt-1">6 hari</div></div></div>
+    </div>
+<div class="mb-3 d-flex align-items-center gap-3"><div class="notice "><i data-lucide="circle-alert"></i><span>Data diinput HR. Kalau ada yang salah, hubungi HR sebelum payroll di-generate.</span></div>
+<a href="http://localhost:8000/slip" class="fw-semibold text-nowrap">Lihat slip gaji <i data-lucide="chevron-right"></i></a></div>
+<div class="md-grid">
+    <div class="card">
+        <div class="card-search d-flex align-items-center gap-2">
+            <div class="chips">
+                                    <a href="http://localhost:8000/absensi?periode=2026-10" class="chip active">Semua</a>
+                                    <a href="http://localhost:8000/absensi?periode=2026-10&amp;filter=hadir" class="chip ">Hadir</a>
+                                    <a href="http://localhost:8000/absensi?periode=2026-10&amp;filter=sakit" class="chip ">Sakit / Izin</a>
+                                    <a href="http://localhost:8000/absensi?periode=2026-10&amp;filter=cuti" class="chip ">Cuti</a>
+                                    <a href="http://localhost:8000/absensi?periode=2026-10&amp;filter=lembur" class="chip ">Lembur</a>
+                            </div>
+            <span class="small text-muted ms-auto">20 catatan · Oktober 2026</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table">
+                <thead><tr><th>Tanggal</th><th>Status</th><th>Keterangan</th><th class="text-end">Lembur</th></tr></thead>
+                <tbody>
+                                    <tr>
+                        <td class="fw-semibold text-nowrap">23 Okt</td>
+                        <td><span class="badge badge-soft-success">Hadir</span></td>
+                        <td><div class="orang"><span class="avatar avatar-sm">HR</span><div><div class="nama">Hadir</div><div class="sub">Diinput HR</div></div></div></td>
+                        <td class="text-end">-</td>
+                    </tr>
+                                    <tr>
+                        <td class="fw-semibold text-nowrap">22 Okt</td>
+                        <td><span class="badge badge-soft-success">Hadir</span></td>
+                        <td><div class="orang"><span class="avatar avatar-sm">HR</span><div><div class="nama">Hadir</div><div class="sub">Diinput HR</div></div></div></td>
+                        <td class="text-end">-</td>
+                    </tr>
+                                    <tr>
+                        <td class="fw-semibold text-nowrap">21 Okt</td>
+                        <td><span class="badge badge-soft-success">Hadir</span></td>
+                        <td><div class="orang"><span class="avatar avatar-sm">HR</span><div><div class="nama">Hadir</div><div class="sub">Diinput HR</div></div></div></td>
+                        <td class="text-end">-</td>
+                    </tr>
+                                    <tr>
+                        <td class="fw-semibold text-nowrap">20 Okt</td>
+                        <td><span class="badge badge-soft-success">Hadir</span></td>
+                        <td><div class="orang"><span class="avatar avatar-sm">HR</span><div><div class="nama">Hadir</div><div class="sub">Diinput HR</div></div></div></td>
+                        <td class="text-end">-</td>
+                    </tr>
+                                    <tr>
+                        <td class="fw-semibold text-nowrap">19 Okt</td>
+                        <td><span class="badge badge-soft-success">Hadir</span></td>
+                        <td><div class="orang"><span class="avatar avatar-sm">HR</span><div><div class="nama">Hadir</div><div class="sub">Diinput HR</div></div></div></td>
+                        <td class="text-end">-</td>
+                    </tr>
+                                    <tr>
+                        <td class="fw-semibold text-nowrap">16 Okt</td>
+                        <td><span class="badge badge-soft-success">Hadir</span></td>
+                        <td><div class="orang"><span class="avatar avatar-sm">HR</span><div><div class="nama">Hadir</div><div class="sub">Diinput HR</div></div></div></td>
+                        <td class="text-end">-</td>
+                    </tr>
+                                    <tr>
+                        <td class="fw-semibold text-nowrap">15 Okt</td>
+                        <td><span class="badge badge-soft-warning">Sakit</span></td>
+                        <td><div class="orang"><span class="avatar avatar-sm">HR</span><div><div class="nama">Surat dokter</div><div class="sub">Diinput HR</div></div></div></td>
+                        <td class="text-end">-</td>
+                    </tr>
+                                    <tr>
+                        <td class="fw-semibold text-nowrap">14 Okt</td>
+                        <td><span class="badge badge-soft-success">Hadir</span></td>
+                        <td><div class="orang"><span class="avatar avatar-sm">HR</span><div><div class="nama">Hadir</div><div class="sub">Diinput HR</div></div></div></td>
+                        <td class="text-end">-</td>
+                    </tr>
+                                    <tr>
+                        <td class="fw-semibold text-nowrap">13 Okt</td>
+                        <td><span class="badge badge-soft-success">Hadir</span></td>
+                        <td><div class="orang"><span class="avatar avatar-sm">HR</span><div><div class="nama">Hadir</div><div class="sub">Diinput HR</div></div></div></td>
+                        <td class="text-end">-</td>
+                    </tr>
+                                    <tr>
+                        <td class="fw-semibold text-nowrap">12 Okt</td>
+                        <td><span class="badge badge-soft-success">Hadir</span></td>
+                        <td><div class="orang"><span class="avatar avatar-sm">HR</span><div><div class="nama">Hadir</div><div class="sub">Diinput HR</div></div></div></td>
+                        <td class="text-end">-</td>
+                    </tr>
+                                    <tr>
+                        <td class="fw-semibold text-nowrap">9 Okt</td>
+                        <td><span class="badge badge-soft-success">Hadir</span></td>
+                        <td><div class="orang"><span class="avatar avatar-sm">HR</span><div><div class="nama">Hadir</div><div class="sub">Diinput HR</div></div></div></td>
+                        <td class="text-end">-</td>
+                    </tr>
+                                    <tr>
+                        <td class="fw-semibold text-nowrap">8 Okt</td>
+                        <td><span class="badge badge-soft-success">Hadir</span></td>
+                        <td><div class="orang"><span class="avatar avatar-sm">HR</span><div><div class="nama">Hadir</div><div class="sub">Diinput HR</div></div></div></td>
+                        <td class="text-end">-</td>
+                    </tr>
+                                    <tr>
+                        <td class="fw-semibold text-nowrap">7 Okt</td>
+                        <td><span class="badge badge-soft-success">Hadir</span></td>
+                        <td><div class="orang"><span class="avatar avatar-sm">HR</span><div><div class="nama">Perbaikan mesin</div><div class="sub">Diinput HR</div></div></div></td>
+                        <td class="text-end">3 jam</td>
+                    </tr>
+                                    <tr>
+                        <td class="fw-semibold text-nowrap">6 Okt</td>
+                        <td><span class="badge badge-soft-success">Hadir</span></td>
+                        <td><div class="orang"><span class="avatar avatar-sm">MG</span><div><div class="nama">Bongkar muat</div><div class="sub">Diinput Manager</div></div></div></td>
+                        <td class="text-end">1 jam</td>
+                    </tr>
+                                    <tr>
+                        <td class="fw-semibold text-nowrap">5 Okt</td>
+                        <td><span class="badge badge-soft-success">Hadir</span></td>
+                        <td><div class="orang"><span class="avatar avatar-sm">HR</span><div><div class="nama">Hadir</div><div class="sub">Diinput HR</div></div></div></td>
+                        <td class="text-end">-</td>
+                    </tr>
+                                    <tr>
+                        <td class="fw-semibold text-nowrap">2 Okt</td>
+                        <td><span class="badge badge-soft-warning">Terlambat</span></td>
+                        <td><div class="orang"><span class="avatar avatar-sm">MG</span><div><div class="nama">Bongkar muat</div><div class="sub">Diinput Manager</div></div></div></td>
+                        <td class="text-end">4 jam</td>
+                    </tr>
+                                    <tr>
+                        <td class="fw-semibold text-nowrap">1 Okt</td>
+                        <td><span class="badge badge-soft-success">Hadir</span></td>
+                        <td><div class="orang"><span class="avatar avatar-sm">HR</span><div><div class="nama">Hadir</div><div class="sub">Diinput HR</div></div></div></td>
+                        <td class="text-end">-</td>
+                    </tr>
+                                    <tr>
+                        <td class="fw-semibold text-nowrap">30 Sep</td>
+                        <td><span class="badge badge-soft-success">Hadir</span></td>
+                        <td><div class="orang"><span class="avatar avatar-sm">HR</span><div><div class="nama">Hadir</div><div class="sub">Diinput HR</div></div></div></td>
+                        <td class="text-end">-</td>
+                    </tr>
+                                    <tr>
+                        <td class="fw-semibold text-nowrap">29 Sep</td>
+                        <td><span class="badge badge-soft-success">Hadir</span></td>
+                        <td><div class="orang"><span class="avatar avatar-sm">HR</span><div><div class="nama">Hadir</div><div class="sub">Diinput HR</div></div></div></td>
+                        <td class="text-end">-</td>
+                    </tr>
+                                    <tr>
+                        <td class="fw-semibold text-nowrap">28 Sep</td>
+                        <td><span class="badge badge-soft-success">Hadir</span></td>
+                        <td><div class="orang"><span class="avatar avatar-sm">HR</span><div><div class="nama">Hadir</div><div class="sub">Diinput HR</div></div></div></td>
+                        <td class="text-end">-</td>
+                    </tr>
+                                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+        </main>
+
+        <footer class="footer">Powered by <b>Kelompok 6 RPL</b> · Kelas X7N · Universitas Indraprasta PGRI · 2026</footer>
+    </div>
+</div>
+
+<div class="drawer-backdrop" data-tutup-drawer></div>
+<div class="toast-wrap">
+    </div>
+<script>
+    document.querySelectorAll('.toast-item[data-auto="1"]').forEach(t => setTimeout(() => t.remove(), 4000));
+</script>
+
+
+<div class="modal fade" id="modalPassword" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" method="post" action="http://localhost:8000/ganti-password">
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="put">            <div class="modal-header"><h5 class="modal-title fs-6 fw-semibold">Ganti kata sandi</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="mb-3"><label class="form-label">Kata sandi lama</label><input type="password" name="password_lama" class="form-control" required></div>
+                <div class="mb-3"><label class="form-label">Kata sandi baru</label><input type="password" name="password" class="form-control" minlength="8" required><div class="form-text">Minimal 8 karakter.</div></div>
+                <div class="mb-1"><label class="form-label">Ulangi kata sandi baru</label><input type="password" name="password_confirmation" class="form-control" required></div>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button><button class="btn btn-primary">Simpan</button></div>
+        </form>
+    </div>
+</div>
+
+
+<div class="modal fade" id="modalKonfirmasi" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:400px">
+        <div class="modal-content p-2">
+            <div class="modal-body">
+                <h5 class="fw-bold fs-5 mb-2" id="konfJudul">Lanjutkan?</h5>
+                <p class="text-secondary mb-0" id="konfPesan"></p>
+            </div>
+            <div class="modal-footer border-0 pt-0"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button><button type="button" id="konfOk" class="btn btn-primary">Ya</button></div>
+        </div>
+    </div>
+</div>
+
+<script>window.__errors = []; window.__bukaModalPassword = false;</script>
+</body>
+</html>

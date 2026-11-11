@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Manajemen Menu · Penggajian Karyawan</title>
+    <link rel="icon" href="http://localhost:8000/img/logo-unindra.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css" rel="stylesheet">
+    <link href="http://localhost:8000/css/app.css?v=24" rel="stylesheet">
+    <meta name="turbo-cache-control" content="no-preview">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/id.js"></script>
+    <script src="http://localhost:8000/js/form.js?v=9"></script>
+    <script src="http://localhost:8000/js/app.js?v=6"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.12/dist/turbo.es2017-umd.js"></script>
+    </head>
+<body>
+<div class="d-flex">
+    
+    <aside class="sidebar offcanvas-lg offcanvas-start" tabindex="-1" id="sidebar">
+        <div class="sidebar-brand">
+            <img src="http://localhost:8000/img/logo-unindra.png" alt="Logo Unindra">
+            <div>
+                <div class="nama">Penggajian Karyawan</div>
+                <div class="kampus">Universitas Indraprasta PGRI</div>
+            </div>
+        </div>
+
+        <div class="nav-label">Menu Admin</div>
+                    <a href="http://localhost:8000/dashboard" class="nav-item-link ">
+                <i data-lucide="layout-grid"></i> Dashboard
+            </a>
+                    <a href="http://localhost:8000/users" class="nav-item-link ">
+                <i data-lucide="users"></i> Manajemen User
+            </a>
+                    <a href="http://localhost:8000/roles" class="nav-item-link ">
+                <i data-lucide="shield"></i> Role &amp; Privilege
+            </a>
+                    <a href="http://localhost:8000/menus" class="nav-item-link active">
+                <i data-lucide="layers"></i> Manajemen Menu
+            </a>
+                
+        <div class="sidebar-user mt-auto">
+            <span class="avatar">AD</span>
+            <div class="text-truncate">
+                <div class="nama text-truncate">admin</div>
+                <div class="peran text-truncate">Administrator</div>
+            </div>
+        </div>
+        <form method="post" action="http://localhost:8000/logout"><input type="hidden" name="_token" value="TOKEN" autocomplete="off">            <button class="nav-item-link"><i data-lucide="log-out"></i> Keluar</button>
+        </form>
+    </aside>
+
+    <div class="main flex-grow-1">
+        
+        <header class="topbar">
+            <button class="btn-topbar d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-label="Menu"><i data-lucide="menu"></i></button>
+            <div class="me-auto">
+                <div class="crumb">Pengaturan / Menu</div>
+                <div class="judul">Manajemen Menu</div>
+            </div>
+
+            <form class="topbar-search d-none d-md-block" action="http://localhost:8000/dashboard" data-cari="http://localhost:8000/cari" role="search">
+                <i data-lucide="search"></i>
+                <input name="q" class="form-control" placeholder="Cari menu..." value="" autocomplete="off" aria-autocomplete="list">
+                <div class="cari-hasil" hidden></div>
+            </form>
+
+            <div class="dropdown">
+                <button class="btn-topbar" data-bs-toggle="dropdown" aria-label="Notifikasi">
+                    <i data-lucide="bell"></i>
+                                    </button>
+                <div class="dropdown-menu dropdown-menu-end p-0 notif-menu">
+                    <div class="d-flex justify-content-between align-items-center px-3 py-3 border-bottom">
+                        <strong>Notifikasi </strong>
+                        <a href="http://localhost:8000/notifikasi" class="small fw-semibold">Lihat semua</a>
+                    </div>
+                                            <div class="empty">
+    <i data-lucide="bell-off"></i>
+    <span class="judul-empty">Belum ada notifikasi</span>
+    <div class="small">Kabar soal approval, lembur, dan slip gaji akan muncul di sini.</div>    </div>
+                                    </div>
+            </div>
+
+            <div class="dropdown">
+                <button class="btn-avatar" data-bs-toggle="dropdown" aria-label="Menu profil"><span class="avatar">AD</span></button>
+                <div class="dropdown-menu dropdown-menu-end" style="width:240px">
+                    <div class="px-3 py-2 border-bottom mb-1">
+                        <div class="fw-semibold">admin</div>
+                        <div class="small text-muted">admin · Admin</div>
+                    </div>
+                                        <button class="dropdown-item d-flex gap-2" data-bs-toggle="modal" data-bs-target="#modalPassword"><i data-lucide="key-round"></i> Ganti kata sandi</button>
+                    <div class="dropdown-divider"></div>
+                    <form method="post" action="http://localhost:8000/logout"><input type="hidden" name="_token" value="TOKEN" autocomplete="off">                        <button class="dropdown-item d-flex gap-2 text-danger"><i data-lucide="log-out"></i> Keluar</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <main class="content">
+            <div class="page-header">
+    <div>
+        <h1>Manajemen Menu</h1>
+        <p>Menu aplikasi yang aksesnya diatur per role.</p>    </div>
+    <div class="aksi"><a href="http://localhost:8000/menus?baru=1" class="btn btn-primary"><i data-lucide="plus"></i> Tambah Menu</a></div></div>
+
+<div class="md-grid">
+    <div class="card">
+        <form class="card-search d-flex gap-2 flex-wrap" method="get">
+        <div class="input-search flex-grow-1"><input name="q" value="" class="form-control" placeholder="Cari menu..."><i data-lucide="search"></i></div>
+    
+</form>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead><tr><th>Urut</th><th>Induk</th><th>Menu</th><th class="text-center">Role</th><th>Aksi</th></tr></thead>
+                <tbody>
+                                    <tr class="">
+                        <td>1</td>
+                        <td>-</td>
+                        <td><div class="orang"><span class="avatar avatar-sm">DA</span><div><div class="nama">Dashboard</div><div class="sub">/dashboard</div></div></div></td>
+                        <td class="text-center">4</td>
+                        <td class="text-nowrap"><div class="d-inline-flex gap-2">
+        <a href="http://localhost:8000/menus?ubah=1" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>            <form method="post" action="http://localhost:8000/menus/1" data-confirm="Hapus menu Dashboard? Hak akses menu ini ikut terhapus.">
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="delete">            <button class="btn btn-outline-danger btn-icon" title="Hapus"><i data-lucide="trash-2"></i></button>
+        </form>
+    </div>
+</td>
+                    </tr>
+                                    <tr class="">
+                        <td>2</td>
+                        <td>-</td>
+                        <td><div class="orang"><span class="avatar avatar-sm">MU</span><div><div class="nama">Manajemen User</div><div class="sub">/users</div></div></div></td>
+                        <td class="text-center">1</td>
+                        <td class="text-nowrap"><div class="d-inline-flex gap-2">
+        <a href="http://localhost:8000/menus?ubah=2" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>            <form method="post" action="http://localhost:8000/menus/2" data-confirm="Hapus menu Manajemen User? Hak akses menu ini ikut terhapus.">
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="delete">            <button class="btn btn-outline-danger btn-icon" title="Hapus"><i data-lucide="trash-2"></i></button>
+        </form>
+    </div>
+</td>
+                    </tr>
+                                    <tr class="">
+                        <td>3</td>
+                        <td>-</td>
+                        <td><div class="orang"><span class="avatar avatar-sm">R&amp;</span><div><div class="nama">Role &amp; Privilege</div><div class="sub">/roles</div></div></div></td>
+                        <td class="text-center">1</td>
+                        <td class="text-nowrap"><div class="d-inline-flex gap-2">
+        <a href="http://localhost:8000/menus?ubah=3" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>            <form method="post" action="http://localhost:8000/menus/3" data-confirm="Hapus menu Role &amp; Privilege? Hak akses menu ini ikut terhapus.">
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="delete">            <button class="btn btn-outline-danger btn-icon" title="Hapus"><i data-lucide="trash-2"></i></button>
+        </form>
+    </div>
+</td>
+                    </tr>
+                                    <tr class="">
+                        <td>4</td>
+                        <td>-</td>
+                        <td><div class="orang"><span class="avatar avatar-sm">MM</span><div><div class="nama">Manajemen Menu</div><div class="sub">/menus</div></div></div></td>
+                        <td class="text-center">1</td>
+                        <td class="text-nowrap"><div class="d-inline-flex gap-2">
+        <a href="http://localhost:8000/menus?ubah=4" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>            <form method="post" action="http://localhost:8000/menus/4" data-confirm="Hapus menu Manajemen Menu? Hak akses menu ini ikut terhapus.">
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="delete">            <button class="btn btn-outline-danger btn-icon" title="Hapus"><i data-lucide="trash-2"></i></button>
+        </form>
+    </div>
+</td>
+                    </tr>
+                                    <tr class="">
+                        <td>5</td>
+                        <td>-</td>
+                        <td><div class="orang"><span class="avatar avatar-sm">AP</span><div><div class="nama">Approval</div><div class="sub">/approval</div></div></div></td>
+                        <td class="text-center">1</td>
+                        <td class="text-nowrap"><div class="d-inline-flex gap-2">
+        <a href="http://localhost:8000/menus?ubah=5" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>            <form method="post" action="http://localhost:8000/menus/5" data-confirm="Hapus menu Approval? Hak akses menu ini ikut terhapus.">
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="delete">            <button class="btn btn-outline-danger btn-icon" title="Hapus"><i data-lucide="trash-2"></i></button>
+        </form>
+    </div>
+</td>
+                    </tr>
+                                    <tr class="">
+                        <td>6</td>
+                        <td>-</td>
+                        <td><div class="orang"><span class="avatar avatar-sm">P&amp;</span><div><div class="nama">Profil &amp; Kontrak</div><div class="sub">/profil</div></div></div></td>
+                        <td class="text-center">3</td>
+                        <td class="text-nowrap"><div class="d-inline-flex gap-2">
+        <a href="http://localhost:8000/menus?ubah=6" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>            <form method="post" action="http://localhost:8000/menus/6" data-confirm="Hapus menu Profil &amp; Kontrak? Hak akses menu ini ikut terhapus.">
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="delete">            <button class="btn btn-outline-danger btn-icon" title="Hapus"><i data-lucide="trash-2"></i></button>
+        </form>
+    </div>
+</td>
+                    </tr>
+                                    <tr class="">
+                        <td>7</td>
+                        <td>-</td>
+                        <td><div class="orang"><span class="avatar avatar-sm">DK</span><div><div class="nama">Data Karyawan</div><div class="sub">/karyawan</div></div></div></td>
+                        <td class="text-center">2</td>
+                        <td class="text-nowrap"><div class="d-inline-flex gap-2">
+        <a href="http://localhost:8000/menus?ubah=7" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>            <form method="post" action="http://localhost:8000/menus/7" data-confirm="Hapus menu Data Karyawan? Hak akses menu ini ikut terhapus.">
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="delete">            <button class="btn btn-outline-danger btn-icon" title="Hapus"><i data-lucide="trash-2"></i></button>
+        </form>
+    </div>
+</td>
+                    </tr>
+                                    <tr class="">
+                        <td>8</td>
+                        <td>-</td>
+                        <td><div class="orang"><span class="avatar avatar-sm">KO</span><div><div class="nama">Kontrak</div><div class="sub">/kontrak</div></div></div></td>
+                        <td class="text-center">1</td>
+                        <td class="text-nowrap"><div class="d-inline-flex gap-2">
+        <a href="http://localhost:8000/menus?ubah=8" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>            <form method="post" action="http://localhost:8000/menus/8" data-confirm="Hapus menu Kontrak? Hak akses menu ini ikut terhapus.">
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="delete">            <button class="btn btn-outline-danger btn-icon" title="Hapus"><i data-lucide="trash-2"></i></button>
+        </form>
+    </div>
+</td>
+                    </tr>
+                                    <tr class="">
+                        <td>9</td>
+                        <td>-</td>
+                        <td><div class="orang"><span class="avatar avatar-sm">AB</span><div><div class="nama">Absensi</div><div class="sub">/absensi</div></div></div></td>
+                        <td class="text-center">3</td>
+                        <td class="text-nowrap"><div class="d-inline-flex gap-2">
+        <a href="http://localhost:8000/menus?ubah=9" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>            <form method="post" action="http://localhost:8000/menus/9" data-confirm="Hapus menu Absensi? Hak akses menu ini ikut terhapus.">
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="delete">            <button class="btn btn-outline-danger btn-icon" title="Hapus"><i data-lucide="trash-2"></i></button>
+        </form>
+    </div>
+</td>
+                    </tr>
+                                    <tr class="">
+                        <td>10</td>
+                        <td>-</td>
+                        <td><div class="orang"><span class="avatar avatar-sm">CI</span><div><div class="nama">Cuti, Izin, Sakit</div><div class="sub">/cuti</div></div></div></td>
+                        <td class="text-center">3</td>
+                        <td class="text-nowrap"><div class="d-inline-flex gap-2">
+        <a href="http://localhost:8000/menus?ubah=10" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>            <form method="post" action="http://localhost:8000/menus/10" data-confirm="Hapus menu Cuti, Izin, Sakit? Hak akses menu ini ikut terhapus.">
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="delete">            <button class="btn btn-outline-danger btn-icon" title="Hapus"><i data-lucide="trash-2"></i></button>
+        </form>
+    </div>
+</td>
+                    </tr>
+                                </tbody>
+            </table>
+        </div>
+        <div class="table-foot border-top">
+    <span>Menampilkan 1–10 dari 20 menu</span>
+            <ul class="pagination">
+                                        <li class="page-item active"><a class="page-link" href="http://localhost:8000/menus?page=1">1</a></li>
+                            <li class="page-item "><a class="page-link" href="http://localhost:8000/menus?page=2">2</a></li>
+                        <li class="page-item"><a class="page-link" href="http://localhost:8000/menus?page=2">›</a></li>        </ul>
+    </div>
+    </div>
+
+    <div id="drawer" class="card panel drawer" role="dialog" aria-modal="true">
+    <div class="card-header d-flex align-items-start gap-2">
+        <div class="me-auto"><div class="judul-panel">Tambah Menu</div><span class="sub">Menu baru di sidebar</span></div>
+        <button type="button" class="btn btn-light btn-icon" data-tutup-drawer aria-label="Tutup"><i data-lucide="x"></i></button>
+    </div>
+            <form method="post" action="http://localhost:8000/menus" class="card-body" >
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off">             <div class="mb-field"><label class="form-label">Nama menu</label><input name="nama" value="" class="form-control" required></div>
+        <div class="mb-field"><label class="form-label">Menu induk</label>
+            <select name="parent_id" class="form-select"><option value="">— Tanpa induk —</option><option value="16" >Master Data</option></select></div>
+        <div class="mb-field"><label class="form-label">URL</label><input name="url" value="" class="form-control" placeholder="/karyawan"></div>
+        <div class="row g-2 mb-field">
+            <div class="col-8"><label class="form-label">Ikon (Lucide)</label><input name="icon" value="" class="form-control" placeholder="users"></div>
+            <div class="col-4"><label class="form-label">Urutan</label><input type="number" name="urutan" value="" class="form-control"></div>
+        </div>
+        <div class="notice "><i data-lucide="circle-alert"></i><span>Akses tiap role ke menu ini diatur di halaman Role &amp; Privilege.</span></div>
+        <div class="tombol"><a href="http://localhost:8000/menus" class="btn btn-light">Batal</a><button class="btn btn-primary">Simpan</button></div>
+        </form>
+    </div>
+</div>
+        </main>
+
+        <footer class="footer">Powered by <b>Kelompok 6 RPL</b> · Kelas X7N · Universitas Indraprasta PGRI · 2026</footer>
+    </div>
+</div>
+
+<div class="drawer-backdrop" data-tutup-drawer></div>
+<div class="toast-wrap">
+    </div>
+<script>
+    document.querySelectorAll('.toast-item[data-auto="1"]').forEach(t => setTimeout(() => t.remove(), 4000));
+</script>
+
+
+<div class="modal fade" id="modalPassword" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" method="post" action="http://localhost:8000/ganti-password">
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="put">            <div class="modal-header"><h5 class="modal-title fs-6 fw-semibold">Ganti kata sandi</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="mb-3"><label class="form-label">Kata sandi lama</label><input type="password" name="password_lama" class="form-control" required></div>
+                <div class="mb-3"><label class="form-label">Kata sandi baru</label><input type="password" name="password" class="form-control" minlength="8" required><div class="form-text">Minimal 8 karakter.</div></div>
+                <div class="mb-1"><label class="form-label">Ulangi kata sandi baru</label><input type="password" name="password_confirmation" class="form-control" required></div>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button><button class="btn btn-primary">Simpan</button></div>
+        </form>
+    </div>
+</div>
+
+
+<div class="modal fade" id="modalKonfirmasi" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:400px">
+        <div class="modal-content p-2">
+            <div class="modal-body">
+                <h5 class="fw-bold fs-5 mb-2" id="konfJudul">Lanjutkan?</h5>
+                <p class="text-secondary mb-0" id="konfPesan"></p>
+            </div>
+            <div class="modal-footer border-0 pt-0"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button><button type="button" id="konfOk" class="btn btn-primary">Ya</button></div>
+        </div>
+    </div>
+</div>
+
+<script>window.__errors = []; window.__bukaModalPassword = false;</script>
+</body>
+</html>

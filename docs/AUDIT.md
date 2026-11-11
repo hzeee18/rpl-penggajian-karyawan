@@ -232,3 +232,21 @@ php artisan test --configuration=phpunit.mysql.xml    # MySQL penggajian_test (g
   - Validasi controller lama masih unique global (mis. `unique:karyawan,nik`), lebih ketat dari DB. Akan diaudit di 1c.
   - `Kontrak::buatNomor()` menghitung urutan dari semua kontrak (lintas perusahaan). Perlu dibatasi per perusahaan di 1c.
 - `docs/schema.sql` mendefinisikan `roles.company_key` sebagai STORED. Migration memakai VIRTUAL karena kolom STORED tidak bisa ditambah lewat ALTER di SQLite (unique index tetap berfungsi sama).
+
+## 11. Keputusan Fase 1a (2026-11-11)
+
+| # | Keputusan |
+|---|---|
+| 1 | Migration 1a disetujui dan **sudah dijalankan di DB dev** setelah backup `storage/app/private/backups/penggajian_karyawan-sebelum-1a-20261111-151418.sql` (mysqldump, 33 tabel). Hasil: 0 baris `company_id NULL` di 21 tabel bertenant. |
+| 2 | Klasifikasi tabel §10 disetujui. TER/PTKP nasional; **HR boleh kehilangan hak ubah menu "Pajak & Tarif TER"** (diterapkan di 1d). |
+| 3 | Sebelum 1b dibuat **tes karakterisasi otomatis**: halaman utama per role (status + isi) dan alur payroll lama. |
+| 4 | `scope.md`, `table_schema.sql`, `AGENTS.md.old`, `CLAUDE.md.old` dibiarkan tidak di-commit. |
+
+## 12. Tes karakterisasi (sebelum 1b) dan temuan baru
+
+- Tes di `tests/Feature/Karakterisasi/` merekam perilaku aplikasi lama dengan data `DatabaseSeeder` (deterministik) pada waktu terkunci **2026-11-11 10:00 WIB**:
+  - `HalamanPerRoleTest`: 5 user (`admin`, `hr`, `manager.hr`, `manager.it`, `rizky`) × 53 URL GET (daftar, form, detail, PDF, JSON). Direkam: status, redirect, content-type, isi HTML (token CSRF dinormalisasi).
+  - `AlurLamaTest`: generate → ajukan → Manager HR setujui (slip terbit, nominal per karyawan), tolak tanpa/dengan catatan → generate ulang, kunci absensi di periode final, approval perpanjangan kontrak, import absensi CSV (baris error → preview → simpan).
+  - Snapshot per driver di `__snapshots__/{sqlite,mysql}/`. Memperbarui snapshot hanya dengan sengaja: `KARAKTERISASI_UPDATE=1`, dan perubahannya harus dijelaskan.
+  - Sudah diuji: dua kali jalan berturut-turut identik; snapshot yang diubah sengaja terdeteksi dengan diff.
+- **Temuan baru (lingkungan)**: ekstensi PHP `zip` tidak aktif (`;extension=zip` di php.ini Laragon, baris 952). Akibatnya **export Laporan Excel dan unduh template import .xlsx gagal** (`Class "ZipArchive" not found`) di lingkungan lokal ini, sudah sebelum perubahan apa pun. Tes Excel ditandai *skipped* sampai `zip` diaktifkan. Perlu keputusan pemilik.

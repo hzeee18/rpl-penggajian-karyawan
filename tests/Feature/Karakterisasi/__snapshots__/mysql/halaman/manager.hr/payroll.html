@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Proses Payroll · Penggajian Karyawan</title>
+    <link rel="icon" href="http://localhost:8000/img/logo-unindra.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css" rel="stylesheet">
+    <link href="http://localhost:8000/css/app.css?v=24" rel="stylesheet">
+    <meta name="turbo-cache-control" content="no-preview">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/id.js"></script>
+    <script src="http://localhost:8000/js/form.js?v=9"></script>
+    <script src="http://localhost:8000/js/app.js?v=6"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.12/dist/turbo.es2017-umd.js"></script>
+    </head>
+<body>
+<div class="d-flex">
+    
+    <aside class="sidebar offcanvas-lg offcanvas-start" tabindex="-1" id="sidebar">
+        <div class="sidebar-brand">
+            <img src="http://localhost:8000/img/logo-unindra.png" alt="Logo Unindra">
+            <div>
+                <div class="nama">Penggajian Karyawan</div>
+                <div class="kampus">Universitas Indraprasta PGRI</div>
+            </div>
+        </div>
+
+        <div class="nav-label">Menu Manager HR</div>
+                    <a href="http://localhost:8000/dashboard" class="nav-item-link ">
+                <i data-lucide="layout-grid"></i> Dashboard
+            </a>
+                    <a href="http://localhost:8000/approval" class="nav-item-link ">
+                <i data-lucide="circle-check"></i> Approval
+            </a>
+                    <a href="http://localhost:8000/karyawan" class="nav-item-link ">
+                <i data-lucide="users"></i> Data Karyawan
+            </a>
+                    <a href="http://localhost:8000/kontrak" class="nav-item-link ">
+                <i data-lucide="file-text"></i> Kontrak
+            </a>
+                    <a href="http://localhost:8000/absensi" class="nav-item-link ">
+                <i data-lucide="calendar"></i> Absensi, Cuti &amp; Lembur
+            </a>
+                    <a href="http://localhost:8000/import" class="nav-item-link ">
+                <i data-lucide="upload"></i> Import Excel
+            </a>
+                    <a href="http://localhost:8000/payroll" class="nav-item-link active">
+                <i data-lucide="wallet"></i> Proses Payroll
+            </a>
+                    <a href="http://localhost:8000/laporan" class="nav-item-link ">
+                <i data-lucide="history"></i> Riwayat Payroll
+            </a>
+                    <a href="http://localhost:8000/slip" class="nav-item-link ">
+                <i data-lucide="file-text"></i> Slip Gaji
+            </a>
+                            <div class="nav-label">Master Data</div>
+                            <a href="http://localhost:8000/departemen" class="nav-item-link ">
+                    <i data-lucide="building-2"></i> Departemen
+                </a>
+                            <a href="http://localhost:8000/pajak" class="nav-item-link ">
+                    <i data-lucide="percent"></i> Pajak &amp; Tarif TER
+                </a>
+                            <a href="http://localhost:8000/komponen" class="nav-item-link ">
+                    <i data-lucide="layers"></i> Komponen Gaji
+                </a>
+                            <a href="http://localhost:8000/master-payroll" class="nav-item-link ">
+                    <i data-lucide="sliders-horizontal"></i> Periode
+                </a>
+                    
+        <div class="sidebar-user mt-auto">
+            <span class="avatar">SR</span>
+            <div class="text-truncate">
+                <div class="nama text-truncate">Siti Rahmawati</div>
+                <div class="peran text-truncate">Manager HR</div>
+            </div>
+        </div>
+        <form method="post" action="http://localhost:8000/logout"><input type="hidden" name="_token" value="TOKEN" autocomplete="off">            <button class="nav-item-link"><i data-lucide="log-out"></i> Keluar</button>
+        </form>
+    </aside>
+
+    <div class="main flex-grow-1">
+        
+        <header class="topbar">
+            <button class="btn-topbar d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-label="Menu"><i data-lucide="menu"></i></button>
+            <div class="me-auto">
+                <div class="crumb">Payroll / Proses Payroll</div>
+                <div class="judul">Proses Payroll</div>
+            </div>
+
+            <form class="topbar-search d-none d-md-block" action="http://localhost:8000/karyawan" data-cari="http://localhost:8000/cari" role="search">
+                <i data-lucide="search"></i>
+                <input name="q" class="form-control" placeholder="Cari karyawan, slip gaji, atau menu..." value="" autocomplete="off" aria-autocomplete="list">
+                <div class="cari-hasil" hidden></div>
+            </form>
+
+            <div class="dropdown">
+                <button class="btn-topbar" data-bs-toggle="dropdown" aria-label="Notifikasi">
+                    <i data-lucide="bell"></i>
+                                    </button>
+                <div class="dropdown-menu dropdown-menu-end p-0 notif-menu">
+                    <div class="d-flex justify-content-between align-items-center px-3 py-3 border-bottom">
+                        <strong>Notifikasi </strong>
+                        <a href="http://localhost:8000/notifikasi" class="small fw-semibold">Lihat semua</a>
+                    </div>
+                                            <a href="http://localhost:8000/notifikasi/54" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Slip gaji tersedia</span>
+                                <span class="d-block small text-secondary">Slip gaji periode Oktober 2026 sudah bisa dilihat dan diunduh.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/53" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Payroll menunggu approval</span>
+                                <span class="d-block small text-secondary">Payroll periode Oktober 2026 perlu persetujuan Anda. Cukup salah satu manager yang memutus...</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/37" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Slip gaji tersedia</span>
+                                <span class="d-block small text-secondary">Slip gaji periode September 2026 sudah bisa dilihat dan diunduh.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/36" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Payroll menunggu approval</span>
+                                <span class="d-block small text-secondary">Payroll periode September 2026 perlu persetujuan Anda. Cukup salah satu manager yang memut...</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/20" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Slip gaji tersedia</span>
+                                <span class="d-block small text-secondary">Slip gaji periode Agustus 2026 sudah bisa dilihat dan diunduh.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/19" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Payroll menunggu approval</span>
+                                <span class="d-block small text-secondary">Payroll periode Agustus 2026 perlu persetujuan Anda. Cukup salah satu manager yang memutus...</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                    </div>
+            </div>
+
+            <div class="dropdown">
+                <button class="btn-avatar" data-bs-toggle="dropdown" aria-label="Menu profil"><span class="avatar">SR</span></button>
+                <div class="dropdown-menu dropdown-menu-end" style="width:240px">
+                    <div class="px-3 py-2 border-bottom mb-1">
+                        <div class="fw-semibold">Siti Rahmawati</div>
+                        <div class="small text-muted">manager.hr · Manager HR</div>
+                    </div>
+                                            <a class="dropdown-item d-flex gap-2" href="http://localhost:8000/profil"><i data-lucide="user"></i> Profil saya</a>
+                                        <button class="dropdown-item d-flex gap-2" data-bs-toggle="modal" data-bs-target="#modalPassword"><i data-lucide="key-round"></i> Ganti kata sandi</button>
+                    <div class="dropdown-divider"></div>
+                    <form method="post" action="http://localhost:8000/logout"><input type="hidden" name="_token" value="TOKEN" autocomplete="off">                        <button class="dropdown-item d-flex gap-2 text-danger"><i data-lucide="log-out"></i> Keluar</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <main class="content">
+            
+        <div class="page-header">
+    <div>
+        <h1>Proses Payroll November 2026</h1>
+        <p>Periode 26 Okt – 25 Nov 2026 · 23 hari kerja. Cek rekap dulu, perbaiki yang salah, lalu generate.</p>    </div>
+    <div class="aksi"><a href="http://localhost:8000/laporan" class="btn btn-light"><i data-lucide="history"></i> Riwayat</a>
+        <button class="btn btn-primary" data-drawer="#drawer" ><i data-lucide="play"></i> Generate Payroll November 2026</button></div></div>
+        
+    <div class="stat-row">
+                    <div class="card stat-card"><div class="card-body py-3"><div class="label">Karyawan dihitung</div><div class="angka fs-4 mt-1">120 <span class="fs-6 fw-normal text-muted">orang</span></div></div></div>
+                    <div class="card stat-card"><div class="card-body py-3"><div class="label">Total gaji pokok</div><div class="angka fs-4 mt-1">963,6 jt <span class="fs-6 fw-normal text-muted">estimasi</span></div></div></div>
+                    <div class="card stat-card"><div class="card-body py-3"><div class="label">Total lembur</div><div class="angka fs-4 mt-1">21 jt <span class="fs-6 fw-normal text-muted">estimasi</span></div></div></div>
+                    <div class="card stat-card"><div class="card-body py-3"><div class="label">PPh21 (TER)</div><div class="angka fs-4 mt-1">25,5 jt <span class="fs-6 fw-normal text-muted">estimasi</span></div></div></div>
+            </div>
+
+    <div class="card">
+        <form class="card-search" method="get" data-auto-submit>
+            <div class="filter-bar filter-bar-3">
+                <div><label class="form-label">Karyawan</label>
+                    <select name="karyawan_id[]" multiple class="form-select" data-placeholder="Semua karyawan" data-satuan="karyawan"><option value="1" >Siti Rahmawati · K0001</option><option value="2" >Bagus Wicaksono · K0002</option><option value="3" >Dewi Lestari · K0003</option><option value="4" >Andi Pratama · K0004</option><option value="5" >Rizky Maulana · K0005</option><option value="6" >Nadia Putri · K0006</option><option value="7" >Bambang Hartono · K0007</option><option value="8" >Fitri Handayani · K0008</option><option value="9" >Budi Santoso · K0009</option><option value="10" >Joko Susilo · K0010</option><option value="11" >Dewi Anggraini · K0011</option><option value="12" >Teguh Prasetyo · K0012</option><option value="13" >Agus Setiawan · K0013</option><option value="14" >Andi Firmansyah · K0014</option><option value="15" >Atma Mandasari · K0015</option><option value="16" >Sadina Rahayu · K0016</option><option value="17" >Jarwa Simbolon · K0017</option><option value="18" >Ika Manullang · K0018</option><option value="19" >Harsanto Lestari · K0019</option><option value="20" >Jaka Hastuti · K0020</option><option value="21" >Zulfa Latupono · K0021</option><option value="22" >Paiman Aryani · K0022</option><option value="23" >Kiandra Prakasa · K0023</option><option value="24" >Lanjar Rajata · K0024</option><option value="25" >Mutia Halimah · K0025</option><option value="26" >Niyaga Winarno · K0026</option><option value="27" >Pangestu Hastuti · K0027</option><option value="28" >Michelle Winarno · K0028</option><option value="29" >Arsipatra Halimah · K0029</option><option value="30" >Mala Usada · K0030</option><option value="31" >Hasta Mansur · K0031</option><option value="32" >Karma Suartini · K0032</option><option value="33" >Bajragin Utami · K0033</option><option value="34" >Rama Lazuardi · K0034</option><option value="35" >Gatot Pratiwi · K0035</option><option value="36" >Dwi Fujiati · K0036</option><option value="37" >Gamanto Hartati · K0037</option><option value="38" >Pandu Simanjuntak · K0038</option><option value="39" >Yessi Hidayat · K0039</option><option value="40" >Narji Purnawati · K0040</option><option value="41" >Mitra Laksmiwati · K0041</option><option value="42" >Jaiman Usada · K0042</option><option value="43" >Bagus Tampubolon · K0043</option><option value="44" >Najib Rahmawati · K0044</option><option value="45" >Dadap Laksita · K0045</option><option value="46" >Irma Utami · K0046</option><option value="47" >Humaira Namaga · K0047</option><option value="48" >Ira Tampubolon · K0048</option><option value="49" >Emas Pangestu · K0049</option><option value="50" >Estiono Sitorus · K0050</option><option value="51" >Xanana Hassanah · K0051</option><option value="52" >Kamaria Wasita · K0052</option><option value="53" >Kania Prasetya · K0053</option><option value="54" >Bakijan Andriani · K0054</option><option value="55" >Septi Widodo · K0055</option><option value="56" >Samiah Budiyanto · K0056</option><option value="57" >Usyi Maryati · K0057</option><option value="58" >Kawaca Usamah · K0058</option><option value="59" >Mahdi Hardiansyah · K0059</option><option value="60" >Abyasa Mandala · K0060</option><option value="61" >Kamal Thamrin · K0061</option><option value="62" >Bakianto Lailasari · K0062</option><option value="63" >Cici Lailasari · K0063</option><option value="64" >Umar Wastuti · K0064</option><option value="65" >Maida Mandala · K0065</option><option value="66" >Lalita Mulyani · K0066</option><option value="67" >Ajiono Widiastuti · K0067</option><option value="68" >Suci Pertiwi · K0068</option><option value="69" >Bakianto Wahyuni · K0069</option><option value="70" >Chelsea Purwanti · K0070</option><option value="71" >Karma Dongoran · K0071</option><option value="72" >Lintang Mansur · K0072</option><option value="73" >Darmanto Simbolon · K0073</option><option value="74" >Icha Wulandari · K0074</option><option value="75" >Margana Pertiwi · K0075</option><option value="76" >Gaman Habibi · K0076</option><option value="77" >Yulia Nasyiah · K0077</option><option value="78" >Putri Najmudin · K0078</option><option value="79" >Yusuf Kuswandari · K0079</option><option value="80" >Cengkir Nashiruddin · K0080</option><option value="81" >Warsa Suryono · K0081</option><option value="82" >Edi Tarihoran · K0082</option><option value="83" >Anita Maryati · K0083</option><option value="84" >Ratna Hutapea · K0084</option><option value="85" >Luwar Nasyidah · K0085</option><option value="86" >Ayu Kurniawan · K0086</option><option value="87" >Labuh Tarihoran · K0087</option><option value="88" >Mariadi Susanti · K0088</option><option value="89" >Ghaliyati Nasyidah · K0089</option><option value="90" >Nurul Januar · K0090</option><option value="91" >Bakijan Lazuardi · K0091</option><option value="92" >Asman Hartati · K0092</option><option value="93" >Ophelia Aryani · K0093</option><option value="94" >Yuni Lailasari · K0094</option><option value="95" >Taufik Sudiati · K0095</option><option value="96" >Hafshah Suwarno · K0096</option><option value="97" >Harjo Mansur · K0097</option><option value="98" >Qori Saefullah · K0098</option><option value="99" >Laras Purwanti · K0099</option><option value="100" >Tina Hardiansyah · K0100</option><option value="101" >Tami Purwanti · K0101</option><option value="102" >Samsul Pudjiastuti · K0102</option><option value="103" >Purwa Sihombing · K0103</option><option value="104" >Salwa Palastri · K0104</option><option value="105" >Ade Mardhiyah · K0105</option><option value="106" >Tirta Januar · K0106</option><option value="107" >Jessica Hutagalung · K0107</option><option value="108" >Maya Simbolon · K0108</option><option value="109" >Zulfa Utama · K0109</option><option value="110" >Ayu Wulandari · K0110</option><option value="111" >Okto Pudjiastuti · K0111</option><option value="112" >Endra Farida · K0112</option><option value="113" >Ulva Fujiati · K0113</option><option value="114" >Jaga Permadi · K0114</option><option value="115" >Gawati Saptono · K0115</option><option value="116" >Irma Kuswandari · K0116</option><option value="117" >Umi Nurdiyanti · K0117</option><option value="118" >Icha Rajasa · K0118</option><option value="119" >Paulin Haryanti · K0119</option><option value="120" >Tania Najmudin · K0120</option></select></div>
+                <div><label class="form-label">Departemen</label>
+                    <select name="departemen_id[]" multiple class="form-select" data-placeholder="Semua departemen" data-satuan="departemen"><option value="5" >Gudang</option><option value="1" >Human Resource</option><option value="3" >Keuangan</option><option value="6" >Marketing</option><option value="4" >Operasional</option><option value="2" >Teknologi Informasi</option></select></div>
+                <div><label class="form-label">Kondisi</label>
+                    <select name="kondisi[]" multiple class="form-select" data-placeholder="Semua kondisi" data-satuan="kondisi"><option value="alfa" >Ada alfa</option><option value="lembur" >Ada lembur</option><option value="belum_lengkap" >Absensi belum lengkap</option></select></div>
+            </div>
+            <div class="filter-aktif">
+                <span class="ringkas"><b class="text-body">120</b> dari 120 karyawan · 13 hari kerja sudah berjalan</span>
+                                                                            </div>
+        </form>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead><tr><th>Karyawan</th><th class="text-center">Hadir</th><th class="text-center">Sakit/Izin/Cuti</th><th class="text-center">Alfa</th><th class="text-end">Lembur</th><th>Aksi</th></tr></thead>
+                <tbody>
+                                                        <tr>
+                        <td><div class="orang"><span class="avatar avatar-sm">SR</span><div><div class="nama">Siti Rahmawati</div><div class="sub">K0001 · Human Resource</div></div></div></td>
+                        <td class="text-center">12<div class="small text-warning-emphasis">1 hari belum tercatat</div></td>
+                        <td class="text-center">0</td>
+                        <td class="text-center ">0</td>
+                        <td class="text-end">-</td>
+                        <td><a href="http://localhost:8000/absensi?karyawan_id%5B0%5D=1&amp;dari=2026-10-26&amp;sampai=2026-11-25" class="btn btn-light btn-icon" title="Lihat & perbaiki data kehadiran"><i data-lucide="pencil"></i></a></td>
+                    </tr>
+                                                        <tr>
+                        <td><div class="orang"><span class="avatar avatar-sm">BW</span><div><div class="nama">Bagus Wicaksono</div><div class="sub">K0002 · Human Resource</div></div></div></td>
+                        <td class="text-center">11<div class="small text-warning-emphasis">1 hari belum tercatat</div></td>
+                        <td class="text-center">1</td>
+                        <td class="text-center ">0</td>
+                        <td class="text-end">-</td>
+                        <td><a href="http://localhost:8000/absensi?karyawan_id%5B0%5D=2&amp;dari=2026-10-26&amp;sampai=2026-11-25" class="btn btn-light btn-icon" title="Lihat & perbaiki data kehadiran"><i data-lucide="pencil"></i></a></td>
+                    </tr>
+                                                        <tr>
+                        <td><div class="orang"><span class="avatar avatar-sm">DL</span><div><div class="nama">Dewi Lestari</div><div class="sub">K0003 · Human Resource</div></div></div></td>
+                        <td class="text-center">12<div class="small text-warning-emphasis">1 hari belum tercatat</div></td>
+                        <td class="text-center">0</td>
+                        <td class="text-center ">0</td>
+                        <td class="text-end">-</td>
+                        <td><a href="http://localhost:8000/absensi?karyawan_id%5B0%5D=3&amp;dari=2026-10-26&amp;sampai=2026-11-25" class="btn btn-light btn-icon" title="Lihat & perbaiki data kehadiran"><i data-lucide="pencil"></i></a></td>
+                    </tr>
+                                                        <tr>
+                        <td><div class="orang"><span class="avatar avatar-sm">AP</span><div><div class="nama">Andi Pratama</div><div class="sub">K0004 · Teknologi Informasi</div></div></div></td>
+                        <td class="text-center">10<div class="small text-warning-emphasis">1 hari belum tercatat</div></td>
+                        <td class="text-center">2</td>
+                        <td class="text-center ">0</td>
+                        <td class="text-end">-</td>
+                        <td><a href="http://localhost:8000/absensi?karyawan_id%5B0%5D=4&amp;dari=2026-10-26&amp;sampai=2026-11-25" class="btn btn-light btn-icon" title="Lihat & perbaiki data kehadiran"><i data-lucide="pencil"></i></a></td>
+                    </tr>
+                                                        <tr>
+                        <td><div class="orang"><span class="avatar avatar-sm">RM</span><div><div class="nama">Rizky Maulana</div><div class="sub">K0005 · Teknologi Informasi</div></div></div></td>
+                        <td class="text-center">10<div class="small text-warning-emphasis">1 hari belum tercatat</div></td>
+                        <td class="text-center">1</td>
+                        <td class="text-center text-danger fw-semibold">1</td>
+                        <td class="text-end">4 jam</td>
+                        <td><a href="http://localhost:8000/absensi?karyawan_id%5B0%5D=5&amp;dari=2026-10-26&amp;sampai=2026-11-25" class="btn btn-light btn-icon" title="Lihat & perbaiki data kehadiran"><i data-lucide="pencil"></i></a></td>
+                    </tr>
+                                                        <tr>
+                        <td><div class="orang"><span class="avatar avatar-sm">NP</span><div><div class="nama">Nadia Putri</div><div class="sub">K0006 · Teknologi Informasi</div></div></div></td>
+                        <td class="text-center">10<div class="small text-warning-emphasis">1 hari belum tercatat</div></td>
+                        <td class="text-center">2</td>
+                        <td class="text-center ">0</td>
+                        <td class="text-end">1 jam</td>
+                        <td><a href="http://localhost:8000/absensi?karyawan_id%5B0%5D=6&amp;dari=2026-10-26&amp;sampai=2026-11-25" class="btn btn-light btn-icon" title="Lihat & perbaiki data kehadiran"><i data-lucide="pencil"></i></a></td>
+                    </tr>
+                                                        <tr>
+                        <td><div class="orang"><span class="avatar avatar-sm">BH</span><div><div class="nama">Bambang Hartono</div><div class="sub">K0007 · Keuangan</div></div></div></td>
+                        <td class="text-center">12<div class="small text-warning-emphasis">1 hari belum tercatat</div></td>
+                        <td class="text-center">0</td>
+                        <td class="text-center ">0</td>
+                        <td class="text-end">-</td>
+                        <td><a href="http://localhost:8000/absensi?karyawan_id%5B0%5D=7&amp;dari=2026-10-26&amp;sampai=2026-11-25" class="btn btn-light btn-icon" title="Lihat & perbaiki data kehadiran"><i data-lucide="pencil"></i></a></td>
+                    </tr>
+                                                        <tr>
+                        <td><div class="orang"><span class="avatar avatar-sm">FH</span><div><div class="nama">Fitri Handayani</div><div class="sub">K0008 · Keuangan</div></div></div></td>
+                        <td class="text-center">11<div class="small text-warning-emphasis">1 hari belum tercatat</div></td>
+                        <td class="text-center">0</td>
+                        <td class="text-center text-danger fw-semibold">1</td>
+                        <td class="text-end">-</td>
+                        <td><a href="http://localhost:8000/absensi?karyawan_id%5B0%5D=8&amp;dari=2026-10-26&amp;sampai=2026-11-25" class="btn btn-light btn-icon" title="Lihat & perbaiki data kehadiran"><i data-lucide="pencil"></i></a></td>
+                    </tr>
+                                                        <tr>
+                        <td><div class="orang"><span class="avatar avatar-sm">BS</span><div><div class="nama">Budi Santoso</div><div class="sub">K0009 · Operasional</div></div></div></td>
+                        <td class="text-center">12<div class="small text-warning-emphasis">1 hari belum tercatat</div></td>
+                        <td class="text-center">0</td>
+                        <td class="text-center ">0</td>
+                        <td class="text-end">-</td>
+                        <td><a href="http://localhost:8000/absensi?karyawan_id%5B0%5D=9&amp;dari=2026-10-26&amp;sampai=2026-11-25" class="btn btn-light btn-icon" title="Lihat & perbaiki data kehadiran"><i data-lucide="pencil"></i></a></td>
+                    </tr>
+                                                        <tr>
+                        <td><div class="orang"><span class="avatar avatar-sm">JS</span><div><div class="nama">Joko Susilo</div><div class="sub">K0010 · Operasional</div></div></div></td>
+                        <td class="text-center">12<div class="small text-warning-emphasis">1 hari belum tercatat</div></td>
+                        <td class="text-center">0</td>
+                        <td class="text-center ">0</td>
+                        <td class="text-end">4 jam</td>
+                        <td><a href="http://localhost:8000/absensi?karyawan_id%5B0%5D=10&amp;dari=2026-10-26&amp;sampai=2026-11-25" class="btn btn-light btn-icon" title="Lihat & perbaiki data kehadiran"><i data-lucide="pencil"></i></a></td>
+                    </tr>
+                                                        <tr>
+                        <td><div class="orang"><span class="avatar avatar-sm">DA</span><div><div class="nama">Dewi Anggraini</div><div class="sub">K0011 · Operasional</div></div></div></td>
+                        <td class="text-center">11<div class="small text-warning-emphasis">1 hari belum tercatat</div></td>
+                        <td class="text-center">0</td>
+                        <td class="text-center text-danger fw-semibold">1</td>
+                        <td class="text-end">5 jam</td>
+                        <td><a href="http://localhost:8000/absensi?karyawan_id%5B0%5D=11&amp;dari=2026-10-26&amp;sampai=2026-11-25" class="btn btn-light btn-icon" title="Lihat & perbaiki data kehadiran"><i data-lucide="pencil"></i></a></td>
+                    </tr>
+                                                        <tr>
+                        <td><div class="orang"><span class="avatar avatar-sm">TP</span><div><div class="nama">Teguh Prasetyo</div><div class="sub">K0012 · Gudang</div></div></div></td>
+                        <td class="text-center">12<div class="small text-warning-emphasis">1 hari belum tercatat</div></td>
+                        <td class="text-center">0</td>
+                        <td class="text-center ">0</td>
+                        <td class="text-end">-</td>
+                        <td><a href="http://localhost:8000/absensi?karyawan_id%5B0%5D=12&amp;dari=2026-10-26&amp;sampai=2026-11-25" class="btn btn-light btn-icon" title="Lihat & perbaiki data kehadiran"><i data-lucide="pencil"></i></a></td>
+                    </tr>
+                                                        <tr>
+                        <td><div class="orang"><span class="avatar avatar-sm">AS</span><div><div class="nama">Agus Setiawan</div><div class="sub">K0013 · Gudang</div></div></div></td>
+                        <td class="text-center">12<div class="small text-warning-emphasis">1 hari belum tercatat</div></td>
+                        <td class="text-center">0</td>
+                        <td class="text-center ">0</td>
+                        <td class="text-end">5 jam</td>
+                        <td><a href="http://localhost:8000/absensi?karyawan_id%5B0%5D=13&amp;dari=2026-10-26&amp;sampai=2026-11-25" class="btn btn-light btn-icon" title="Lihat & perbaiki data kehadiran"><i data-lucide="pencil"></i></a></td>
+                    </tr>
+                                                        <tr>
+                        <td><div class="orang"><span class="avatar avatar-sm">AF</span><div><div class="nama">Andi Firmansyah</div><div class="sub">K0014 · Marketing</div></div></div></td>
+                        <td class="text-center">12<div class="small text-warning-emphasis">1 hari belum tercatat</div></td>
+                        <td class="text-center">0</td>
+                        <td class="text-center ">0</td>
+                        <td class="text-end">-</td>
+                        <td><a href="http://localhost:8000/absensi?karyawan_id%5B0%5D=14&amp;dari=2026-10-26&amp;sampai=2026-11-25" class="btn btn-light btn-icon" title="Lihat & perbaiki data kehadiran"><i data-lucide="pencil"></i></a></td>
+                    </tr>
+                                                        <tr>
+                        <td><div class="orang"><span class="avatar avatar-sm">AM</span><div><div class="nama">Atma Mandasari</div><div class="sub">K0015 · Human Resource</div></div></div></td>
+                        <td class="text-center">12<div class="small text-warning-emphasis">1 hari belum tercatat</div></td>
+                        <td class="text-center">0</td>
+                        <td class="text-center ">0</td>
+                        <td class="text-end">-</td>
+                        <td><a href="http://localhost:8000/absensi?karyawan_id%5B0%5D=15&amp;dari=2026-10-26&amp;sampai=2026-11-25" class="btn btn-light btn-icon" title="Lihat & perbaiki data kehadiran"><i data-lucide="pencil"></i></a></td>
+                    </tr>
+                                </tbody>
+            </table>
+        </div>
+         <div class="table-foot border-top">
+    <span>Menampilkan 1–15 dari 120 karyawan</span>
+            <ul class="pagination">
+                                        <li class="page-item active"><a class="page-link" href="http://localhost:8000/payroll?page=1">1</a></li>
+                            <li class="page-item "><a class="page-link" href="http://localhost:8000/payroll?page=2">2</a></li>
+                            <li class="page-item "><a class="page-link" href="http://localhost:8000/payroll?page=3">3</a></li>
+                        <li class="page-item"><a class="page-link" href="http://localhost:8000/payroll?page=2">›</a></li>        </ul>
+    </div>
+     </div>
+
+    <div id="drawer" class="card panel drawer" role="dialog" aria-modal="true">
+    <div class="card-header d-flex align-items-start gap-2">
+        <div class="me-auto"><div class="judul-panel">Generate Payroll November 2026</div><span class="sub">26 Okt–25 Nov 2026 · 23 hari kerja</span></div>
+        <button type="button" class="btn btn-light btn-icon" data-tutup-drawer aria-label="Tutup"><i data-lucide="x"></i></button>
+    </div>
+            <div class="card-body"><div class="rinci"><span class="k">Karyawan dihitung</span><span class="v">120</span></div>
+        <div class="rinci"><span class="k">Total gaji pokok</span><span class="v">Rp 963.600.000</span></div>
+        <div class="rinci"><span class="k">Total lembur</span><span class="v">Rp 20.992.776</span></div>
+        <div class="rinci"><span class="k">PPh21 (TER)</span><span class="v">Rp 25.459.825</span></div>
+        <div class="rinci mb-3"><span class="k fw-semibold">Estimasi gaji bersih</span><span class="v">Rp 1.101.784.906</span></div>
+        <div class="notice "><i data-lucide="circle-alert"></i><span>Karena kamu Manager HR, payroll yang kamu generate langsung disetujui dan slip gaji langsung terbit. Periode ini tidak bisa di-generate lagi setelahnya.</span></div>
+        <form id="formGenerate" method="post" action="http://localhost:8000/payroll/generate" data-confirm="120 karyawan akan dihitung. Setelah generate, data absensi, cuti, dan lembur periode ini terkunci, lalu payroll langsung disetujui dan slip gaji terbit." data-confirm-judul="Generate payroll November 2026?" data-confirm-ok="Ya, Generate">
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="periode" value="2026-11">
+        </form>
+        <div class="tombol">
+            <button type="button" class="btn btn-light" data-tutup-drawer>Batal</button>
+            <button form="formGenerate" class="btn btn-primary">Generate Payroll</button>        </div></div>
+    </div>
+        </main>
+
+        <footer class="footer">Powered by <b>Kelompok 6 RPL</b> · Kelas X7N · Universitas Indraprasta PGRI · 2026</footer>
+    </div>
+</div>
+
+<div class="drawer-backdrop" data-tutup-drawer></div>
+<div class="toast-wrap">
+    </div>
+<script>
+    document.querySelectorAll('.toast-item[data-auto="1"]').forEach(t => setTimeout(() => t.remove(), 4000));
+</script>
+
+
+<div class="modal fade" id="modalPassword" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" method="post" action="http://localhost:8000/ganti-password">
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="put">            <div class="modal-header"><h5 class="modal-title fs-6 fw-semibold">Ganti kata sandi</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="mb-3"><label class="form-label">Kata sandi lama</label><input type="password" name="password_lama" class="form-control" required></div>
+                <div class="mb-3"><label class="form-label">Kata sandi baru</label><input type="password" name="password" class="form-control" minlength="8" required><div class="form-text">Minimal 8 karakter.</div></div>
+                <div class="mb-1"><label class="form-label">Ulangi kata sandi baru</label><input type="password" name="password_confirmation" class="form-control" required></div>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button><button class="btn btn-primary">Simpan</button></div>
+        </form>
+    </div>
+</div>
+
+
+<div class="modal fade" id="modalKonfirmasi" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:400px">
+        <div class="modal-content p-2">
+            <div class="modal-body">
+                <h5 class="fw-bold fs-5 mb-2" id="konfJudul">Lanjutkan?</h5>
+                <p class="text-secondary mb-0" id="konfPesan"></p>
+            </div>
+            <div class="modal-footer border-0 pt-0"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button><button type="button" id="konfOk" class="btn btn-primary">Ya</button></div>
+        </div>
+    </div>
+</div>
+
+<script>window.__errors = []; window.__bukaModalPassword = false;</script>
+</body>
+</html>

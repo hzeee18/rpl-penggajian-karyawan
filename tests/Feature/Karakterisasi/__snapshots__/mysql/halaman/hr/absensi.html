@@ -1,0 +1,877 @@
+<!doctype html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Absensi, Cuti &amp; Lembur · Penggajian Karyawan</title>
+    <link rel="icon" href="http://localhost:8000/img/logo-unindra.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css" rel="stylesheet">
+    <link href="http://localhost:8000/css/app.css?v=24" rel="stylesheet">
+    <meta name="turbo-cache-control" content="no-preview">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/id.js"></script>
+    <script src="http://localhost:8000/js/form.js?v=9"></script>
+    <script src="http://localhost:8000/js/app.js?v=6"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.12/dist/turbo.es2017-umd.js"></script>
+    </head>
+<body>
+<div class="d-flex">
+    
+    <aside class="sidebar offcanvas-lg offcanvas-start" tabindex="-1" id="sidebar">
+        <div class="sidebar-brand">
+            <img src="http://localhost:8000/img/logo-unindra.png" alt="Logo Unindra">
+            <div>
+                <div class="nama">Penggajian Karyawan</div>
+                <div class="kampus">Universitas Indraprasta PGRI</div>
+            </div>
+        </div>
+
+        <div class="nav-label">Menu HR</div>
+                    <a href="http://localhost:8000/dashboard" class="nav-item-link ">
+                <i data-lucide="layout-grid"></i> Dashboard
+            </a>
+                    <a href="http://localhost:8000/karyawan" class="nav-item-link ">
+                <i data-lucide="users"></i> Data Karyawan
+            </a>
+                    <a href="http://localhost:8000/kontrak" class="nav-item-link ">
+                <i data-lucide="file-text"></i> Kontrak
+            </a>
+                    <a href="http://localhost:8000/absensi" class="nav-item-link active">
+                <i data-lucide="calendar"></i> Absensi, Cuti &amp; Lembur
+            </a>
+                    <a href="http://localhost:8000/import" class="nav-item-link ">
+                <i data-lucide="upload"></i> Import Excel
+            </a>
+                    <a href="http://localhost:8000/payroll" class="nav-item-link ">
+                <i data-lucide="wallet"></i> Proses Payroll
+            </a>
+                    <a href="http://localhost:8000/laporan" class="nav-item-link ">
+                <i data-lucide="history"></i> Riwayat Payroll
+            </a>
+                            <div class="nav-label">Master Data</div>
+                            <a href="http://localhost:8000/departemen" class="nav-item-link ">
+                    <i data-lucide="building-2"></i> Departemen
+                </a>
+                            <a href="http://localhost:8000/pajak" class="nav-item-link ">
+                    <i data-lucide="percent"></i> Pajak &amp; Tarif TER
+                </a>
+                            <a href="http://localhost:8000/komponen" class="nav-item-link ">
+                    <i data-lucide="layers"></i> Komponen Gaji
+                </a>
+                            <a href="http://localhost:8000/master-payroll" class="nav-item-link ">
+                    <i data-lucide="sliders-horizontal"></i> Periode
+                </a>
+                    
+        <div class="sidebar-user mt-auto">
+            <span class="avatar">DL</span>
+            <div class="text-truncate">
+                <div class="nama text-truncate">Dewi Lestari</div>
+                <div class="peran text-truncate">Staf HR</div>
+            </div>
+        </div>
+        <form method="post" action="http://localhost:8000/logout"><input type="hidden" name="_token" value="TOKEN" autocomplete="off">            <button class="nav-item-link"><i data-lucide="log-out"></i> Keluar</button>
+        </form>
+    </aside>
+
+    <div class="main flex-grow-1">
+        
+        <header class="topbar">
+            <button class="btn-topbar d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-label="Menu"><i data-lucide="menu"></i></button>
+            <div class="me-auto">
+                <div class="crumb">Absensi, Cuti &amp; Lembur</div>
+                <div class="judul">Absensi, Cuti &amp; Lembur</div>
+            </div>
+
+            <form class="topbar-search d-none d-md-block" action="http://localhost:8000/karyawan" data-cari="http://localhost:8000/cari" role="search">
+                <i data-lucide="search"></i>
+                <input name="q" class="form-control" placeholder="Cari karyawan, slip gaji, atau menu..." value="" autocomplete="off" aria-autocomplete="list">
+                <div class="cari-hasil" hidden></div>
+            </form>
+
+            <div class="dropdown">
+                <button class="btn-topbar" data-bs-toggle="dropdown" aria-label="Notifikasi">
+                    <i data-lucide="bell"></i>
+                                    </button>
+                <div class="dropdown-menu dropdown-menu-end p-0 notif-menu">
+                    <div class="d-flex justify-content-between align-items-center px-3 py-3 border-bottom">
+                        <strong>Notifikasi </strong>
+                        <a href="http://localhost:8000/notifikasi" class="small fw-semibold">Lihat semua</a>
+                    </div>
+                                            <a href="http://localhost:8000/notifikasi/68" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Payroll final</span>
+                                <span class="d-block small text-secondary">Payroll periode Oktober 2026 sudah disetujui. Slip gaji sudah terbit.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/56" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Slip gaji tersedia</span>
+                                <span class="d-block small text-secondary">Slip gaji periode Oktober 2026 sudah bisa dilihat dan diunduh.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/51" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Payroll final</span>
+                                <span class="d-block small text-secondary">Payroll periode September 2026 sudah disetujui. Slip gaji sudah terbit.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/39" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Slip gaji tersedia</span>
+                                <span class="d-block small text-secondary">Slip gaji periode September 2026 sudah bisa dilihat dan diunduh.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/34" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Payroll final</span>
+                                <span class="d-block small text-secondary">Payroll periode Agustus 2026 sudah disetujui. Slip gaji sudah terbit.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/22" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Slip gaji tersedia</span>
+                                <span class="d-block small text-secondary">Slip gaji periode Agustus 2026 sudah bisa dilihat dan diunduh.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                    </div>
+            </div>
+
+            <div class="dropdown">
+                <button class="btn-avatar" data-bs-toggle="dropdown" aria-label="Menu profil"><span class="avatar">DL</span></button>
+                <div class="dropdown-menu dropdown-menu-end" style="width:240px">
+                    <div class="px-3 py-2 border-bottom mb-1">
+                        <div class="fw-semibold">Dewi Lestari</div>
+                        <div class="small text-muted">hr · HR</div>
+                    </div>
+                                            <a class="dropdown-item d-flex gap-2" href="http://localhost:8000/profil"><i data-lucide="user"></i> Profil saya</a>
+                                        <button class="dropdown-item d-flex gap-2" data-bs-toggle="modal" data-bs-target="#modalPassword"><i data-lucide="key-round"></i> Ganti kata sandi</button>
+                    <div class="dropdown-divider"></div>
+                    <form method="post" action="http://localhost:8000/logout"><input type="hidden" name="_token" value="TOKEN" autocomplete="off">                        <button class="dropdown-item d-flex gap-2 text-danger"><i data-lucide="log-out"></i> Keluar</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <main class="content">
+            <div class="page-header">
+    <div>
+        <h1>Absensi, Cuti &amp; Lembur</h1>
+        <p>Semua data kehadiran dalam satu tabel. Data yang disimpan HR langsung final, tanpa approval.</p>    </div>
+    <div class="aksi"><a href="http://localhost:8000/import?jenis=absensi" class="btn btn-light"><i data-lucide="upload"></i> Import Excel</a>
+    <a href="http://localhost:8000/absensi?baru=1" class="btn btn-primary"><i data-lucide="plus"></i> Tambah Data</a></div></div>
+
+<div class="tab-nav">
+    <a href="http://localhost:8000/absensi" class="active">Semua data</a>
+    <a href="http://localhost:8000/absensi?tab=harian">Input harian</a>
+</div>
+
+<div class="stat-row">
+            <div class="card stat-card"><div class="card-body py-3"><div class="label">Hadir</div><div class="angka fs-4 mt-1">1383 <span class="fs-6 fw-normal text-muted">catatan</span></div></div></div>
+            <div class="card stat-card"><div class="card-body py-3"><div class="label">Sakit</div><div class="angka fs-4 mt-1">17 <span class="fs-6 fw-normal text-muted">pengajuan</span></div></div></div>
+            <div class="card stat-card"><div class="card-body py-3"><div class="label">Izin</div><div class="angka fs-4 mt-1">4 <span class="fs-6 fw-normal text-muted">pengajuan</span></div></div></div>
+            <div class="card stat-card"><div class="card-body py-3"><div class="label">Cuti</div><div class="angka fs-4 mt-1">7 <span class="fs-6 fw-normal text-muted">pengajuan</span></div></div></div>
+            <div class="card stat-card"><div class="card-body py-3"><div class="label">Alfa</div><div class="angka fs-4 mt-1">14 <span class="fs-6 fw-normal text-muted">catatan</span></div></div></div>
+            <div class="card stat-card"><div class="card-body py-3"><div class="label">Lembur</div><div class="angka fs-4 mt-1">100 <span class="fs-6 fw-normal text-muted">catatan</span></div></div></div>
+    </div>
+
+<div class="card" data-ajax-wadah>
+    
+        <form class="card-search" method="get" data-auto-submit>
+        <div class="filter-bar">
+            <div class="" data-rentang-wrap>
+    <label class="form-label">Rentang tanggal</label>    <div class="input-ikon">
+        <input type="text" class="form-control" data-rentang data-nonaktif='[]' placeholder="dd/mm/yyyy – dd/mm/yyyy" autocomplete="off"  >
+        <i data-lucide="calendar-range"></i>
+    </div>
+    <input type="hidden" name="dari" value="2026-10-26" data-rentang-awal >
+    <input type="hidden" name="sampai" value="2026-11-25" data-rentang-akhir >
+</div>
+            <div><label class="form-label">Karyawan</label>
+                <select name="karyawan_id[]" multiple class="form-select" data-placeholder="Semua karyawan" data-satuan="karyawan"><option value="60" >Abyasa Mandala · K0060</option><option value="105" >Ade Mardhiyah · K0105</option><option value="13" >Agus Setiawan · K0013</option><option value="67" >Ajiono Widiastuti · K0067</option><option value="14" >Andi Firmansyah · K0014</option><option value="4" >Andi Pratama · K0004</option><option value="83" >Anita Maryati · K0083</option><option value="29" >Arsipatra Halimah · K0029</option><option value="92" >Asman Hartati · K0092</option><option value="15" >Atma Mandasari · K0015</option><option value="86" >Ayu Kurniawan · K0086</option><option value="110" >Ayu Wulandari · K0110</option><option value="43" >Bagus Tampubolon · K0043</option><option value="2" >Bagus Wicaksono · K0002</option><option value="33" >Bajragin Utami · K0033</option><option value="62" >Bakianto Lailasari · K0062</option><option value="69" >Bakianto Wahyuni · K0069</option><option value="54" >Bakijan Andriani · K0054</option><option value="91" >Bakijan Lazuardi · K0091</option><option value="7" >Bambang Hartono · K0007</option><option value="9" >Budi Santoso · K0009</option><option value="80" >Cengkir Nashiruddin · K0080</option><option value="70" >Chelsea Purwanti · K0070</option><option value="63" >Cici Lailasari · K0063</option><option value="45" >Dadap Laksita · K0045</option><option value="73" >Darmanto Simbolon · K0073</option><option value="11" >Dewi Anggraini · K0011</option><option value="3" >Dewi Lestari · K0003</option><option value="36" >Dwi Fujiati · K0036</option><option value="82" >Edi Tarihoran · K0082</option><option value="49" >Emas Pangestu · K0049</option><option value="112" >Endra Farida · K0112</option><option value="50" >Estiono Sitorus · K0050</option><option value="8" >Fitri Handayani · K0008</option><option value="76" >Gaman Habibi · K0076</option><option value="37" >Gamanto Hartati · K0037</option><option value="35" >Gatot Pratiwi · K0035</option><option value="115" >Gawati Saptono · K0115</option><option value="89" >Ghaliyati Nasyidah · K0089</option><option value="96" >Hafshah Suwarno · K0096</option><option value="97" >Harjo Mansur · K0097</option><option value="19" >Harsanto Lestari · K0019</option><option value="31" >Hasta Mansur · K0031</option><option value="47" >Humaira Namaga · K0047</option><option value="118" >Icha Rajasa · K0118</option><option value="74" >Icha Wulandari · K0074</option><option value="18" >Ika Manullang · K0018</option><option value="48" >Ira Tampubolon · K0048</option><option value="116" >Irma Kuswandari · K0116</option><option value="46" >Irma Utami · K0046</option><option value="114" >Jaga Permadi · K0114</option><option value="42" >Jaiman Usada · K0042</option><option value="20" >Jaka Hastuti · K0020</option><option value="17" >Jarwa Simbolon · K0017</option><option value="107" >Jessica Hutagalung · K0107</option><option value="10" >Joko Susilo · K0010</option><option value="61" >Kamal Thamrin · K0061</option><option value="52" >Kamaria Wasita · K0052</option><option value="53" >Kania Prasetya · K0053</option><option value="71" >Karma Dongoran · K0071</option><option value="32" >Karma Suartini · K0032</option><option value="58" >Kawaca Usamah · K0058</option><option value="23" >Kiandra Prakasa · K0023</option><option value="87" >Labuh Tarihoran · K0087</option><option value="66" >Lalita Mulyani · K0066</option><option value="24" >Lanjar Rajata · K0024</option><option value="99" >Laras Purwanti · K0099</option><option value="72" >Lintang Mansur · K0072</option><option value="85" >Luwar Nasyidah · K0085</option><option value="59" >Mahdi Hardiansyah · K0059</option><option value="65" >Maida Mandala · K0065</option><option value="30" >Mala Usada · K0030</option><option value="75" >Margana Pertiwi · K0075</option><option value="88" >Mariadi Susanti · K0088</option><option value="108" >Maya Simbolon · K0108</option><option value="28" >Michelle Winarno · K0028</option><option value="41" >Mitra Laksmiwati · K0041</option><option value="25" >Mutia Halimah · K0025</option><option value="6" >Nadia Putri · K0006</option><option value="44" >Najib Rahmawati · K0044</option><option value="40" >Narji Purnawati · K0040</option><option value="26" >Niyaga Winarno · K0026</option><option value="90" >Nurul Januar · K0090</option><option value="111" >Okto Pudjiastuti · K0111</option><option value="93" >Ophelia Aryani · K0093</option><option value="22" >Paiman Aryani · K0022</option><option value="38" >Pandu Simanjuntak · K0038</option><option value="27" >Pangestu Hastuti · K0027</option><option value="119" >Paulin Haryanti · K0119</option><option value="103" >Purwa Sihombing · K0103</option><option value="78" >Putri Najmudin · K0078</option><option value="98" >Qori Saefullah · K0098</option><option value="34" >Rama Lazuardi · K0034</option><option value="84" >Ratna Hutapea · K0084</option><option value="5" >Rizky Maulana · K0005</option><option value="16" >Sadina Rahayu · K0016</option><option value="104" >Salwa Palastri · K0104</option><option value="56" >Samiah Budiyanto · K0056</option><option value="102" >Samsul Pudjiastuti · K0102</option><option value="55" >Septi Widodo · K0055</option><option value="1" >Siti Rahmawati · K0001</option><option value="68" >Suci Pertiwi · K0068</option><option value="101" >Tami Purwanti · K0101</option><option value="120" >Tania Najmudin · K0120</option><option value="95" >Taufik Sudiati · K0095</option><option value="12" >Teguh Prasetyo · K0012</option><option value="100" >Tina Hardiansyah · K0100</option><option value="106" >Tirta Januar · K0106</option><option value="113" >Ulva Fujiati · K0113</option><option value="64" >Umar Wastuti · K0064</option><option value="117" >Umi Nurdiyanti · K0117</option><option value="57" >Usyi Maryati · K0057</option><option value="81" >Warsa Suryono · K0081</option><option value="51" >Xanana Hassanah · K0051</option><option value="39" >Yessi Hidayat · K0039</option><option value="77" >Yulia Nasyiah · K0077</option><option value="94" >Yuni Lailasari · K0094</option><option value="79" >Yusuf Kuswandari · K0079</option><option value="21" >Zulfa Latupono · K0021</option><option value="109" >Zulfa Utama · K0109</option></select></div>
+            <div><label class="form-label">Departemen</label>
+                <select name="departemen_id[]" multiple class="form-select" data-placeholder="Semua departemen" data-satuan="departemen"><option value="5" >Gudang</option><option value="1" >Human Resource</option><option value="3" >Keuangan</option><option value="6" >Marketing</option><option value="4" >Operasional</option><option value="2" >Teknologi Informasi</option></select></div>
+            <div><label class="form-label">Jenis</label>
+                <select name="jenis[]" multiple class="form-select" data-placeholder="Semua jenis" data-satuan="jenis"><option value="hadir" >Hadir</option><option value="terlambat" >Terlambat</option><option value="alfa" >Alfa</option><option value="cuti" >Cuti</option><option value="izin" >Izin</option><option value="sakit" >Sakit</option><option value="lembur" >Lembur</option></select></div>
+        </div>
+        <div class="filter-aktif">
+            <span class="ringkas"><b class="text-body">1525</b> catatan · 26 Okt 2026 – 25 Nov 2026</span>
+                                                                    </div>
+    </form>
+
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead><tr><th>Tanggal</th><th>Karyawan</th><th>Jenis</th><th>Detail</th><th>Keterangan</th><th>Diinput oleh</th><th>Aksi</th></tr></thead>
+            <tbody>
+                            <tr>
+                    <td class="fw-semibold text-nowrap">Sel, 10 Nov</td>
+                    <td><div class="orang"><span class="avatar avatar-sm">TN</span><div><div class="nama">Tania Najmudin</div><div class="sub">K0120 · Marketing</div></div></div></td>
+                    <td><span class="badge badge-soft-success">Hadir</span></td>
+                    <td class="text-nowrap">07:40–17:07</td>
+                    <td class="text-secondary">-</td>
+                    <td class="small">HR</td>
+                    <td class="text-nowrap"><div class="d-inline-flex gap-2">
+        <a href="http://localhost:8000/absensi?ubah=absensi-11244" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>            <form method="post" action="http://localhost:8000/absensi/11244" data-confirm="Hapus data hadir Tania Najmudin tanggal 10 Nov?">
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="delete">            <button class="btn btn-outline-danger btn-icon" title="Hapus"><i data-lucide="trash-2"></i></button>
+        </form>
+    </div>
+</td>
+                </tr>
+                            <tr>
+                    <td class="fw-semibold text-nowrap">Sel, 10 Nov</td>
+                    <td><div class="orang"><span class="avatar avatar-sm">PH</span><div><div class="nama">Paulin Haryanti</div><div class="sub">K0119 · Marketing</div></div></div></td>
+                    <td><span class="badge badge-soft-success">Hadir</span></td>
+                    <td class="text-nowrap">07:53–17:13</td>
+                    <td class="text-secondary">-</td>
+                    <td class="small">HR</td>
+                    <td class="text-nowrap"><div class="d-inline-flex gap-2">
+        <a href="http://localhost:8000/absensi?ubah=absensi-11148" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>            <form method="post" action="http://localhost:8000/absensi/11148" data-confirm="Hapus data hadir Paulin Haryanti tanggal 10 Nov?">
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="delete">            <button class="btn btn-outline-danger btn-icon" title="Hapus"><i data-lucide="trash-2"></i></button>
+        </form>
+    </div>
+</td>
+                </tr>
+                            <tr>
+                    <td class="fw-semibold text-nowrap">Sel, 10 Nov</td>
+                    <td><div class="orang"><span class="avatar avatar-sm">IR</span><div><div class="nama">Icha Rajasa</div><div class="sub">K0118 · Marketing</div></div></div></td>
+                    <td><span class="badge badge-soft-success">Hadir</span></td>
+                    <td class="text-nowrap">07:53–17:00</td>
+                    <td class="text-secondary">-</td>
+                    <td class="small">HR</td>
+                    <td class="text-nowrap"><div class="d-inline-flex gap-2">
+        <a href="http://localhost:8000/absensi?ubah=absensi-11052" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>            <form method="post" action="http://localhost:8000/absensi/11052" data-confirm="Hapus data hadir Icha Rajasa tanggal 10 Nov?">
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="delete">            <button class="btn btn-outline-danger btn-icon" title="Hapus"><i data-lucide="trash-2"></i></button>
+        </form>
+    </div>
+</td>
+                </tr>
+                            <tr>
+                    <td class="fw-semibold text-nowrap">Sel, 10 Nov</td>
+                    <td><div class="orang"><span class="avatar avatar-sm">UN</span><div><div class="nama">Umi Nurdiyanti</div><div class="sub">K0117 · Marketing</div></div></div></td>
+                    <td><span class="badge badge-soft-success">Hadir</span></td>
+                    <td class="text-nowrap">07:44–17:16</td>
+                    <td class="text-secondary">-</td>
+                    <td class="small">HR</td>
+                    <td class="text-nowrap"><div class="d-inline-flex gap-2">
+        <a href="http://localhost:8000/absensi?ubah=absensi-10960" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>            <form method="post" action="http://localhost:8000/absensi/10960" data-confirm="Hapus data hadir Umi Nurdiyanti tanggal 10 Nov?">
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="delete">            <button class="btn btn-outline-danger btn-icon" title="Hapus"><i data-lucide="trash-2"></i></button>
+        </form>
+    </div>
+</td>
+                </tr>
+                            <tr>
+                    <td class="fw-semibold text-nowrap">Sel, 10 Nov</td>
+                    <td><div class="orang"><span class="avatar avatar-sm">IK</span><div><div class="nama">Irma Kuswandari</div><div class="sub">K0116 · Marketing</div></div></div></td>
+                    <td><span class="badge badge-soft-warning">Terlambat</span></td>
+                    <td class="text-nowrap">08:53–17:16</td>
+                    <td class="text-secondary">-</td>
+                    <td class="small">HR</td>
+                    <td class="text-nowrap"><div class="d-inline-flex gap-2">
+        <a href="http://localhost:8000/absensi?ubah=absensi-10867" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>            <form method="post" action="http://localhost:8000/absensi/10867" data-confirm="Hapus data terlambat Irma Kuswandari tanggal 10 Nov?">
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="delete">            <button class="btn btn-outline-danger btn-icon" title="Hapus"><i data-lucide="trash-2"></i></button>
+        </form>
+    </div>
+</td>
+                </tr>
+                            <tr>
+                    <td class="fw-semibold text-nowrap">Sel, 10 Nov</td>
+                    <td><div class="orang"><span class="avatar avatar-sm">GS</span><div><div class="nama">Gawati Saptono</div><div class="sub">K0115 · Marketing</div></div></div></td>
+                    <td><span class="badge badge-soft-success">Hadir</span></td>
+                    <td class="text-nowrap">07:49–17:02</td>
+                    <td class="text-secondary">-</td>
+                    <td class="small">HR</td>
+                    <td class="text-nowrap"><div class="d-inline-flex gap-2">
+        <a href="http://localhost:8000/absensi?ubah=absensi-10774" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>            <form method="post" action="http://localhost:8000/absensi/10774" data-confirm="Hapus data hadir Gawati Saptono tanggal 10 Nov?">
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="delete">            <button class="btn btn-outline-danger btn-icon" title="Hapus"><i data-lucide="trash-2"></i></button>
+        </form>
+    </div>
+</td>
+                </tr>
+                            <tr>
+                    <td class="fw-semibold text-nowrap">Sel, 10 Nov</td>
+                    <td><div class="orang"><span class="avatar avatar-sm">JP</span><div><div class="nama">Jaga Permadi</div><div class="sub">K0114 · Marketing</div></div></div></td>
+                    <td><span class="badge badge-soft-success">Hadir</span></td>
+                    <td class="text-nowrap">07:57–17:11</td>
+                    <td class="text-secondary">-</td>
+                    <td class="small">HR</td>
+                    <td class="text-nowrap"><div class="d-inline-flex gap-2">
+        <a href="http://localhost:8000/absensi?ubah=absensi-10677" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>            <form method="post" action="http://localhost:8000/absensi/10677" data-confirm="Hapus data hadir Jaga Permadi tanggal 10 Nov?">
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="delete">            <button class="btn btn-outline-danger btn-icon" title="Hapus"><i data-lucide="trash-2"></i></button>
+        </form>
+    </div>
+</td>
+                </tr>
+                            <tr>
+                    <td class="fw-semibold text-nowrap">Sel, 10 Nov</td>
+                    <td><div class="orang"><span class="avatar avatar-sm">UF</span><div><div class="nama">Ulva Fujiati</div><div class="sub">K0113 · Marketing</div></div></div></td>
+                    <td><span class="badge badge-soft-success">Hadir</span></td>
+                    <td class="text-nowrap">07:56–17:13</td>
+                    <td class="text-secondary">-</td>
+                    <td class="small">HR</td>
+                    <td class="text-nowrap"><div class="d-inline-flex gap-2">
+        <a href="http://localhost:8000/absensi?ubah=absensi-10582" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>            <form method="post" action="http://localhost:8000/absensi/10582" data-confirm="Hapus data hadir Ulva Fujiati tanggal 10 Nov?">
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="delete">            <button class="btn btn-outline-danger btn-icon" title="Hapus"><i data-lucide="trash-2"></i></button>
+        </form>
+    </div>
+</td>
+                </tr>
+                            <tr>
+                    <td class="fw-semibold text-nowrap">Sel, 10 Nov</td>
+                    <td><div class="orang"><span class="avatar avatar-sm">EF</span><div><div class="nama">Endra Farida</div><div class="sub">K0112 · Marketing</div></div></div></td>
+                    <td><span class="badge badge-soft-success">Hadir</span></td>
+                    <td class="text-nowrap">07:56–17:19</td>
+                    <td class="text-secondary">-</td>
+                    <td class="small">HR</td>
+                    <td class="text-nowrap"><div class="d-inline-flex gap-2">
+        <a href="http://localhost:8000/absensi?ubah=absensi-10487" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>            <form method="post" action="http://localhost:8000/absensi/10487" data-confirm="Hapus data hadir Endra Farida tanggal 10 Nov?">
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="delete">            <button class="btn btn-outline-danger btn-icon" title="Hapus"><i data-lucide="trash-2"></i></button>
+        </form>
+    </div>
+</td>
+                </tr>
+                            <tr>
+                    <td class="fw-semibold text-nowrap">Sel, 10 Nov</td>
+                    <td><div class="orang"><span class="avatar avatar-sm">OP</span><div><div class="nama">Okto Pudjiastuti</div><div class="sub">K0111 · Marketing</div></div></div></td>
+                    <td><span class="badge badge-soft-success">Hadir</span></td>
+                    <td class="text-nowrap">07:56–17:04</td>
+                    <td class="text-secondary">-</td>
+                    <td class="small">HR</td>
+                    <td class="text-nowrap"><div class="d-inline-flex gap-2">
+        <a href="http://localhost:8000/absensi?ubah=absensi-10391" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>            <form method="post" action="http://localhost:8000/absensi/10391" data-confirm="Hapus data hadir Okto Pudjiastuti tanggal 10 Nov?">
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="delete">            <button class="btn btn-outline-danger btn-icon" title="Hapus"><i data-lucide="trash-2"></i></button>
+        </form>
+    </div>
+</td>
+                </tr>
+                            <tr>
+                    <td class="fw-semibold text-nowrap">Sel, 10 Nov</td>
+                    <td><div class="orang"><span class="avatar avatar-sm">AW</span><div><div class="nama">Ayu Wulandari</div><div class="sub">K0110 · Marketing</div></div></div></td>
+                    <td><span class="badge badge-soft-success">Hadir</span></td>
+                    <td class="text-nowrap">07:57–17:13</td>
+                    <td class="text-secondary">-</td>
+                    <td class="small">HR</td>
+                    <td class="text-nowrap"><div class="d-inline-flex gap-2">
+        <a href="http://localhost:8000/absensi?ubah=absensi-10296" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>            <form method="post" action="http://localhost:8000/absensi/10296" data-confirm="Hapus data hadir Ayu Wulandari tanggal 10 Nov?">
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="delete">            <button class="btn btn-outline-danger btn-icon" title="Hapus"><i data-lucide="trash-2"></i></button>
+        </form>
+    </div>
+</td>
+                </tr>
+                            <tr>
+                    <td class="fw-semibold text-nowrap">Sel, 10 Nov</td>
+                    <td><div class="orang"><span class="avatar avatar-sm">ZU</span><div><div class="nama">Zulfa Utama</div><div class="sub">K0109 · Marketing</div></div></div></td>
+                    <td><span class="badge badge-soft-success">Hadir</span></td>
+                    <td class="text-nowrap">07:48–17:12</td>
+                    <td class="text-secondary">-</td>
+                    <td class="small">HR</td>
+                    <td class="text-nowrap"><div class="d-inline-flex gap-2">
+        <a href="http://localhost:8000/absensi?ubah=absensi-10199" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>            <form method="post" action="http://localhost:8000/absensi/10199" data-confirm="Hapus data hadir Zulfa Utama tanggal 10 Nov?">
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="delete">            <button class="btn btn-outline-danger btn-icon" title="Hapus"><i data-lucide="trash-2"></i></button>
+        </form>
+    </div>
+</td>
+                </tr>
+                            <tr>
+                    <td class="fw-semibold text-nowrap">Sel, 10 Nov</td>
+                    <td><div class="orang"><span class="avatar avatar-sm">MS</span><div><div class="nama">Maya Simbolon</div><div class="sub">K0108 · Marketing</div></div></div></td>
+                    <td><span class="badge badge-soft-success">Hadir</span></td>
+                    <td class="text-nowrap">07:54–17:14</td>
+                    <td class="text-secondary">-</td>
+                    <td class="small">HR</td>
+                    <td class="text-nowrap"><div class="d-inline-flex gap-2">
+        <a href="http://localhost:8000/absensi?ubah=absensi-10107" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>            <form method="post" action="http://localhost:8000/absensi/10107" data-confirm="Hapus data hadir Maya Simbolon tanggal 10 Nov?">
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="delete">            <button class="btn btn-outline-danger btn-icon" title="Hapus"><i data-lucide="trash-2"></i></button>
+        </form>
+    </div>
+</td>
+                </tr>
+                            <tr>
+                    <td class="fw-semibold text-nowrap">Sel, 10 Nov</td>
+                    <td><div class="orang"><span class="avatar avatar-sm">JH</span><div><div class="nama">Jessica Hutagalung</div><div class="sub">K0107 · Marketing</div></div></div></td>
+                    <td><span class="badge badge-soft-success">Hadir</span></td>
+                    <td class="text-nowrap">07:54–17:18</td>
+                    <td class="text-secondary">-</td>
+                    <td class="small">HR</td>
+                    <td class="text-nowrap"><div class="d-inline-flex gap-2">
+        <a href="http://localhost:8000/absensi?ubah=absensi-10010" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>            <form method="post" action="http://localhost:8000/absensi/10010" data-confirm="Hapus data hadir Jessica Hutagalung tanggal 10 Nov?">
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="delete">            <button class="btn btn-outline-danger btn-icon" title="Hapus"><i data-lucide="trash-2"></i></button>
+        </form>
+    </div>
+</td>
+                </tr>
+                            <tr>
+                    <td class="fw-semibold text-nowrap">Sel, 10 Nov</td>
+                    <td><div class="orang"><span class="avatar avatar-sm">TJ</span><div><div class="nama">Tirta Januar</div><div class="sub">K0106 · Marketing</div></div></div></td>
+                    <td><span class="badge badge-soft-success">Hadir</span></td>
+                    <td class="text-nowrap">07:54–17:07</td>
+                    <td class="text-secondary">-</td>
+                    <td class="small">HR</td>
+                    <td class="text-nowrap"><div class="d-inline-flex gap-2">
+        <a href="http://localhost:8000/absensi?ubah=absensi-9916" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>            <form method="post" action="http://localhost:8000/absensi/9916" data-confirm="Hapus data hadir Tirta Januar tanggal 10 Nov?">
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="delete">            <button class="btn btn-outline-danger btn-icon" title="Hapus"><i data-lucide="trash-2"></i></button>
+        </form>
+    </div>
+</td>
+                </tr>
+                        </tbody>
+        </table>
+    </div>
+    <div class="table-foot border-top">
+    <span>Menampilkan 1–15 dari 1525 catatan</span>
+            <ul class="pagination">
+                                        <li class="page-item active"><a class="page-link" href="http://localhost:8000/absensi?page=1">1</a></li>
+                            <li class="page-item "><a class="page-link" href="http://localhost:8000/absensi?page=2">2</a></li>
+                            <li class="page-item "><a class="page-link" href="http://localhost:8000/absensi?page=3">3</a></li>
+                        <li class="page-item"><a class="page-link" href="http://localhost:8000/absensi?page=2">›</a></li>        </ul>
+    </div>
+</div>
+
+
+<div id="drawer" class="card panel drawer" role="dialog" aria-modal="true">
+    <div class="card-header d-flex align-items-start gap-2">
+        <div class="me-auto"><div class="judul-panel">Tambah Data</div><span class="sub">Pilih jenis data yang mau diinput</span></div>
+        <button type="button" class="btn btn-light btn-icon" data-tutup-drawer aria-label="Tutup"><i data-lucide="x"></i></button>
+    </div>
+            <div class="card-body"><div class="chips mb-3" id="pilihJenis">
+                            <button type="button" class="chip active" data-jenis="absensi">Absensi</button>
+                            <button type="button" class="chip " data-jenis="cuti">Cuti / Izin / Sakit</button>
+                            <button type="button" class="chip " data-jenis="lembur">Lembur</button>
+                    </div>
+    
+    
+    <form method="post" action="http://localhost:8000/absensi" data-jenis-form="absensi" class="">
+        <input type="hidden" name="_token" value="TOKEN" autocomplete="off">  <input type="hidden" name="_jenis" value="absensi">
+        <div class="mb-field"><label class="form-label">Karyawan</label>
+    <select name="karyawan_id" class="form-select" required>
+        <option value="">Pilih karyawan</option>
+                                <option value="60" >Abyasa Mandala · K0060</option>
+                                <option value="105" >Ade Mardhiyah · K0105</option>
+                                <option value="13" >Agus Setiawan · K0013</option>
+                                <option value="67" >Ajiono Widiastuti · K0067</option>
+                                <option value="14" >Andi Firmansyah · K0014</option>
+                                <option value="4" >Andi Pratama · K0004</option>
+                                <option value="83" >Anita Maryati · K0083</option>
+                                <option value="29" >Arsipatra Halimah · K0029</option>
+                                <option value="92" >Asman Hartati · K0092</option>
+                                <option value="15" >Atma Mandasari · K0015</option>
+                                <option value="86" >Ayu Kurniawan · K0086</option>
+                                <option value="110" >Ayu Wulandari · K0110</option>
+                                <option value="43" >Bagus Tampubolon · K0043</option>
+                                <option value="2" >Bagus Wicaksono · K0002</option>
+                                <option value="33" >Bajragin Utami · K0033</option>
+                                <option value="62" >Bakianto Lailasari · K0062</option>
+                                <option value="69" >Bakianto Wahyuni · K0069</option>
+                                <option value="54" >Bakijan Andriani · K0054</option>
+                                <option value="91" >Bakijan Lazuardi · K0091</option>
+                                <option value="7" >Bambang Hartono · K0007</option>
+                                <option value="9" >Budi Santoso · K0009</option>
+                                <option value="80" >Cengkir Nashiruddin · K0080</option>
+                                <option value="70" >Chelsea Purwanti · K0070</option>
+                                <option value="63" >Cici Lailasari · K0063</option>
+                                <option value="45" >Dadap Laksita · K0045</option>
+                                <option value="73" >Darmanto Simbolon · K0073</option>
+                                <option value="11" >Dewi Anggraini · K0011</option>
+                                <option value="3" >Dewi Lestari · K0003</option>
+                                <option value="36" >Dwi Fujiati · K0036</option>
+                                <option value="82" >Edi Tarihoran · K0082</option>
+                                <option value="49" >Emas Pangestu · K0049</option>
+                                <option value="112" >Endra Farida · K0112</option>
+                                <option value="50" >Estiono Sitorus · K0050</option>
+                                <option value="8" >Fitri Handayani · K0008</option>
+                                <option value="76" >Gaman Habibi · K0076</option>
+                                <option value="37" >Gamanto Hartati · K0037</option>
+                                <option value="35" >Gatot Pratiwi · K0035</option>
+                                <option value="115" >Gawati Saptono · K0115</option>
+                                <option value="89" >Ghaliyati Nasyidah · K0089</option>
+                                <option value="96" >Hafshah Suwarno · K0096</option>
+                                <option value="97" >Harjo Mansur · K0097</option>
+                                <option value="19" >Harsanto Lestari · K0019</option>
+                                <option value="31" >Hasta Mansur · K0031</option>
+                                <option value="47" >Humaira Namaga · K0047</option>
+                                <option value="118" >Icha Rajasa · K0118</option>
+                                <option value="74" >Icha Wulandari · K0074</option>
+                                <option value="18" >Ika Manullang · K0018</option>
+                                <option value="48" >Ira Tampubolon · K0048</option>
+                                <option value="116" >Irma Kuswandari · K0116</option>
+                                <option value="46" >Irma Utami · K0046</option>
+                                <option value="114" >Jaga Permadi · K0114</option>
+                                <option value="42" >Jaiman Usada · K0042</option>
+                                <option value="20" >Jaka Hastuti · K0020</option>
+                                <option value="17" >Jarwa Simbolon · K0017</option>
+                                <option value="107" >Jessica Hutagalung · K0107</option>
+                                <option value="10" >Joko Susilo · K0010</option>
+                                <option value="61" >Kamal Thamrin · K0061</option>
+                                <option value="52" >Kamaria Wasita · K0052</option>
+                                <option value="53" >Kania Prasetya · K0053</option>
+                                <option value="71" >Karma Dongoran · K0071</option>
+                                <option value="32" >Karma Suartini · K0032</option>
+                                <option value="58" >Kawaca Usamah · K0058</option>
+                                <option value="23" >Kiandra Prakasa · K0023</option>
+                                <option value="87" >Labuh Tarihoran · K0087</option>
+                                <option value="66" >Lalita Mulyani · K0066</option>
+                                <option value="24" >Lanjar Rajata · K0024</option>
+                                <option value="99" >Laras Purwanti · K0099</option>
+                                <option value="72" >Lintang Mansur · K0072</option>
+                                <option value="85" >Luwar Nasyidah · K0085</option>
+                                <option value="59" >Mahdi Hardiansyah · K0059</option>
+                                <option value="65" >Maida Mandala · K0065</option>
+                                <option value="30" >Mala Usada · K0030</option>
+                                <option value="75" >Margana Pertiwi · K0075</option>
+                                <option value="88" >Mariadi Susanti · K0088</option>
+                                <option value="108" >Maya Simbolon · K0108</option>
+                                <option value="28" >Michelle Winarno · K0028</option>
+                                <option value="41" >Mitra Laksmiwati · K0041</option>
+                                <option value="25" >Mutia Halimah · K0025</option>
+                                <option value="6" >Nadia Putri · K0006</option>
+                                <option value="44" >Najib Rahmawati · K0044</option>
+                                <option value="40" >Narji Purnawati · K0040</option>
+                                <option value="26" >Niyaga Winarno · K0026</option>
+                                <option value="90" >Nurul Januar · K0090</option>
+                                <option value="111" >Okto Pudjiastuti · K0111</option>
+                                <option value="93" >Ophelia Aryani · K0093</option>
+                                <option value="22" >Paiman Aryani · K0022</option>
+                                <option value="38" >Pandu Simanjuntak · K0038</option>
+                                <option value="27" >Pangestu Hastuti · K0027</option>
+                                <option value="119" >Paulin Haryanti · K0119</option>
+                                <option value="103" >Purwa Sihombing · K0103</option>
+                                <option value="78" >Putri Najmudin · K0078</option>
+                                <option value="98" >Qori Saefullah · K0098</option>
+                                <option value="34" >Rama Lazuardi · K0034</option>
+                                <option value="84" >Ratna Hutapea · K0084</option>
+                                <option value="5" >Rizky Maulana · K0005</option>
+                                <option value="16" >Sadina Rahayu · K0016</option>
+                                <option value="104" >Salwa Palastri · K0104</option>
+                                <option value="56" >Samiah Budiyanto · K0056</option>
+                                <option value="102" >Samsul Pudjiastuti · K0102</option>
+                                <option value="55" >Septi Widodo · K0055</option>
+                                <option value="1" >Siti Rahmawati · K0001</option>
+                                <option value="68" >Suci Pertiwi · K0068</option>
+                                <option value="101" >Tami Purwanti · K0101</option>
+                                <option value="120" >Tania Najmudin · K0120</option>
+                                <option value="95" >Taufik Sudiati · K0095</option>
+                                <option value="12" >Teguh Prasetyo · K0012</option>
+                                <option value="100" >Tina Hardiansyah · K0100</option>
+                                <option value="106" >Tirta Januar · K0106</option>
+                                <option value="113" >Ulva Fujiati · K0113</option>
+                                <option value="64" >Umar Wastuti · K0064</option>
+                                <option value="117" >Umi Nurdiyanti · K0117</option>
+                                <option value="57" >Usyi Maryati · K0057</option>
+                                <option value="81" >Warsa Suryono · K0081</option>
+                                <option value="51" >Xanana Hassanah · K0051</option>
+                                <option value="39" >Yessi Hidayat · K0039</option>
+                                <option value="77" >Yulia Nasyiah · K0077</option>
+                                <option value="94" >Yuni Lailasari · K0094</option>
+                                <option value="79" >Yusuf Kuswandari · K0079</option>
+                                <option value="21" >Zulfa Latupono · K0021</option>
+                                <option value="109" >Zulfa Utama · K0109</option>
+            </select>
+</div>
+        <div class="mb-field"><label class="form-label">Tanggal</label><input type="date" name="tanggal" value="2026-11-11" class="form-control" required></div>
+        <div class="mb-field"><label class="form-label">Status</label>
+            <select name="status" class="form-select"><option value="hadir" selected>Hadir</option><option value="terlambat" >Terlambat</option><option value="alfa" >Alfa</option></select></div>
+        <div class="row g-2 mb-field">
+            <div class="col"><label class="form-label">Jam masuk</label><input type="time" name="jam_masuk" value="08:00" class="form-control"></div>
+            <div class="col"><label class="form-label">Jam keluar</label><input type="time" name="jam_keluar" value="17:00" class="form-control"></div>
+        </div>
+        <div class="notice "><i data-lucide="circle-alert"></i><span>Status alfa mengosongkan jam masuk dan keluar, dan memotong gaji pokok per hari.</span></div>
+        <div class="tombol"><a href="http://localhost:8000/absensi" class="btn btn-light">Batal</a><button class="btn btn-primary">Simpan</button></div>
+    </form>
+
+    
+    <form method="post" action="http://localhost:8000/cuti" data-jenis-form="cuti" class="d-none">
+        <input type="hidden" name="_token" value="TOKEN" autocomplete="off">  <input type="hidden" name="_jenis" value="cuti">
+        <div class="mb-field"><label class="form-label">Karyawan</label>
+    <select name="karyawan_id" class="form-select" required>
+        <option value="">Pilih karyawan</option>
+                                <option value="60" >Abyasa Mandala · K0060 (sisa cuti 6)</option>
+                                <option value="105" >Ade Mardhiyah · K0105 (sisa cuti 6)</option>
+                                <option value="13" >Agus Setiawan · K0013 (sisa cuti 7)</option>
+                                <option value="67" >Ajiono Widiastuti · K0067 (sisa cuti 7)</option>
+                                <option value="14" >Andi Firmansyah · K0014 (sisa cuti 9)</option>
+                                <option value="4" >Andi Pratama · K0004 (sisa cuti 5)</option>
+                                <option value="83" >Anita Maryati · K0083 (sisa cuti 11)</option>
+                                <option value="29" >Arsipatra Halimah · K0029 (sisa cuti 6)</option>
+                                <option value="92" >Asman Hartati · K0092 (sisa cuti 5)</option>
+                                <option value="15" >Atma Mandasari · K0015 (sisa cuti 5)</option>
+                                <option value="86" >Ayu Kurniawan · K0086 (sisa cuti 12)</option>
+                                <option value="110" >Ayu Wulandari · K0110 (sisa cuti 9)</option>
+                                <option value="43" >Bagus Tampubolon · K0043 (sisa cuti 6)</option>
+                                <option value="2" >Bagus Wicaksono · K0002 (sisa cuti 11)</option>
+                                <option value="33" >Bajragin Utami · K0033 (sisa cuti 7)</option>
+                                <option value="62" >Bakianto Lailasari · K0062 (sisa cuti 10)</option>
+                                <option value="69" >Bakianto Wahyuni · K0069 (sisa cuti 5)</option>
+                                <option value="54" >Bakijan Andriani · K0054 (sisa cuti 5)</option>
+                                <option value="91" >Bakijan Lazuardi · K0091 (sisa cuti 7)</option>
+                                <option value="7" >Bambang Hartono · K0007 (sisa cuti 9)</option>
+                                <option value="9" >Budi Santoso · K0009 (sisa cuti 2)</option>
+                                <option value="80" >Cengkir Nashiruddin · K0080 (sisa cuti 7)</option>
+                                <option value="70" >Chelsea Purwanti · K0070 (sisa cuti 8)</option>
+                                <option value="63" >Cici Lailasari · K0063 (sisa cuti 10)</option>
+                                <option value="45" >Dadap Laksita · K0045 (sisa cuti 5)</option>
+                                <option value="73" >Darmanto Simbolon · K0073 (sisa cuti 12)</option>
+                                <option value="11" >Dewi Anggraini · K0011 (sisa cuti 10)</option>
+                                <option value="3" >Dewi Lestari · K0003 (sisa cuti 8)</option>
+                                <option value="36" >Dwi Fujiati · K0036 (sisa cuti 8)</option>
+                                <option value="82" >Edi Tarihoran · K0082 (sisa cuti 5)</option>
+                                <option value="49" >Emas Pangestu · K0049 (sisa cuti 9)</option>
+                                <option value="112" >Endra Farida · K0112 (sisa cuti 11)</option>
+                                <option value="50" >Estiono Sitorus · K0050 (sisa cuti 6)</option>
+                                <option value="8" >Fitri Handayani · K0008 (sisa cuti 6)</option>
+                                <option value="76" >Gaman Habibi · K0076 (sisa cuti 9)</option>
+                                <option value="37" >Gamanto Hartati · K0037 (sisa cuti 12)</option>
+                                <option value="35" >Gatot Pratiwi · K0035 (sisa cuti 6)</option>
+                                <option value="115" >Gawati Saptono · K0115 (sisa cuti 8)</option>
+                                <option value="89" >Ghaliyati Nasyidah · K0089 (sisa cuti 8)</option>
+                                <option value="96" >Hafshah Suwarno · K0096 (sisa cuti 9)</option>
+                                <option value="97" >Harjo Mansur · K0097 (sisa cuti 9)</option>
+                                <option value="19" >Harsanto Lestari · K0019 (sisa cuti 3)</option>
+                                <option value="31" >Hasta Mansur · K0031 (sisa cuti 9)</option>
+                                <option value="47" >Humaira Namaga · K0047 (sisa cuti 6)</option>
+                                <option value="118" >Icha Rajasa · K0118 (sisa cuti 5)</option>
+                                <option value="74" >Icha Wulandari · K0074 (sisa cuti 5)</option>
+                                <option value="18" >Ika Manullang · K0018 (sisa cuti 6)</option>
+                                <option value="48" >Ira Tampubolon · K0048 (sisa cuti 8)</option>
+                                <option value="116" >Irma Kuswandari · K0116 (sisa cuti 7)</option>
+                                <option value="46" >Irma Utami · K0046 (sisa cuti 10)</option>
+                                <option value="114" >Jaga Permadi · K0114 (sisa cuti 7)</option>
+                                <option value="42" >Jaiman Usada · K0042 (sisa cuti 9)</option>
+                                <option value="20" >Jaka Hastuti · K0020 (sisa cuti 6)</option>
+                                <option value="17" >Jarwa Simbolon · K0017 (sisa cuti 12)</option>
+                                <option value="107" >Jessica Hutagalung · K0107 (sisa cuti 10)</option>
+                                <option value="10" >Joko Susilo · K0010 (sisa cuti 1)</option>
+                                <option value="61" >Kamal Thamrin · K0061 (sisa cuti 12)</option>
+                                <option value="52" >Kamaria Wasita · K0052 (sisa cuti 5)</option>
+                                <option value="53" >Kania Prasetya · K0053 (sisa cuti 12)</option>
+                                <option value="71" >Karma Dongoran · K0071 (sisa cuti 12)</option>
+                                <option value="32" >Karma Suartini · K0032 (sisa cuti 7)</option>
+                                <option value="58" >Kawaca Usamah · K0058 (sisa cuti 5)</option>
+                                <option value="23" >Kiandra Prakasa · K0023 (sisa cuti 7)</option>
+                                <option value="87" >Labuh Tarihoran · K0087 (sisa cuti 7)</option>
+                                <option value="66" >Lalita Mulyani · K0066 (sisa cuti 10)</option>
+                                <option value="24" >Lanjar Rajata · K0024 (sisa cuti 12)</option>
+                                <option value="99" >Laras Purwanti · K0099 (sisa cuti 11)</option>
+                                <option value="72" >Lintang Mansur · K0072 (sisa cuti 9)</option>
+                                <option value="85" >Luwar Nasyidah · K0085 (sisa cuti 4)</option>
+                                <option value="59" >Mahdi Hardiansyah · K0059 (sisa cuti 7)</option>
+                                <option value="65" >Maida Mandala · K0065 (sisa cuti 7)</option>
+                                <option value="30" >Mala Usada · K0030 (sisa cuti 6)</option>
+                                <option value="75" >Margana Pertiwi · K0075 (sisa cuti 4)</option>
+                                <option value="88" >Mariadi Susanti · K0088 (sisa cuti 5)</option>
+                                <option value="108" >Maya Simbolon · K0108 (sisa cuti 6)</option>
+                                <option value="28" >Michelle Winarno · K0028 (sisa cuti 9)</option>
+                                <option value="41" >Mitra Laksmiwati · K0041 (sisa cuti 11)</option>
+                                <option value="25" >Mutia Halimah · K0025 (sisa cuti 7)</option>
+                                <option value="6" >Nadia Putri · K0006 (sisa cuti 11)</option>
+                                <option value="44" >Najib Rahmawati · K0044 (sisa cuti 4)</option>
+                                <option value="40" >Narji Purnawati · K0040 (sisa cuti 9)</option>
+                                <option value="26" >Niyaga Winarno · K0026 (sisa cuti 7)</option>
+                                <option value="90" >Nurul Januar · K0090 (sisa cuti 12)</option>
+                                <option value="111" >Okto Pudjiastuti · K0111 (sisa cuti 11)</option>
+                                <option value="93" >Ophelia Aryani · K0093 (sisa cuti 6)</option>
+                                <option value="22" >Paiman Aryani · K0022 (sisa cuti 10)</option>
+                                <option value="38" >Pandu Simanjuntak · K0038 (sisa cuti 7)</option>
+                                <option value="27" >Pangestu Hastuti · K0027 (sisa cuti 5)</option>
+                                <option value="119" >Paulin Haryanti · K0119 (sisa cuti 9)</option>
+                                <option value="103" >Purwa Sihombing · K0103 (sisa cuti 8)</option>
+                                <option value="78" >Putri Najmudin · K0078 (sisa cuti 8)</option>
+                                <option value="98" >Qori Saefullah · K0098 (sisa cuti 7)</option>
+                                <option value="34" >Rama Lazuardi · K0034 (sisa cuti 4)</option>
+                                <option value="84" >Ratna Hutapea · K0084 (sisa cuti 10)</option>
+                                <option value="5" >Rizky Maulana · K0005 (sisa cuti 6)</option>
+                                <option value="16" >Sadina Rahayu · K0016 (sisa cuti 10)</option>
+                                <option value="104" >Salwa Palastri · K0104 (sisa cuti 6)</option>
+                                <option value="56" >Samiah Budiyanto · K0056 (sisa cuti 9)</option>
+                                <option value="102" >Samsul Pudjiastuti · K0102 (sisa cuti 0)</option>
+                                <option value="55" >Septi Widodo · K0055 (sisa cuti 12)</option>
+                                <option value="1" >Siti Rahmawati · K0001 (sisa cuti 5)</option>
+                                <option value="68" >Suci Pertiwi · K0068 (sisa cuti 7)</option>
+                                <option value="101" >Tami Purwanti · K0101 (sisa cuti 11)</option>
+                                <option value="120" >Tania Najmudin · K0120 (sisa cuti 8)</option>
+                                <option value="95" >Taufik Sudiati · K0095 (sisa cuti 6)</option>
+                                <option value="12" >Teguh Prasetyo · K0012 (sisa cuti 2)</option>
+                                <option value="100" >Tina Hardiansyah · K0100 (sisa cuti 6)</option>
+                                <option value="106" >Tirta Januar · K0106 (sisa cuti 8)</option>
+                                <option value="113" >Ulva Fujiati · K0113 (sisa cuti 9)</option>
+                                <option value="64" >Umar Wastuti · K0064 (sisa cuti 3)</option>
+                                <option value="117" >Umi Nurdiyanti · K0117 (sisa cuti 4)</option>
+                                <option value="57" >Usyi Maryati · K0057 (sisa cuti 8)</option>
+                                <option value="81" >Warsa Suryono · K0081 (sisa cuti 11)</option>
+                                <option value="51" >Xanana Hassanah · K0051 (sisa cuti 12)</option>
+                                <option value="39" >Yessi Hidayat · K0039 (sisa cuti 8)</option>
+                                <option value="77" >Yulia Nasyiah · K0077 (sisa cuti 8)</option>
+                                <option value="94" >Yuni Lailasari · K0094 (sisa cuti 2)</option>
+                                <option value="79" >Yusuf Kuswandari · K0079 (sisa cuti 8)</option>
+                                <option value="21" >Zulfa Latupono · K0021 (sisa cuti 6)</option>
+                                <option value="109" >Zulfa Utama · K0109 (sisa cuti 7)</option>
+            </select>
+</div>
+        <div class="mb-field"><label class="form-label">Jenis</label>
+            <select name="jenis" class="form-select"><option value="cuti" selected>Cuti</option><option value="izin" >Izin</option><option value="sakit" >Sakit</option></select></div>
+        <div class="row g-2 mb-field">
+            <div class="col"><label class="form-label">Mulai</label><input type="date" name="tgl_mulai" value="2026-11-11" class="form-control" required></div>
+            <div class="col"><label class="form-label">Selesai</label><input type="date" name="tgl_selesai" value="2026-11-11" class="form-control" required></div>
+        </div>
+        <div class="mb-field"><label class="form-label">Keterangan</label><textarea name="keterangan" rows="2" class="form-control" placeholder="mis. Surat dokter"></textarea></div>
+        <div class="notice "><i data-lucide="circle-alert"></i><span>Cuti mengurangi sisa jatah sebanyak hari kerja (Senin–Jumat). Izin dan sakit tidak mengurangi jatah.</span></div>
+        <div class="tombol"><a href="http://localhost:8000/absensi" class="btn btn-light">Batal</a><button class="btn btn-primary">Simpan</button></div>
+    </form>
+
+    
+    <form method="post" action="http://localhost:8000/lembur" data-jenis-form="lembur" class="d-none">
+        <input type="hidden" name="_token" value="TOKEN" autocomplete="off">  <input type="hidden" name="_jenis" value="lembur">
+        <div class="mb-field"><label class="form-label">Karyawan</label>
+    <select name="karyawan_id" class="form-select" required>
+        <option value="">Pilih karyawan</option>
+                                <option value="60" >Abyasa Mandala · K0060</option>
+                                            <option value="13" >Agus Setiawan · K0013</option>
+                                <option value="67" >Ajiono Widiastuti · K0067</option>
+                                                        <option value="83" >Anita Maryati · K0083</option>
+                                <option value="29" >Arsipatra Halimah · K0029</option>
+                                <option value="92" >Asman Hartati · K0092</option>
+                                            <option value="86" >Ayu Kurniawan · K0086</option>
+                                                                    <option value="33" >Bajragin Utami · K0033</option>
+                                <option value="62" >Bakianto Lailasari · K0062</option>
+                                <option value="69" >Bakianto Wahyuni · K0069</option>
+                                <option value="54" >Bakijan Andriani · K0054</option>
+                                <option value="91" >Bakijan Lazuardi · K0091</option>
+                                                        <option value="80" >Cengkir Nashiruddin · K0080</option>
+                                <option value="70" >Chelsea Purwanti · K0070</option>
+                                <option value="63" >Cici Lailasari · K0063</option>
+                                            <option value="73" >Darmanto Simbolon · K0073</option>
+                                <option value="11" >Dewi Anggraini · K0011</option>
+                                            <option value="36" >Dwi Fujiati · K0036</option>
+                                <option value="82" >Edi Tarihoran · K0082</option>
+                                                                                <option value="76" >Gaman Habibi · K0076</option>
+                                <option value="37" >Gamanto Hartati · K0037</option>
+                                <option value="35" >Gatot Pratiwi · K0035</option>
+                                            <option value="89" >Ghaliyati Nasyidah · K0089</option>
+                                <option value="96" >Hafshah Suwarno · K0096</option>
+                                <option value="97" >Harjo Mansur · K0097</option>
+                                            <option value="31" >Hasta Mansur · K0031</option>
+                                                        <option value="74" >Icha Wulandari · K0074</option>
+                                                                                                                                            <option value="10" >Joko Susilo · K0010</option>
+                                <option value="61" >Kamal Thamrin · K0061</option>
+                                <option value="52" >Kamaria Wasita · K0052</option>
+                                <option value="53" >Kania Prasetya · K0053</option>
+                                <option value="71" >Karma Dongoran · K0071</option>
+                                <option value="32" >Karma Suartini · K0032</option>
+                                <option value="58" >Kawaca Usamah · K0058</option>
+                                <option value="23" >Kiandra Prakasa · K0023</option>
+                                <option value="87" >Labuh Tarihoran · K0087</option>
+                                <option value="66" >Lalita Mulyani · K0066</option>
+                                <option value="24" >Lanjar Rajata · K0024</option>
+                                <option value="99" >Laras Purwanti · K0099</option>
+                                <option value="72" >Lintang Mansur · K0072</option>
+                                <option value="85" >Luwar Nasyidah · K0085</option>
+                                <option value="59" >Mahdi Hardiansyah · K0059</option>
+                                <option value="65" >Maida Mandala · K0065</option>
+                                <option value="30" >Mala Usada · K0030</option>
+                                <option value="75" >Margana Pertiwi · K0075</option>
+                                <option value="88" >Mariadi Susanti · K0088</option>
+                                            <option value="28" >Michelle Winarno · K0028</option>
+                                            <option value="25" >Mutia Halimah · K0025</option>
+                                <option value="6" >Nadia Putri · K0006</option>
+                                                        <option value="26" >Niyaga Winarno · K0026</option>
+                                <option value="90" >Nurul Januar · K0090</option>
+                                            <option value="93" >Ophelia Aryani · K0093</option>
+                                <option value="22" >Paiman Aryani · K0022</option>
+                                <option value="38" >Pandu Simanjuntak · K0038</option>
+                                <option value="27" >Pangestu Hastuti · K0027</option>
+                                                        <option value="78" >Putri Najmudin · K0078</option>
+                                <option value="98" >Qori Saefullah · K0098</option>
+                                <option value="34" >Rama Lazuardi · K0034</option>
+                                <option value="84" >Ratna Hutapea · K0084</option>
+                                <option value="5" >Rizky Maulana · K0005</option>
+                                                        <option value="56" >Samiah Budiyanto · K0056</option>
+                                            <option value="55" >Septi Widodo · K0055</option>
+                                            <option value="68" >Suci Pertiwi · K0068</option>
+                                <option value="101" >Tami Purwanti · K0101</option>
+                                            <option value="95" >Taufik Sudiati · K0095</option>
+                                            <option value="100" >Tina Hardiansyah · K0100</option>
+                                                        <option value="64" >Umar Wastuti · K0064</option>
+                                            <option value="57" >Usyi Maryati · K0057</option>
+                                <option value="81" >Warsa Suryono · K0081</option>
+                                <option value="51" >Xanana Hassanah · K0051</option>
+                                            <option value="77" >Yulia Nasyiah · K0077</option>
+                                <option value="94" >Yuni Lailasari · K0094</option>
+                                <option value="79" >Yusuf Kuswandari · K0079</option>
+                                    </select>
+</div>
+        <div class="mb-field"><label class="form-label">Tanggal</label><input type="date" name="tanggal" value="2026-11-11" class="form-control" required></div>
+        <div class="row g-2 mb-field">
+            <div class="col"><label class="form-label">Jam mulai</label><input type="time" name="jam_mulai" value="17:00" class="form-control" required></div>
+            <div class="col"><label class="form-label">Jam selesai</label><input type="time" name="jam_selesai" value="19:00" class="form-control" required></div>
+        </div>
+        <div class="mb-field"><label class="form-label">Keterangan</label><textarea name="keterangan" rows="2" class="form-control" placeholder="mis. Closing gudang akhir bulan"></textarea></div>
+        <div class="notice "><i data-lucide="circle-alert"></i><span>Upah lembur = 1/173 × gaji pokok × 1,5 (jam pertama) dan × 2 (jam berikutnya). Hanya karyawan yang kontraknya punya komponen lembur.</span></div>
+        <div class="tombol"><a href="http://localhost:8000/absensi" class="btn btn-light">Batal</a><button class="btn btn-primary">Simpan</button></div>
+    </form></div>
+    </div>
+        </main>
+
+        <footer class="footer">Powered by <b>Kelompok 6 RPL</b> · Kelas X7N · Universitas Indraprasta PGRI · 2026</footer>
+    </div>
+</div>
+
+<div class="drawer-backdrop" data-tutup-drawer></div>
+<div class="toast-wrap">
+    </div>
+<script>
+    document.querySelectorAll('.toast-item[data-auto="1"]').forEach(t => setTimeout(() => t.remove(), 4000));
+</script>
+
+
+<div class="modal fade" id="modalPassword" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" method="post" action="http://localhost:8000/ganti-password">
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="put">            <div class="modal-header"><h5 class="modal-title fs-6 fw-semibold">Ganti kata sandi</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="mb-3"><label class="form-label">Kata sandi lama</label><input type="password" name="password_lama" class="form-control" required></div>
+                <div class="mb-3"><label class="form-label">Kata sandi baru</label><input type="password" name="password" class="form-control" minlength="8" required><div class="form-text">Minimal 8 karakter.</div></div>
+                <div class="mb-1"><label class="form-label">Ulangi kata sandi baru</label><input type="password" name="password_confirmation" class="form-control" required></div>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button><button class="btn btn-primary">Simpan</button></div>
+        </form>
+    </div>
+</div>
+
+
+<div class="modal fade" id="modalKonfirmasi" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:400px">
+        <div class="modal-content p-2">
+            <div class="modal-body">
+                <h5 class="fw-bold fs-5 mb-2" id="konfJudul">Lanjutkan?</h5>
+                <p class="text-secondary mb-0" id="konfPesan"></p>
+            </div>
+            <div class="modal-footer border-0 pt-0"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button><button type="button" id="konfOk" class="btn btn-primary">Ya</button></div>
+        </div>
+    </div>
+</div>
+
+<script>window.__errors = []; window.__bukaModalPassword = false;</script>
+<script>
+    document.querySelectorAll('#pilihJenis [data-jenis]').forEach(b => b.addEventListener('click', () => {
+        document.querySelectorAll('#pilihJenis .chip').forEach(c => c.classList.toggle('active', c === b));
+        document.querySelectorAll('[data-jenis-form]').forEach(f => f.classList.toggle('d-none', f.dataset.jenisForm !== b.dataset.jenis));
+    }));
+</script>
+</body>
+</html>

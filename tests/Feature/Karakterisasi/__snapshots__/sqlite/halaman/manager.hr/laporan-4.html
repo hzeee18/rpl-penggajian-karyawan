@@ -1,0 +1,1422 @@
+<!doctype html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Payroll Oktober 2026 · Penggajian Karyawan</title>
+    <link rel="icon" href="http://localhost:8000/img/logo-unindra.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css" rel="stylesheet">
+    <link href="http://localhost:8000/css/app.css?v=24" rel="stylesheet">
+    <meta name="turbo-cache-control" content="no-preview">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/id.js"></script>
+    <script src="http://localhost:8000/js/form.js?v=9"></script>
+    <script src="http://localhost:8000/js/app.js?v=6"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.12/dist/turbo.es2017-umd.js"></script>
+    </head>
+<body>
+<div class="d-flex">
+    
+    <aside class="sidebar offcanvas-lg offcanvas-start" tabindex="-1" id="sidebar">
+        <div class="sidebar-brand">
+            <img src="http://localhost:8000/img/logo-unindra.png" alt="Logo Unindra">
+            <div>
+                <div class="nama">Penggajian Karyawan</div>
+                <div class="kampus">Universitas Indraprasta PGRI</div>
+            </div>
+        </div>
+
+        <div class="nav-label">Menu Manager HR</div>
+                    <a href="http://localhost:8000/dashboard" class="nav-item-link ">
+                <i data-lucide="layout-grid"></i> Dashboard
+            </a>
+                    <a href="http://localhost:8000/approval" class="nav-item-link ">
+                <i data-lucide="circle-check"></i> Approval
+            </a>
+                    <a href="http://localhost:8000/karyawan" class="nav-item-link ">
+                <i data-lucide="users"></i> Data Karyawan
+            </a>
+                    <a href="http://localhost:8000/kontrak" class="nav-item-link ">
+                <i data-lucide="file-text"></i> Kontrak
+            </a>
+                    <a href="http://localhost:8000/absensi" class="nav-item-link ">
+                <i data-lucide="calendar"></i> Absensi, Cuti &amp; Lembur
+            </a>
+                    <a href="http://localhost:8000/import" class="nav-item-link ">
+                <i data-lucide="upload"></i> Import Excel
+            </a>
+                    <a href="http://localhost:8000/payroll" class="nav-item-link ">
+                <i data-lucide="wallet"></i> Proses Payroll
+            </a>
+                    <a href="http://localhost:8000/laporan" class="nav-item-link active">
+                <i data-lucide="history"></i> Riwayat Payroll
+            </a>
+                    <a href="http://localhost:8000/slip" class="nav-item-link ">
+                <i data-lucide="file-text"></i> Slip Gaji
+            </a>
+                            <div class="nav-label">Master Data</div>
+                            <a href="http://localhost:8000/departemen" class="nav-item-link ">
+                    <i data-lucide="building-2"></i> Departemen
+                </a>
+                            <a href="http://localhost:8000/pajak" class="nav-item-link ">
+                    <i data-lucide="percent"></i> Pajak &amp; Tarif TER
+                </a>
+                            <a href="http://localhost:8000/komponen" class="nav-item-link ">
+                    <i data-lucide="layers"></i> Komponen Gaji
+                </a>
+                            <a href="http://localhost:8000/master-payroll" class="nav-item-link ">
+                    <i data-lucide="sliders-horizontal"></i> Periode
+                </a>
+                    
+        <div class="sidebar-user mt-auto">
+            <span class="avatar">SR</span>
+            <div class="text-truncate">
+                <div class="nama text-truncate">Siti Rahmawati</div>
+                <div class="peran text-truncate">Manager HR</div>
+            </div>
+        </div>
+        <form method="post" action="http://localhost:8000/logout"><input type="hidden" name="_token" value="TOKEN" autocomplete="off">            <button class="nav-item-link"><i data-lucide="log-out"></i> Keluar</button>
+        </form>
+    </aside>
+
+    <div class="main flex-grow-1">
+        
+        <header class="topbar">
+            <button class="btn-topbar d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-label="Menu"><i data-lucide="menu"></i></button>
+            <div class="me-auto">
+                <div class="crumb">Payroll / Riwayat Payroll</div>
+                <div class="judul">Payroll Oktober 2026</div>
+            </div>
+
+            <form class="topbar-search d-none d-md-block" action="http://localhost:8000/karyawan" data-cari="http://localhost:8000/cari" role="search">
+                <i data-lucide="search"></i>
+                <input name="q" class="form-control" placeholder="Cari karyawan, slip gaji, atau menu..." value="" autocomplete="off" aria-autocomplete="list">
+                <div class="cari-hasil" hidden></div>
+            </form>
+
+            <div class="dropdown">
+                <button class="btn-topbar" data-bs-toggle="dropdown" aria-label="Notifikasi">
+                    <i data-lucide="bell"></i>
+                                    </button>
+                <div class="dropdown-menu dropdown-menu-end p-0 notif-menu">
+                    <div class="d-flex justify-content-between align-items-center px-3 py-3 border-bottom">
+                        <strong>Notifikasi </strong>
+                        <a href="http://localhost:8000/notifikasi" class="small fw-semibold">Lihat semua</a>
+                    </div>
+                                            <a href="http://localhost:8000/notifikasi/54" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Slip gaji tersedia</span>
+                                <span class="d-block small text-secondary">Slip gaji periode Oktober 2026 sudah bisa dilihat dan diunduh.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/53" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Payroll menunggu approval</span>
+                                <span class="d-block small text-secondary">Payroll periode Oktober 2026 perlu persetujuan Anda. Cukup salah satu manager yang memutus...</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/37" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Slip gaji tersedia</span>
+                                <span class="d-block small text-secondary">Slip gaji periode September 2026 sudah bisa dilihat dan diunduh.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/36" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Payroll menunggu approval</span>
+                                <span class="d-block small text-secondary">Payroll periode September 2026 perlu persetujuan Anda. Cukup salah satu manager yang memut...</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/20" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Slip gaji tersedia</span>
+                                <span class="d-block small text-secondary">Slip gaji periode Agustus 2026 sudah bisa dilihat dan diunduh.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/19" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Payroll menunggu approval</span>
+                                <span class="d-block small text-secondary">Payroll periode Agustus 2026 perlu persetujuan Anda. Cukup salah satu manager yang memutus...</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                    </div>
+            </div>
+
+            <div class="dropdown">
+                <button class="btn-avatar" data-bs-toggle="dropdown" aria-label="Menu profil"><span class="avatar">SR</span></button>
+                <div class="dropdown-menu dropdown-menu-end" style="width:240px">
+                    <div class="px-3 py-2 border-bottom mb-1">
+                        <div class="fw-semibold">Siti Rahmawati</div>
+                        <div class="small text-muted">manager.hr · Manager HR</div>
+                    </div>
+                                            <a class="dropdown-item d-flex gap-2" href="http://localhost:8000/profil"><i data-lucide="user"></i> Profil saya</a>
+                                        <button class="dropdown-item d-flex gap-2" data-bs-toggle="modal" data-bs-target="#modalPassword"><i data-lucide="key-round"></i> Ganti kata sandi</button>
+                    <div class="dropdown-divider"></div>
+                    <form method="post" action="http://localhost:8000/logout"><input type="hidden" name="_token" value="TOKEN" autocomplete="off">                        <button class="dropdown-item d-flex gap-2 text-danger"><i data-lucide="log-out"></i> Keluar</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <main class="content">
+            <div class="page-header">
+    <div>
+        <h1>Payroll Oktober 2026 <span class="status-judul"><span class="badge badge-soft-success">Final</span></span></h1>
+        <p>26 Sep – 25 Okt 2026 · Di-generate 27 Oktober 2026 · 120 karyawan</p>    </div>
+    <div class="aksi"><a href="http://localhost:8000/laporan" class="btn btn-light"><i data-lucide="arrow-left"></i> Riwayat</a>
+            <a href="http://localhost:8000/laporan/pdf?periode=2026-10" class="btn btn-light"><i data-lucide="printer"></i> Cetak PDF</a>
+        <a href="http://localhost:8000/laporan/excel?periode=2026-10" class="btn btn-primary"><i data-lucide="file-down"></i> Export Excel</a></div></div>
+
+
+<div class="stat-row sebaris ">
+            <div class="card stat-card"><div class="card-body"><div class="label">Gaji pokok</div><div class="angka">Rp 963.600.000</div></div></div>
+            <div class="card stat-card"><div class="card-body"><div class="label">Makan &amp; transport</div><div class="angka">Rp 281.328.000</div></div></div>
+            <div class="card stat-card"><div class="card-body"><div class="label">Lembur</div><div class="angka">Rp 34.912.139</div></div></div>
+            <div class="card stat-card"><div class="card-body"><div class="label">Potongan alfa</div><div class="angka">- Rp 10.255.000</div></div></div>
+            <div class="card stat-card"><div class="card-body"><div class="label">PPh21 (TER)</div><div class="angka">- Rp 38.293.800</div></div></div>
+        <div class="card stat-card utama"><div class="card-body"><div class="label">Gaji bersih</div><div class="angka text-primary">Rp 1.231.291.339</div></div></div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">Rekap per departemen</div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead><tr><th>Kode</th><th>Departemen / Manager</th><th class="text-center">Karyawan</th><th class="text-end">Gaji bersih</th><th>Aksi</th></tr></thead>
+            <tbody>
+                                            <tr class="">
+                    <td class="kode">GDG</td>
+                    <td><div class="fw-semibold">Gudang</div><div class="small text-muted">Teguh Prasetyo</div></td>
+                    <td class="text-center">26</td>
+                    <td class="text-uang fw-semibold">Rp 225.631.615</td>
+                    <td class="text-nowrap">
+                        <a href="http://localhost:8000/laporan/4?departemen_id=5#karyawan" class="btn btn-light btn-icon" title="Lihat karyawan departemen ini"><i data-lucide="eye"></i></a>
+                        <a href="http://localhost:8000/laporan/excel?periode=2026-10&amp;departemen_id=5" class="btn btn-light btn-icon" title="Unduh Excel"><i data-lucide="download"></i></a>                    </td>
+                </tr>
+                                            <tr class="">
+                    <td class="kode">HRD</td>
+                    <td><div class="fw-semibold">Human Resource</div><div class="small text-muted">Bagus Wicaksono, Siti Rahmawati</div></td>
+                    <td class="text-center">10</td>
+                    <td class="text-uang fw-semibold">Rp 107.730.442</td>
+                    <td class="text-nowrap">
+                        <a href="http://localhost:8000/laporan/4?departemen_id=1#karyawan" class="btn btn-light btn-icon" title="Lihat karyawan departemen ini"><i data-lucide="eye"></i></a>
+                        <a href="http://localhost:8000/laporan/excel?periode=2026-10&amp;departemen_id=1" class="btn btn-light btn-icon" title="Unduh Excel"><i data-lucide="download"></i></a>                    </td>
+                </tr>
+                                            <tr class="">
+                    <td class="kode">IT</td>
+                    <td><div class="fw-semibold">Teknologi Informasi</div><div class="small text-muted">Andi Pratama</div></td>
+                    <td class="text-center">20</td>
+                    <td class="text-uang fw-semibold">Rp 243.877.562</td>
+                    <td class="text-nowrap">
+                        <a href="http://localhost:8000/laporan/4?departemen_id=2#karyawan" class="btn btn-light btn-icon" title="Lihat karyawan departemen ini"><i data-lucide="eye"></i></a>
+                        <a href="http://localhost:8000/laporan/excel?periode=2026-10&amp;departemen_id=2" class="btn btn-light btn-icon" title="Unduh Excel"><i data-lucide="download"></i></a>                    </td>
+                </tr>
+                                            <tr class="">
+                    <td class="kode">KEU</td>
+                    <td><div class="fw-semibold">Keuangan</div><div class="small text-muted">Bambang Hartono</div></td>
+                    <td class="text-center">14</td>
+                    <td class="text-uang fw-semibold">Rp 141.724.706</td>
+                    <td class="text-nowrap">
+                        <a href="http://localhost:8000/laporan/4?departemen_id=3#karyawan" class="btn btn-light btn-icon" title="Lihat karyawan departemen ini"><i data-lucide="eye"></i></a>
+                        <a href="http://localhost:8000/laporan/excel?periode=2026-10&amp;departemen_id=3" class="btn btn-light btn-icon" title="Unduh Excel"><i data-lucide="download"></i></a>                    </td>
+                </tr>
+                                            <tr class="">
+                    <td class="kode">MKT</td>
+                    <td><div class="fw-semibold">Marketing</div><div class="small text-muted">Andi Firmansyah</div></td>
+                    <td class="text-center">20</td>
+                    <td class="text-uang fw-semibold">Rp 216.171.432</td>
+                    <td class="text-nowrap">
+                        <a href="http://localhost:8000/laporan/4?departemen_id=6#karyawan" class="btn btn-light btn-icon" title="Lihat karyawan departemen ini"><i data-lucide="eye"></i></a>
+                        <a href="http://localhost:8000/laporan/excel?periode=2026-10&amp;departemen_id=6" class="btn btn-light btn-icon" title="Unduh Excel"><i data-lucide="download"></i></a>                    </td>
+                </tr>
+                                            <tr class="">
+                    <td class="kode">OPS</td>
+                    <td><div class="fw-semibold">Operasional</div><div class="small text-muted">Budi Santoso</div></td>
+                    <td class="text-center">30</td>
+                    <td class="text-uang fw-semibold">Rp 296.155.582</td>
+                    <td class="text-nowrap">
+                        <a href="http://localhost:8000/laporan/4?departemen_id=4#karyawan" class="btn btn-light btn-icon" title="Lihat karyawan departemen ini"><i data-lucide="eye"></i></a>
+                        <a href="http://localhost:8000/laporan/excel?periode=2026-10&amp;departemen_id=4" class="btn btn-light btn-icon" title="Unduh Excel"><i data-lucide="download"></i></a>                    </td>
+                </tr>
+                        </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card mb-4" id="karyawan">
+    <form class="card-search d-flex flex-wrap gap-2 align-items-center" method="get">
+        <span class="fw-semibold me-auto">Rincian karyawan</span>
+        <select name="departemen_id" class="form-select" style="width:240px" onchange="this.form.requestSubmit()"><option value="">Semua departemen</option><option value="5" >Gudang</option><option value="1" >Human Resource</option><option value="3" >Keuangan</option><option value="6" >Marketing</option><option value="4" >Operasional</option><option value="2" >Teknologi Informasi</option></select>
+    </form>
+    <div class="table-responsive">
+    <table class="table table-hover">
+        <thead><tr><th>NIK</th><th>Karyawan</th><th class="text-end">Gaji pokok</th><th class="text-end">Bruto</th><th class="text-end">PPh 21</th><th class="text-end">Potongan</th><th class="text-end">Gaji bersih</th><th>Aksi</th></tr></thead>
+        <tbody>
+                    <tr>
+                <td class="fw-semibold">K0001</td>
+                <td><div class="orang"><span class="avatar avatar-sm">SR</span><div><div class="nama">Siti Rahmawati</div><div class="sub">Human Resource</div></div></div></td>
+                <td class="text-uang">Rp 13.500.000</td>
+                <td class="text-uang">Rp 17.347.500</td>
+                <td class="text-uang">Rp 1.214.325</td>
+                <td class="text-uang">Rp 1.889.325</td>
+                <td class="text-uang fw-semibold">Rp 15.458.175</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/1" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0002</td>
+                <td><div class="orang"><span class="avatar avatar-sm">BW</span><div><div class="nama">Bagus Wicaksono</div><div class="sub">Human Resource</div></div></div></td>
+                <td class="text-uang">Rp 13.500.000</td>
+                <td class="text-uang">Rp 17.550.000</td>
+                <td class="text-uang">Rp 1.228.500</td>
+                <td class="text-uang">Rp 1.228.500</td>
+                <td class="text-uang fw-semibold">Rp 16.321.500</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/2" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0003</td>
+                <td><div class="orang"><span class="avatar avatar-sm">DL</span><div><div class="nama">Dewi Lestari</div><div class="sub">Human Resource</div></div></div></td>
+                <td class="text-uang">Rp 7.000.000</td>
+                <td class="text-uang">Rp 9.100.000</td>
+                <td class="text-uang">Rp 159.250</td>
+                <td class="text-uang">Rp 159.250</td>
+                <td class="text-uang fw-semibold">Rp 8.940.750</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/3" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0004</td>
+                <td><div class="orang"><span class="avatar avatar-sm">AP</span><div><div class="nama">Andi Pratama</div><div class="sub">Teknologi Informasi</div></div></div></td>
+                <td class="text-uang">Rp 16.000.000</td>
+                <td class="text-uang">Rp 20.800.000</td>
+                <td class="text-uang">Rp 1.664.000</td>
+                <td class="text-uang">Rp 1.664.000</td>
+                <td class="text-uang fw-semibold">Rp 19.136.000</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/4" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0005</td>
+                <td><div class="orang"><span class="avatar avatar-sm">RM</span><div><div class="nama">Rizky Maulana</div><div class="sub">Teknologi Informasi</div></div></div></td>
+                <td class="text-uang">Rp 8.800.000</td>
+                <td class="text-uang">Rp 12.111.572</td>
+                <td class="text-uang">Rp 484.463</td>
+                <td class="text-uang">Rp 484.463</td>
+                <td class="text-uang fw-semibold">Rp 11.627.109</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/5" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0006</td>
+                <td><div class="orang"><span class="avatar avatar-sm">NP</span><div><div class="nama">Nadia Putri</div><div class="sub">Teknologi Informasi</div></div></div></td>
+                <td class="text-uang">Rp 8.000.000</td>
+                <td class="text-uang">Rp 10.978.035</td>
+                <td class="text-uang">Rp 329.341</td>
+                <td class="text-uang">Rp 329.341</td>
+                <td class="text-uang fw-semibold">Rp 10.648.694</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/6" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0007</td>
+                <td><div class="orang"><span class="avatar avatar-sm">BH</span><div><div class="nama">Bambang Hartono</div><div class="sub">Keuangan</div></div></div></td>
+                <td class="text-uang">Rp 15.000.000</td>
+                <td class="text-uang">Rp 19.500.000</td>
+                <td class="text-uang">Rp 1.365.000</td>
+                <td class="text-uang">Rp 1.365.000</td>
+                <td class="text-uang fw-semibold">Rp 18.135.000</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/7" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0008</td>
+                <td><div class="orang"><span class="avatar avatar-sm">FH</span><div><div class="nama">Fitri Handayani</div><div class="sub">Keuangan</div></div></div></td>
+                <td class="text-uang">Rp 7.600.000</td>
+                <td class="text-uang">Rp 9.880.000</td>
+                <td class="text-uang">Rp 197.600</td>
+                <td class="text-uang">Rp 197.600</td>
+                <td class="text-uang fw-semibold">Rp 9.682.400</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/8" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0009</td>
+                <td><div class="orang"><span class="avatar avatar-sm">BS</span><div><div class="nama">Budi Santoso</div><div class="sub">Operasional</div></div></div></td>
+                <td class="text-uang">Rp 14.500.000</td>
+                <td class="text-uang">Rp 18.632.500</td>
+                <td class="text-uang">Rp 1.490.600</td>
+                <td class="text-uang">Rp 1.490.600</td>
+                <td class="text-uang fw-semibold">Rp 17.141.900</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/9" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0010</td>
+                <td><div class="orang"><span class="avatar avatar-sm">JS</span><div><div class="nama">Joko Susilo</div><div class="sub">Operasional</div></div></div></td>
+                <td class="text-uang">Rp 8.900.000</td>
+                <td class="text-uang">Rp 11.570.000</td>
+                <td class="text-uang">Rp 289.250</td>
+                <td class="text-uang">Rp 289.250</td>
+                <td class="text-uang fw-semibold">Rp 11.280.750</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/10" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0011</td>
+                <td><div class="orang"><span class="avatar avatar-sm">DA</span><div><div class="nama">Dewi Anggraini</div><div class="sub">Operasional</div></div></div></td>
+                <td class="text-uang">Rp 5.900.000</td>
+                <td class="text-uang">Rp 8.556.705</td>
+                <td class="text-uang">Rp 149.742</td>
+                <td class="text-uang">Rp 149.742</td>
+                <td class="text-uang fw-semibold">Rp 8.406.963</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/11" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0012</td>
+                <td><div class="orang"><span class="avatar avatar-sm">TP</span><div><div class="nama">Teguh Prasetyo</div><div class="sub">Gudang</div></div></div></td>
+                <td class="text-uang">Rp 12.500.000</td>
+                <td class="text-uang">Rp 16.062.500</td>
+                <td class="text-uang">Rp 963.750</td>
+                <td class="text-uang">Rp 1.588.750</td>
+                <td class="text-uang fw-semibold">Rp 14.473.750</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/12" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0013</td>
+                <td><div class="orang"><span class="avatar avatar-sm">AS</span><div><div class="nama">Agus Setiawan</div><div class="sub">Gudang</div></div></div></td>
+                <td class="text-uang">Rp 5.300.000</td>
+                <td class="text-uang">Rp 7.165.723</td>
+                <td class="text-uang">Rp 89.572</td>
+                <td class="text-uang">Rp 89.572</td>
+                <td class="text-uang fw-semibold">Rp 7.076.151</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/13" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0014</td>
+                <td><div class="orang"><span class="avatar avatar-sm">AF</span><div><div class="nama">Andi Firmansyah</div><div class="sub">Marketing</div></div></div></td>
+                <td class="text-uang">Rp 15.500.000</td>
+                <td class="text-uang">Rp 20.150.000</td>
+                <td class="text-uang">Rp 1.612.000</td>
+                <td class="text-uang">Rp 1.612.000</td>
+                <td class="text-uang fw-semibold">Rp 18.538.000</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/14" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0015</td>
+                <td><div class="orang"><span class="avatar avatar-sm">AM</span><div><div class="nama">Atma Mandasari</div><div class="sub">Human Resource</div></div></div></td>
+                <td class="text-uang">Rp 7.800.000</td>
+                <td class="text-uang">Rp 10.023.000</td>
+                <td class="text-uang">Rp 200.460</td>
+                <td class="text-uang">Rp 590.460</td>
+                <td class="text-uang fw-semibold">Rp 9.432.540</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/15" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0016</td>
+                <td><div class="orang"><span class="avatar avatar-sm">SR</span><div><div class="nama">Sadina Rahayu</div><div class="sub">Human Resource</div></div></div></td>
+                <td class="text-uang">Rp 8.300.000</td>
+                <td class="text-uang">Rp 10.790.000</td>
+                <td class="text-uang">Rp 323.700</td>
+                <td class="text-uang">Rp 323.700</td>
+                <td class="text-uang fw-semibold">Rp 10.466.300</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/16" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0017</td>
+                <td><div class="orang"><span class="avatar avatar-sm">JS</span><div><div class="nama">Jarwa Simbolon</div><div class="sub">Human Resource</div></div></div></td>
+                <td class="text-uang">Rp 7.700.000</td>
+                <td class="text-uang">Rp 9.952.250</td>
+                <td class="text-uang">Rp 199.045</td>
+                <td class="text-uang">Rp 199.045</td>
+                <td class="text-uang fw-semibold">Rp 9.753.205</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/17" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0018</td>
+                <td><div class="orang"><span class="avatar avatar-sm">IM</span><div><div class="nama">Ika Manullang</div><div class="sub">Human Resource</div></div></div></td>
+                <td class="text-uang">Rp 6.800.000</td>
+                <td class="text-uang">Rp 8.840.000</td>
+                <td class="text-uang">Rp 154.700</td>
+                <td class="text-uang">Rp 154.700</td>
+                <td class="text-uang fw-semibold">Rp 8.685.300</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/18" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0019</td>
+                <td><div class="orang"><span class="avatar avatar-sm">HL</span><div><div class="nama">Harsanto Lestari</div><div class="sub">Human Resource</div></div></div></td>
+                <td class="text-uang">Rp 8.100.000</td>
+                <td class="text-uang">Rp 10.408.500</td>
+                <td class="text-uang">Rp 156.128</td>
+                <td class="text-uang">Rp 561.128</td>
+                <td class="text-uang fw-semibold">Rp 9.847.372</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/19" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0020</td>
+                <td><div class="orang"><span class="avatar avatar-sm">JH</span><div><div class="nama">Jaka Hastuti</div><div class="sub">Human Resource</div></div></div></td>
+                <td class="text-uang">Rp 6.800.000</td>
+                <td class="text-uang">Rp 8.840.000</td>
+                <td class="text-uang">Rp 154.700</td>
+                <td class="text-uang">Rp 154.700</td>
+                <td class="text-uang fw-semibold">Rp 8.685.300</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/20" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0021</td>
+                <td><div class="orang"><span class="avatar avatar-sm">ZL</span><div><div class="nama">Zulfa Latupono</div><div class="sub">Human Resource</div></div></div></td>
+                <td class="text-uang">Rp 8.000.000</td>
+                <td class="text-uang">Rp 10.400.000</td>
+                <td class="text-uang">Rp 260.000</td>
+                <td class="text-uang">Rp 260.000</td>
+                <td class="text-uang fw-semibold">Rp 10.140.000</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/21" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0022</td>
+                <td><div class="orang"><span class="avatar avatar-sm">PA</span><div><div class="nama">Paiman Aryani</div><div class="sub">Teknologi Informasi</div></div></div></td>
+                <td class="text-uang">Rp 10.800.000</td>
+                <td class="text-uang">Rp 14.314.994</td>
+                <td class="text-uang">Rp 715.750</td>
+                <td class="text-uang">Rp 1.255.750</td>
+                <td class="text-uang fw-semibold">Rp 13.059.244</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/22" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0023</td>
+                <td><div class="orang"><span class="avatar avatar-sm">KP</span><div><div class="nama">Kiandra Prakasa</div><div class="sub">Teknologi Informasi</div></div></div></td>
+                <td class="text-uang">Rp 8.700.000</td>
+                <td class="text-uang">Rp 11.913.468</td>
+                <td class="text-uang">Rp 357.404</td>
+                <td class="text-uang">Rp 357.404</td>
+                <td class="text-uang fw-semibold">Rp 11.556.064</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/23" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0024</td>
+                <td><div class="orang"><span class="avatar avatar-sm">LR</span><div><div class="nama">Lanjar Rajata</div><div class="sub">Teknologi Informasi</div></div></div></td>
+                <td class="text-uang">Rp 10.000.000</td>
+                <td class="text-uang">Rp 13.000.000</td>
+                <td class="text-uang">Rp 650.000</td>
+                <td class="text-uang">Rp 650.000</td>
+                <td class="text-uang fw-semibold">Rp 12.350.000</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/24" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0025</td>
+                <td><div class="orang"><span class="avatar avatar-sm">MH</span><div><div class="nama">Mutia Halimah</div><div class="sub">Teknologi Informasi</div></div></div></td>
+                <td class="text-uang">Rp 8.300.000</td>
+                <td class="text-uang">Rp 11.649.026</td>
+                <td class="text-uang">Rp 349.471</td>
+                <td class="text-uang">Rp 764.471</td>
+                <td class="text-uang fw-semibold">Rp 10.884.555</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/25" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0026</td>
+                <td><div class="orang"><span class="avatar avatar-sm">NW</span><div><div class="nama">Niyaga Winarno</div><div class="sub">Teknologi Informasi</div></div></div></td>
+                <td class="text-uang">Rp 8.900.000</td>
+                <td class="text-uang">Rp 12.033.006</td>
+                <td class="text-uang">Rp 240.660</td>
+                <td class="text-uang">Rp 240.660</td>
+                <td class="text-uang fw-semibold">Rp 11.792.346</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/26" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0027</td>
+                <td><div class="orang"><span class="avatar avatar-sm">PH</span><div><div class="nama">Pangestu Hastuti</div><div class="sub">Teknologi Informasi</div></div></div></td>
+                <td class="text-uang">Rp 9.600.000</td>
+                <td class="text-uang">Rp 13.029.642</td>
+                <td class="text-uang">Rp 521.186</td>
+                <td class="text-uang">Rp 521.186</td>
+                <td class="text-uang fw-semibold">Rp 12.508.456</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/27" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0028</td>
+                <td><div class="orang"><span class="avatar avatar-sm">MW</span><div><div class="nama">Michelle Winarno</div><div class="sub">Teknologi Informasi</div></div></div></td>
+                <td class="text-uang">Rp 10.500.000</td>
+                <td class="text-uang">Rp 14.074.855</td>
+                <td class="text-uang">Rp 703.743</td>
+                <td class="text-uang">Rp 703.743</td>
+                <td class="text-uang fw-semibold">Rp 13.371.112</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/28" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0029</td>
+                <td><div class="orang"><span class="avatar avatar-sm">AH</span><div><div class="nama">Arsipatra Halimah</div><div class="sub">Teknologi Informasi</div></div></div></td>
+                <td class="text-uang">Rp 9.300.000</td>
+                <td class="text-uang">Rp 12.907.244</td>
+                <td class="text-uang">Rp 516.290</td>
+                <td class="text-uang">Rp 516.290</td>
+                <td class="text-uang fw-semibold">Rp 12.390.954</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/29" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0030</td>
+                <td><div class="orang"><span class="avatar avatar-sm">MU</span><div><div class="nama">Mala Usada</div><div class="sub">Teknologi Informasi</div></div></div></td>
+                <td class="text-uang">Rp 8.800.000</td>
+                <td class="text-uang">Rp 11.872.370</td>
+                <td class="text-uang">Rp 474.895</td>
+                <td class="text-uang">Rp 474.895</td>
+                <td class="text-uang fw-semibold">Rp 11.397.475</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/30" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0031</td>
+                <td><div class="orang"><span class="avatar avatar-sm">HM</span><div><div class="nama">Hasta Mansur</div><div class="sub">Teknologi Informasi</div></div></div></td>
+                <td class="text-uang">Rp 7.800.000</td>
+                <td class="text-uang">Rp 10.681.040</td>
+                <td class="text-uang">Rp 267.026</td>
+                <td class="text-uang">Rp 267.026</td>
+                <td class="text-uang fw-semibold">Rp 10.414.014</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/31" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0032</td>
+                <td><div class="orang"><span class="avatar avatar-sm">KS</span><div><div class="nama">Karma Suartini</div><div class="sub">Teknologi Informasi</div></div></div></td>
+                <td class="text-uang">Rp 10.300.000</td>
+                <td class="text-uang">Rp 14.223.526</td>
+                <td class="text-uang">Rp 853.412</td>
+                <td class="text-uang">Rp 853.412</td>
+                <td class="text-uang fw-semibold">Rp 13.370.114</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/32" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0033</td>
+                <td><div class="orang"><span class="avatar avatar-sm">BU</span><div><div class="nama">Bajragin Utami</div><div class="sub">Teknologi Informasi</div></div></div></td>
+                <td class="text-uang">Rp 9.300.000</td>
+                <td class="text-uang">Rp 12.493.179</td>
+                <td class="text-uang">Rp 374.795</td>
+                <td class="text-uang">Rp 374.795</td>
+                <td class="text-uang fw-semibold">Rp 12.118.384</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/33" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0034</td>
+                <td><div class="orang"><span class="avatar avatar-sm">RL</span><div><div class="nama">Rama Lazuardi</div><div class="sub">Teknologi Informasi</div></div></div></td>
+                <td class="text-uang">Rp 8.800.000</td>
+                <td class="text-uang">Rp 11.903.272</td>
+                <td class="text-uang">Rp 357.098</td>
+                <td class="text-uang">Rp 357.098</td>
+                <td class="text-uang fw-semibold">Rp 11.546.174</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/34" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0035</td>
+                <td><div class="orang"><span class="avatar avatar-sm">GP</span><div><div class="nama">Gatot Pratiwi</div><div class="sub">Teknologi Informasi</div></div></div></td>
+                <td class="text-uang">Rp 8.700.000</td>
+                <td class="text-uang">Rp 12.014.675</td>
+                <td class="text-uang">Rp 480.587</td>
+                <td class="text-uang">Rp 480.587</td>
+                <td class="text-uang fw-semibold">Rp 11.534.088</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/35" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0036</td>
+                <td><div class="orang"><span class="avatar avatar-sm">DF</span><div><div class="nama">Dwi Fujiati</div><div class="sub">Teknologi Informasi</div></div></div></td>
+                <td class="text-uang">Rp 8.500.000</td>
+                <td class="text-uang">Rp 11.123.699</td>
+                <td class="text-uang">Rp 194.665</td>
+                <td class="text-uang">Rp 194.665</td>
+                <td class="text-uang fw-semibold">Rp 10.929.034</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/36" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0037</td>
+                <td><div class="orang"><span class="avatar avatar-sm">GH</span><div><div class="nama">Gamanto Hartati</div><div class="sub">Teknologi Informasi</div></div></div></td>
+                <td class="text-uang">Rp 8.700.000</td>
+                <td class="text-uang">Rp 11.486.012</td>
+                <td class="text-uang">Rp 402.010</td>
+                <td class="text-uang">Rp 402.010</td>
+                <td class="text-uang fw-semibold">Rp 11.084.002</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/37" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0038</td>
+                <td><div class="orang"><span class="avatar avatar-sm">PS</span><div><div class="nama">Pandu Simanjuntak</div><div class="sub">Teknologi Informasi</div></div></div></td>
+                <td class="text-uang">Rp 9.300.000</td>
+                <td class="text-uang">Rp 12.799.730</td>
+                <td class="text-uang">Rp 639.987</td>
+                <td class="text-uang">Rp 639.987</td>
+                <td class="text-uang fw-semibold">Rp 12.159.743</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/38" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0039</td>
+                <td><div class="orang"><span class="avatar avatar-sm">YH</span><div><div class="nama">Yessi Hidayat</div><div class="sub">Keuangan</div></div></div></td>
+                <td class="text-uang">Rp 8.200.000</td>
+                <td class="text-uang">Rp 10.537.000</td>
+                <td class="text-uang">Rp 263.425</td>
+                <td class="text-uang">Rp 263.425</td>
+                <td class="text-uang fw-semibold">Rp 10.273.575</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/39" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0040</td>
+                <td><div class="orang"><span class="avatar avatar-sm">NP</span><div><div class="nama">Narji Purnawati</div><div class="sub">Keuangan</div></div></div></td>
+                <td class="text-uang">Rp 7.900.000</td>
+                <td class="text-uang">Rp 10.151.500</td>
+                <td class="text-uang">Rp 152.273</td>
+                <td class="text-uang">Rp 152.273</td>
+                <td class="text-uang fw-semibold">Rp 9.999.227</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/40" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0041</td>
+                <td><div class="orang"><span class="avatar avatar-sm">ML</span><div><div class="nama">Mitra Laksmiwati</div><div class="sub">Keuangan</div></div></div></td>
+                <td class="text-uang">Rp 9.100.000</td>
+                <td class="text-uang">Rp 11.830.000</td>
+                <td class="text-uang">Rp 236.600</td>
+                <td class="text-uang">Rp 236.600</td>
+                <td class="text-uang fw-semibold">Rp 11.593.400</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/41" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0042</td>
+                <td><div class="orang"><span class="avatar avatar-sm">JU</span><div><div class="nama">Jaiman Usada</div><div class="sub">Keuangan</div></div></div></td>
+                <td class="text-uang">Rp 7.100.000</td>
+                <td class="text-uang">Rp 9.230.000</td>
+                <td class="text-uang">Rp 161.525</td>
+                <td class="text-uang">Rp 161.525</td>
+                <td class="text-uang fw-semibold">Rp 9.068.475</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/42" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0043</td>
+                <td><div class="orang"><span class="avatar avatar-sm">BT</span><div><div class="nama">Bagus Tampubolon</div><div class="sub">Keuangan</div></div></div></td>
+                <td class="text-uang">Rp 8.600.000</td>
+                <td class="text-uang">Rp 11.115.500</td>
+                <td class="text-uang">Rp 389.043</td>
+                <td class="text-uang">Rp 389.043</td>
+                <td class="text-uang fw-semibold">Rp 10.726.457</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/43" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0044</td>
+                <td><div class="orang"><span class="avatar avatar-sm">NR</span><div><div class="nama">Najib Rahmawati</div><div class="sub">Keuangan</div></div></div></td>
+                <td class="text-uang">Rp 8.700.000</td>
+                <td class="text-uang">Rp 11.179.500</td>
+                <td class="text-uang">Rp 223.590</td>
+                <td class="text-uang">Rp 658.590</td>
+                <td class="text-uang fw-semibold">Rp 10.520.910</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/44" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0045</td>
+                <td><div class="orang"><span class="avatar avatar-sm">DL</span><div><div class="nama">Dadap Laksita</div><div class="sub">Keuangan</div></div></div></td>
+                <td class="text-uang">Rp 7.300.000</td>
+                <td class="text-uang">Rp 9.490.000</td>
+                <td class="text-uang">Rp 166.075</td>
+                <td class="text-uang">Rp 166.075</td>
+                <td class="text-uang fw-semibold">Rp 9.323.925</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/45" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0046</td>
+                <td><div class="orang"><span class="avatar avatar-sm">IU</span><div><div class="nama">Irma Utami</div><div class="sub">Keuangan</div></div></div></td>
+                <td class="text-uang">Rp 7.300.000</td>
+                <td class="text-uang">Rp 9.490.000</td>
+                <td class="text-uang">Rp 142.350</td>
+                <td class="text-uang">Rp 142.350</td>
+                <td class="text-uang fw-semibold">Rp 9.347.650</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/46" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0047</td>
+                <td><div class="orang"><span class="avatar avatar-sm">HN</span><div><div class="nama">Humaira Namaga</div><div class="sub">Keuangan</div></div></div></td>
+                <td class="text-uang">Rp 5.800.000</td>
+                <td class="text-uang">Rp 7.453.000</td>
+                <td class="text-uang">Rp 93.163</td>
+                <td class="text-uang">Rp 93.163</td>
+                <td class="text-uang fw-semibold">Rp 7.359.837</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/47" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0048</td>
+                <td><div class="orang"><span class="avatar avatar-sm">IT</span><div><div class="nama">Ira Tampubolon</div><div class="sub">Keuangan</div></div></div></td>
+                <td class="text-uang">Rp 6.800.000</td>
+                <td class="text-uang">Rp 8.840.000</td>
+                <td class="text-uang">Rp 154.700</td>
+                <td class="text-uang">Rp 154.700</td>
+                <td class="text-uang fw-semibold">Rp 8.685.300</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/48" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0049</td>
+                <td><div class="orang"><span class="avatar avatar-sm">EP</span><div><div class="nama">Emas Pangestu</div><div class="sub">Keuangan</div></div></div></td>
+                <td class="text-uang">Rp 6.500.000</td>
+                <td class="text-uang">Rp 8.450.000</td>
+                <td class="text-uang">Rp 126.750</td>
+                <td class="text-uang">Rp 126.750</td>
+                <td class="text-uang fw-semibold">Rp 8.323.250</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/49" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0050</td>
+                <td><div class="orang"><span class="avatar avatar-sm">ES</span><div><div class="nama">Estiono Sitorus</div><div class="sub">Keuangan</div></div></div></td>
+                <td class="text-uang">Rp 6.800.000</td>
+                <td class="text-uang">Rp 8.840.000</td>
+                <td class="text-uang">Rp 154.700</td>
+                <td class="text-uang">Rp 154.700</td>
+                <td class="text-uang fw-semibold">Rp 8.685.300</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/50" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0051</td>
+                <td><div class="orang"><span class="avatar avatar-sm">XH</span><div><div class="nama">Xanana Hassanah</div><div class="sub">Operasional</div></div></div></td>
+                <td class="text-uang">Rp 5.400.000</td>
+                <td class="text-uang">Rp 7.363.353</td>
+                <td class="text-uang">Rp 73.634</td>
+                <td class="text-uang">Rp 73.634</td>
+                <td class="text-uang fw-semibold">Rp 7.289.719</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/51" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0052</td>
+                <td><div class="orang"><span class="avatar avatar-sm">KW</span><div><div class="nama">Kamaria Wasita</div><div class="sub">Operasional</div></div></div></td>
+                <td class="text-uang">Rp 5.700.000</td>
+                <td class="text-uang">Rp 7.644.178</td>
+                <td class="text-uang">Rp 76.442</td>
+                <td class="text-uang">Rp 76.442</td>
+                <td class="text-uang fw-semibold">Rp 7.567.736</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/52" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0053</td>
+                <td><div class="orang"><span class="avatar avatar-sm">KP</span><div><div class="nama">Kania Prasetya</div><div class="sub">Operasional</div></div></div></td>
+                <td class="text-uang">Rp 8.200.000</td>
+                <td class="text-uang">Rp 11.086.590</td>
+                <td class="text-uang">Rp 388.031</td>
+                <td class="text-uang">Rp 388.031</td>
+                <td class="text-uang fw-semibold">Rp 10.698.559</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/53" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0054</td>
+                <td><div class="orang"><span class="avatar avatar-sm">BA</span><div><div class="nama">Bakijan Andriani</div><div class="sub">Operasional</div></div></div></td>
+                <td class="text-uang">Rp 6.700.000</td>
+                <td class="text-uang">Rp 8.845.549</td>
+                <td class="text-uang">Rp 88.455</td>
+                <td class="text-uang">Rp 88.455</td>
+                <td class="text-uang fw-semibold">Rp 8.757.094</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/54" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0055</td>
+                <td><div class="orang"><span class="avatar avatar-sm">SW</span><div><div class="nama">Septi Widodo</div><div class="sub">Operasional</div></div></div></td>
+                <td class="text-uang">Rp 9.700.000</td>
+                <td class="text-uang">Rp 13.328.249</td>
+                <td class="text-uang">Rp 666.412</td>
+                <td class="text-uang">Rp 1.151.412</td>
+                <td class="text-uang fw-semibold">Rp 12.176.837</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/55" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0056</td>
+                <td><div class="orang"><span class="avatar avatar-sm">SB</span><div><div class="nama">Samiah Budiyanto</div><div class="sub">Operasional</div></div></div></td>
+                <td class="text-uang">Rp 6.000.000</td>
+                <td class="text-uang">Rp 8.164.162</td>
+                <td class="text-uang">Rp 122.462</td>
+                <td class="text-uang">Rp 122.462</td>
+                <td class="text-uang fw-semibold">Rp 8.041.700</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/56" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0057</td>
+                <td><div class="orang"><span class="avatar avatar-sm">UM</span><div><div class="nama">Usyi Maryati</div><div class="sub">Operasional</div></div></div></td>
+                <td class="text-uang">Rp 7.300.000</td>
+                <td class="text-uang">Rp 9.722.081</td>
+                <td class="text-uang">Rp 194.442</td>
+                <td class="text-uang">Rp 194.442</td>
+                <td class="text-uang fw-semibold">Rp 9.527.639</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/57" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0058</td>
+                <td><div class="orang"><span class="avatar avatar-sm">KU</span><div><div class="nama">Kawaca Usamah</div><div class="sub">Operasional</div></div></div></td>
+                <td class="text-uang">Rp 5.400.000</td>
+                <td class="text-uang">Rp 7.251.139</td>
+                <td class="text-uang">Rp 90.639</td>
+                <td class="text-uang">Rp 90.639</td>
+                <td class="text-uang fw-semibold">Rp 7.160.500</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/58" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0059</td>
+                <td><div class="orang"><span class="avatar avatar-sm">MH</span><div><div class="nama">Mahdi Hardiansyah</div><div class="sub">Operasional</div></div></div></td>
+                <td class="text-uang">Rp 6.300.000</td>
+                <td class="text-uang">Rp 8.583.659</td>
+                <td class="text-uang">Rp 85.837</td>
+                <td class="text-uang">Rp 400.837</td>
+                <td class="text-uang fw-semibold">Rp 8.182.822</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/59" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0060</td>
+                <td><div class="orang"><span class="avatar avatar-sm">AM</span><div><div class="nama">Abyasa Mandala</div><div class="sub">Operasional</div></div></div></td>
+                <td class="text-uang">Rp 6.000.000</td>
+                <td class="text-uang">Rp 9.204.624</td>
+                <td class="text-uang">Rp 138.069</td>
+                <td class="text-uang">Rp 138.069</td>
+                <td class="text-uang fw-semibold">Rp 9.066.555</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/60" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0061</td>
+                <td><div class="orang"><span class="avatar avatar-sm">KT</span><div><div class="nama">Kamal Thamrin</div><div class="sub">Operasional</div></div></div></td>
+                <td class="text-uang">Rp 9.400.000</td>
+                <td class="text-uang">Rp 12.301.503</td>
+                <td class="text-uang">Rp 369.045</td>
+                <td class="text-uang">Rp 369.045</td>
+                <td class="text-uang fw-semibold">Rp 11.932.458</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/61" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0062</td>
+                <td><div class="orang"><span class="avatar avatar-sm">BL</span><div><div class="nama">Bakianto Lailasari</div><div class="sub">Operasional</div></div></div></td>
+                <td class="text-uang">Rp 7.100.000</td>
+                <td class="text-uang">Rp 9.989.249</td>
+                <td class="text-uang">Rp 199.785</td>
+                <td class="text-uang">Rp 199.785</td>
+                <td class="text-uang fw-semibold">Rp 9.789.464</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/62" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0063</td>
+                <td><div class="orang"><span class="avatar avatar-sm">CL</span><div><div class="nama">Cici Lailasari</div><div class="sub">Operasional</div></div></div></td>
+                <td class="text-uang">Rp 5.800.000</td>
+                <td class="text-uang">Rp 7.805.023</td>
+                <td class="text-uang">Rp 117.075</td>
+                <td class="text-uang">Rp 117.075</td>
+                <td class="text-uang fw-semibold">Rp 7.687.948</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/63" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0064</td>
+                <td><div class="orang"><span class="avatar avatar-sm">UW</span><div><div class="nama">Umar Wastuti</div><div class="sub">Operasional</div></div></div></td>
+                <td class="text-uang">Rp 9.500.000</td>
+                <td class="text-uang">Rp 14.628.902</td>
+                <td class="text-uang">Rp 877.734</td>
+                <td class="text-uang">Rp 877.734</td>
+                <td class="text-uang fw-semibold">Rp 13.751.168</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/64" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0065</td>
+                <td><div class="orang"><span class="avatar avatar-sm">MM</span><div><div class="nama">Maida Mandala</div><div class="sub">Operasional</div></div></div></td>
+                <td class="text-uang">Rp 9.100.000</td>
+                <td class="text-uang">Rp 12.198.208</td>
+                <td class="text-uang">Rp 365.946</td>
+                <td class="text-uang">Rp 365.946</td>
+                <td class="text-uang fw-semibold">Rp 11.832.262</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/65" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0066</td>
+                <td><div class="orang"><span class="avatar avatar-sm">LM</span><div><div class="nama">Lalita Mulyani</div><div class="sub">Operasional</div></div></div></td>
+                <td class="text-uang">Rp 6.200.000</td>
+                <td class="text-uang">Rp 8.507.977</td>
+                <td class="text-uang">Rp 127.620</td>
+                <td class="text-uang">Rp 127.620</td>
+                <td class="text-uang fw-semibold">Rp 8.380.357</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/66" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0067</td>
+                <td><div class="orang"><span class="avatar avatar-sm">AW</span><div><div class="nama">Ajiono Widiastuti</div><div class="sub">Operasional</div></div></div></td>
+                <td class="text-uang">Rp 6.300.000</td>
+                <td class="text-uang">Rp 8.678.159</td>
+                <td class="text-uang">Rp 151.868</td>
+                <td class="text-uang">Rp 466.868</td>
+                <td class="text-uang fw-semibold">Rp 8.211.291</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/67" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0068</td>
+                <td><div class="orang"><span class="avatar avatar-sm">SP</span><div><div class="nama">Suci Pertiwi</div><div class="sub">Operasional</div></div></div></td>
+                <td class="text-uang">Rp 9.400.000</td>
+                <td class="text-uang">Rp 12.160.503</td>
+                <td class="text-uang">Rp 486.420</td>
+                <td class="text-uang">Rp 956.420</td>
+                <td class="text-uang fw-semibold">Rp 11.204.083</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/68" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0069</td>
+                <td><div class="orang"><span class="avatar avatar-sm">BW</span><div><div class="nama">Bakianto Wahyuni</div><div class="sub">Operasional</div></div></div></td>
+                <td class="text-uang">Rp 9.400.000</td>
+                <td class="text-uang">Rp 12.421.176</td>
+                <td class="text-uang">Rp 496.847</td>
+                <td class="text-uang">Rp 496.847</td>
+                <td class="text-uang fw-semibold">Rp 11.924.329</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/69" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0070</td>
+                <td><div class="orang"><span class="avatar avatar-sm">CP</span><div><div class="nama">Chelsea Purwanti</div><div class="sub">Operasional</div></div></div></td>
+                <td class="text-uang">Rp 6.600.000</td>
+                <td class="text-uang">Rp 9.266.705</td>
+                <td class="text-uang">Rp 139.001</td>
+                <td class="text-uang">Rp 139.001</td>
+                <td class="text-uang fw-semibold">Rp 9.127.704</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/70" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0071</td>
+                <td><div class="orang"><span class="avatar avatar-sm">KD</span><div><div class="nama">Karma Dongoran</div><div class="sub">Operasional</div></div></div></td>
+                <td class="text-uang">Rp 8.700.000</td>
+                <td class="text-uang">Rp 11.732.679</td>
+                <td class="text-uang">Rp 469.307</td>
+                <td class="text-uang">Rp 904.307</td>
+                <td class="text-uang fw-semibold">Rp 10.828.372</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/71" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0072</td>
+                <td><div class="orang"><span class="avatar avatar-sm">LM</span><div><div class="nama">Lintang Mansur</div><div class="sub">Operasional</div></div></div></td>
+                <td class="text-uang">Rp 8.800.000</td>
+                <td class="text-uang">Rp 11.440.000</td>
+                <td class="text-uang">Rp 400.400</td>
+                <td class="text-uang">Rp 400.400</td>
+                <td class="text-uang fw-semibold">Rp 11.039.600</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/72" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0073</td>
+                <td><div class="orang"><span class="avatar avatar-sm">DS</span><div><div class="nama">Darmanto Simbolon</div><div class="sub">Operasional</div></div></div></td>
+                <td class="text-uang">Rp 5.900.000</td>
+                <td class="text-uang">Rp 8.570.517</td>
+                <td class="text-uang">Rp 85.705</td>
+                <td class="text-uang">Rp 380.705</td>
+                <td class="text-uang fw-semibold">Rp 8.189.812</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/73" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0074</td>
+                <td><div class="orang"><span class="avatar avatar-sm">IW</span><div><div class="nama">Icha Wulandari</div><div class="sub">Operasional</div></div></div></td>
+                <td class="text-uang">Rp 6.300.000</td>
+                <td class="text-uang">Rp 8.871.074</td>
+                <td class="text-uang">Rp 155.244</td>
+                <td class="text-uang">Rp 155.244</td>
+                <td class="text-uang fw-semibold">Rp 8.715.830</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/74" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0075</td>
+                <td><div class="orang"><span class="avatar avatar-sm">MP</span><div><div class="nama">Margana Pertiwi</div><div class="sub">Operasional</div></div></div></td>
+                <td class="text-uang">Rp 6.000.000</td>
+                <td class="text-uang">Rp 8.119.162</td>
+                <td class="text-uang">Rp 121.787</td>
+                <td class="text-uang">Rp 121.787</td>
+                <td class="text-uang fw-semibold">Rp 7.997.375</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/75" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0076</td>
+                <td><div class="orang"><span class="avatar avatar-sm">GH</span><div><div class="nama">Gaman Habibi</div><div class="sub">Operasional</div></div></div></td>
+                <td class="text-uang">Rp 9.300.000</td>
+                <td class="text-uang">Rp 12.541.829</td>
+                <td class="text-uang">Rp 376.255</td>
+                <td class="text-uang">Rp 841.255</td>
+                <td class="text-uang fw-semibold">Rp 11.700.574</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/76" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0077</td>
+                <td><div class="orang"><span class="avatar avatar-sm">YN</span><div><div class="nama">Yulia Nasyiah</div><div class="sub">Operasional</div></div></div></td>
+                <td class="text-uang">Rp 6.300.000</td>
+                <td class="text-uang">Rp 8.696.367</td>
+                <td class="text-uang">Rp 152.186</td>
+                <td class="text-uang">Rp 152.186</td>
+                <td class="text-uang fw-semibold">Rp 8.544.181</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/77" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0078</td>
+                <td><div class="orang"><span class="avatar avatar-sm">PN</span><div><div class="nama">Putri Najmudin</div><div class="sub">Gudang</div></div></div></td>
+                <td class="text-uang">Rp 5.600.000</td>
+                <td class="text-uang">Rp 7.878.844</td>
+                <td class="text-uang">Rp 78.788</td>
+                <td class="text-uang">Rp 78.788</td>
+                <td class="text-uang fw-semibold">Rp 7.800.056</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/78" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0079</td>
+                <td><div class="orang"><span class="avatar avatar-sm">YK</span><div><div class="nama">Yusuf Kuswandari</div><div class="sub">Gudang</div></div></div></td>
+                <td class="text-uang">Rp 7.900.000</td>
+                <td class="text-uang">Rp 11.247.454</td>
+                <td class="text-uang">Rp 224.949</td>
+                <td class="text-uang">Rp 619.949</td>
+                <td class="text-uang fw-semibold">Rp 10.627.505</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/79" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0080</td>
+                <td><div class="orang"><span class="avatar avatar-sm">CN</span><div><div class="nama">Cengkir Nashiruddin</div><div class="sub">Gudang</div></div></div></td>
+                <td class="text-uang">Rp 7.600.000</td>
+                <td class="text-uang">Rp 10.697.439</td>
+                <td class="text-uang">Rp 160.462</td>
+                <td class="text-uang">Rp 160.462</td>
+                <td class="text-uang fw-semibold">Rp 10.536.977</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/80" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0081</td>
+                <td><div class="orang"><span class="avatar avatar-sm">WS</span><div><div class="nama">Warsa Suryono</div><div class="sub">Gudang</div></div></div></td>
+                <td class="text-uang">Rp 5.600.000</td>
+                <td class="text-uang">Rp 7.577.884</td>
+                <td class="text-uang">Rp 75.779</td>
+                <td class="text-uang">Rp 75.779</td>
+                <td class="text-uang fw-semibold">Rp 7.502.105</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/81" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0082</td>
+                <td><div class="orang"><span class="avatar avatar-sm">ET</span><div><div class="nama">Edi Tarihoran</div><div class="sub">Gudang</div></div></div></td>
+                <td class="text-uang">Rp 6.000.000</td>
+                <td class="text-uang">Rp 7.620.000</td>
+                <td class="text-uang">Rp 114.300</td>
+                <td class="text-uang">Rp 114.300</td>
+                <td class="text-uang fw-semibold">Rp 7.505.700</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/82" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0083</td>
+                <td><div class="orang"><span class="avatar avatar-sm">AM</span><div><div class="nama">Anita Maryati</div><div class="sub">Gudang</div></div></div></td>
+                <td class="text-uang">Rp 8.000.000</td>
+                <td class="text-uang">Rp 10.793.064</td>
+                <td class="text-uang">Rp 323.792</td>
+                <td class="text-uang">Rp 323.792</td>
+                <td class="text-uang fw-semibold">Rp 10.469.272</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/83" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0084</td>
+                <td><div class="orang"><span class="avatar avatar-sm">RH</span><div><div class="nama">Ratna Hutapea</div><div class="sub">Gudang</div></div></div></td>
+                <td class="text-uang">Rp 7.500.000</td>
+                <td class="text-uang">Rp 9.966.763</td>
+                <td class="text-uang">Rp 199.335</td>
+                <td class="text-uang">Rp 199.335</td>
+                <td class="text-uang fw-semibold">Rp 9.767.428</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/84" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0085</td>
+                <td><div class="orang"><span class="avatar avatar-sm">LN</span><div><div class="nama">Luwar Nasyidah</div><div class="sub">Gudang</div></div></div></td>
+                <td class="text-uang">Rp 6.100.000</td>
+                <td class="text-uang">Rp 8.123.931</td>
+                <td class="text-uang">Rp 121.859</td>
+                <td class="text-uang">Rp 121.859</td>
+                <td class="text-uang fw-semibold">Rp 8.002.072</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/85" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0086</td>
+                <td><div class="orang"><span class="avatar avatar-sm">AK</span><div><div class="nama">Ayu Kurniawan</div><div class="sub">Gudang</div></div></div></td>
+                <td class="text-uang">Rp 5.900.000</td>
+                <td class="text-uang">Rp 7.840.520</td>
+                <td class="text-uang">Rp 78.405</td>
+                <td class="text-uang">Rp 78.405</td>
+                <td class="text-uang fw-semibold">Rp 7.762.115</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/86" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0087</td>
+                <td><div class="orang"><span class="avatar avatar-sm">LT</span><div><div class="nama">Labuh Tarihoran</div><div class="sub">Gudang</div></div></div></td>
+                <td class="text-uang">Rp 5.300.000</td>
+                <td class="text-uang">Rp 7.410.809</td>
+                <td class="text-uang">Rp 74.108</td>
+                <td class="text-uang">Rp 74.108</td>
+                <td class="text-uang fw-semibold">Rp 7.336.701</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/87" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0088</td>
+                <td><div class="orang"><span class="avatar avatar-sm">MS</span><div><div class="nama">Mariadi Susanti</div><div class="sub">Gudang</div></div></div></td>
+                <td class="text-uang">Rp 7.700.000</td>
+                <td class="text-uang">Rp 9.836.750</td>
+                <td class="text-uang">Rp 196.735</td>
+                <td class="text-uang">Rp 196.735</td>
+                <td class="text-uang fw-semibold">Rp 9.640.015</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/88" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0089</td>
+                <td><div class="orang"><span class="avatar avatar-sm">GN</span><div><div class="nama">Ghaliyati Nasyidah</div><div class="sub">Gudang</div></div></div></td>
+                <td class="text-uang">Rp 5.500.000</td>
+                <td class="text-uang">Rp 7.658.671</td>
+                <td class="text-uang">Rp 76.587</td>
+                <td class="text-uang">Rp 76.587</td>
+                <td class="text-uang fw-semibold">Rp 7.582.084</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/89" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0090</td>
+                <td><div class="orang"><span class="avatar avatar-sm">NJ</span><div><div class="nama">Nurul Januar</div><div class="sub">Gudang</div></div></div></td>
+                <td class="text-uang">Rp 5.100.000</td>
+                <td class="text-uang">Rp 6.683.358</td>
+                <td class="text-uang">Rp 66.834</td>
+                <td class="text-uang">Rp 321.834</td>
+                <td class="text-uang fw-semibold">Rp 6.361.524</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/90" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0091</td>
+                <td><div class="orang"><span class="avatar avatar-sm">BL</span><div><div class="nama">Bakijan Lazuardi</div><div class="sub">Gudang</div></div></div></td>
+                <td class="text-uang">Rp 5.800.000</td>
+                <td class="text-uang">Rp 7.680.893</td>
+                <td class="text-uang">Rp 76.809</td>
+                <td class="text-uang">Rp 76.809</td>
+                <td class="text-uang fw-semibold">Rp 7.604.084</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/91" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0092</td>
+                <td><div class="orang"><span class="avatar avatar-sm">AH</span><div><div class="nama">Asman Hartati</div><div class="sub">Gudang</div></div></div></td>
+                <td class="text-uang">Rp 6.800.000</td>
+                <td class="text-uang">Rp 9.091.757</td>
+                <td class="text-uang">Rp 90.918</td>
+                <td class="text-uang">Rp 430.918</td>
+                <td class="text-uang fw-semibold">Rp 8.660.839</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/92" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0093</td>
+                <td><div class="orang"><span class="avatar avatar-sm">OA</span><div><div class="nama">Ophelia Aryani</div><div class="sub">Gudang</div></div></div></td>
+                <td class="text-uang">Rp 8.100.000</td>
+                <td class="text-uang">Rp 10.530.000</td>
+                <td class="text-uang">Rp 157.950</td>
+                <td class="text-uang">Rp 157.950</td>
+                <td class="text-uang fw-semibold">Rp 10.372.050</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/93" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0094</td>
+                <td><div class="orang"><span class="avatar avatar-sm">YL</span><div><div class="nama">Yuni Lailasari</div><div class="sub">Gudang</div></div></div></td>
+                <td class="text-uang">Rp 6.800.000</td>
+                <td class="text-uang">Rp 8.750.185</td>
+                <td class="text-uang">Rp 153.128</td>
+                <td class="text-uang">Rp 153.128</td>
+                <td class="text-uang fw-semibold">Rp 8.597.057</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/94" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0095</td>
+                <td><div class="orang"><span class="avatar avatar-sm">TS</span><div><div class="nama">Taufik Sudiati</div><div class="sub">Gudang</div></div></div></td>
+                <td class="text-uang">Rp 6.000.000</td>
+                <td class="text-uang">Rp 7.838.410</td>
+                <td class="text-uang">Rp 117.576</td>
+                <td class="text-uang">Rp 117.576</td>
+                <td class="text-uang fw-semibold">Rp 7.720.834</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/95" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0096</td>
+                <td><div class="orang"><span class="avatar avatar-sm">HS</span><div><div class="nama">Hafshah Suwarno</div><div class="sub">Gudang</div></div></div></td>
+                <td class="text-uang">Rp 7.700.000</td>
+                <td class="text-uang">Rp 10.254.798</td>
+                <td class="text-uang">Rp 153.822</td>
+                <td class="text-uang">Rp 153.822</td>
+                <td class="text-uang fw-semibold">Rp 10.100.976</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/96" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0097</td>
+                <td><div class="orang"><span class="avatar avatar-sm">HM</span><div><div class="nama">Harjo Mansur</div><div class="sub">Gudang</div></div></div></td>
+                <td class="text-uang">Rp 5.300.000</td>
+                <td class="text-uang">Rp 7.226.994</td>
+                <td class="text-uang">Rp 90.337</td>
+                <td class="text-uang">Rp 90.337</td>
+                <td class="text-uang fw-semibold">Rp 7.136.657</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/97" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0098</td>
+                <td><div class="orang"><span class="avatar avatar-sm">QS</span><div><div class="nama">Qori Saefullah</div><div class="sub">Gudang</div></div></div></td>
+                <td class="text-uang">Rp 5.200.000</td>
+                <td class="text-uang">Rp 6.991.520</td>
+                <td class="text-uang">Rp 87.394</td>
+                <td class="text-uang">Rp 87.394</td>
+                <td class="text-uang fw-semibold">Rp 6.904.126</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/98" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0099</td>
+                <td><div class="orang"><span class="avatar avatar-sm">LP</span><div><div class="nama">Laras Purwanti</div><div class="sub">Gudang</div></div></div></td>
+                <td class="text-uang">Rp 7.200.000</td>
+                <td class="text-uang">Rp 9.626.566</td>
+                <td class="text-uang">Rp 168.465</td>
+                <td class="text-uang">Rp 528.465</td>
+                <td class="text-uang fw-semibold">Rp 9.098.101</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/99" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0100</td>
+                <td><div class="orang"><span class="avatar avatar-sm">TH</span><div><div class="nama">Tina Hardiansyah</div><div class="sub">Gudang</div></div></div></td>
+                <td class="text-uang">Rp 5.600.000</td>
+                <td class="text-uang">Rp 7.950.139</td>
+                <td class="text-uang">Rp 119.252</td>
+                <td class="text-uang">Rp 119.252</td>
+                <td class="text-uang fw-semibold">Rp 7.830.887</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/100" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0101</td>
+                <td><div class="orang"><span class="avatar avatar-sm">TP</span><div><div class="nama">Tami Purwanti</div><div class="sub">Gudang</div></div></div></td>
+                <td class="text-uang">Rp 7.300.000</td>
+                <td class="text-uang">Rp 9.325.750</td>
+                <td class="text-uang">Rp 163.201</td>
+                <td class="text-uang">Rp 163.201</td>
+                <td class="text-uang fw-semibold">Rp 9.162.549</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/101" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0102</td>
+                <td><div class="orang"><span class="avatar avatar-sm">SP</span><div><div class="nama">Samsul Pudjiastuti</div><div class="sub">Marketing</div></div></div></td>
+                <td class="text-uang">Rp 6.500.000</td>
+                <td class="text-uang">Rp 8.352.500</td>
+                <td class="text-uang">Rp 125.288</td>
+                <td class="text-uang">Rp 450.288</td>
+                <td class="text-uang fw-semibold">Rp 7.902.212</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/102" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0103</td>
+                <td><div class="orang"><span class="avatar avatar-sm">PS</span><div><div class="nama">Purwa Sihombing</div><div class="sub">Marketing</div></div></div></td>
+                <td class="text-uang">Rp 8.100.000</td>
+                <td class="text-uang">Rp 10.469.250</td>
+                <td class="text-uang">Rp 157.039</td>
+                <td class="text-uang">Rp 157.039</td>
+                <td class="text-uang fw-semibold">Rp 10.312.211</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/103" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0104</td>
+                <td><div class="orang"><span class="avatar avatar-sm">SP</span><div><div class="nama">Salwa Palastri</div><div class="sub">Marketing</div></div></div></td>
+                <td class="text-uang">Rp 10.200.000</td>
+                <td class="text-uang">Rp 13.260.000</td>
+                <td class="text-uang">Rp 530.400</td>
+                <td class="text-uang">Rp 530.400</td>
+                <td class="text-uang fw-semibold">Rp 12.729.600</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/104" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0105</td>
+                <td><div class="orang"><span class="avatar avatar-sm">AM</span><div><div class="nama">Ade Mardhiyah</div><div class="sub">Marketing</div></div></div></td>
+                <td class="text-uang">Rp 7.400.000</td>
+                <td class="text-uang">Rp 9.509.000</td>
+                <td class="text-uang">Rp 142.635</td>
+                <td class="text-uang">Rp 512.635</td>
+                <td class="text-uang fw-semibold">Rp 8.996.365</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/105" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0106</td>
+                <td><div class="orang"><span class="avatar avatar-sm">TJ</span><div><div class="nama">Tirta Januar</div><div class="sub">Marketing</div></div></div></td>
+                <td class="text-uang">Rp 9.300.000</td>
+                <td class="text-uang">Rp 12.090.000</td>
+                <td class="text-uang">Rp 362.700</td>
+                <td class="text-uang">Rp 362.700</td>
+                <td class="text-uang fw-semibold">Rp 11.727.300</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/106" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0107</td>
+                <td><div class="orang"><span class="avatar avatar-sm">JH</span><div><div class="nama">Jessica Hutagalung</div><div class="sub">Marketing</div></div></div></td>
+                <td class="text-uang">Rp 7.500.000</td>
+                <td class="text-uang">Rp 9.637.500</td>
+                <td class="text-uang">Rp 168.656</td>
+                <td class="text-uang">Rp 168.656</td>
+                <td class="text-uang fw-semibold">Rp 9.468.844</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/107" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0108</td>
+                <td><div class="orang"><span class="avatar avatar-sm">MS</span><div><div class="nama">Maya Simbolon</div><div class="sub">Marketing</div></div></div></td>
+                <td class="text-uang">Rp 8.100.000</td>
+                <td class="text-uang">Rp 10.408.500</td>
+                <td class="text-uang">Rp 156.128</td>
+                <td class="text-uang">Rp 561.128</td>
+                <td class="text-uang fw-semibold">Rp 9.847.372</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/108" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0109</td>
+                <td><div class="orang"><span class="avatar avatar-sm">ZU</span><div><div class="nama">Zulfa Utama</div><div class="sub">Marketing</div></div></div></td>
+                <td class="text-uang">Rp 9.100.000</td>
+                <td class="text-uang">Rp 11.761.750</td>
+                <td class="text-uang">Rp 470.470</td>
+                <td class="text-uang">Rp 470.470</td>
+                <td class="text-uang fw-semibold">Rp 11.291.280</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/109" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0110</td>
+                <td><div class="orang"><span class="avatar avatar-sm">AW</span><div><div class="nama">Ayu Wulandari</div><div class="sub">Marketing</div></div></div></td>
+                <td class="text-uang">Rp 6.500.000</td>
+                <td class="text-uang">Rp 8.303.750</td>
+                <td class="text-uang">Rp 124.556</td>
+                <td class="text-uang">Rp 449.556</td>
+                <td class="text-uang fw-semibold">Rp 7.854.194</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/110" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0111</td>
+                <td><div class="orang"><span class="avatar avatar-sm">OP</span><div><div class="nama">Okto Pudjiastuti</div><div class="sub">Marketing</div></div></div></td>
+                <td class="text-uang">Rp 8.300.000</td>
+                <td class="text-uang">Rp 10.790.000</td>
+                <td class="text-uang">Rp 161.850</td>
+                <td class="text-uang">Rp 161.850</td>
+                <td class="text-uang fw-semibold">Rp 10.628.150</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/111" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0112</td>
+                <td><div class="orang"><span class="avatar avatar-sm">EF</span><div><div class="nama">Endra Farida</div><div class="sub">Marketing</div></div></div></td>
+                <td class="text-uang">Rp 9.800.000</td>
+                <td class="text-uang">Rp 12.666.500</td>
+                <td class="text-uang">Rp 379.995</td>
+                <td class="text-uang">Rp 379.995</td>
+                <td class="text-uang fw-semibold">Rp 12.286.505</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/112" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0113</td>
+                <td><div class="orang"><span class="avatar avatar-sm">UF</span><div><div class="nama">Ulva Fujiati</div><div class="sub">Marketing</div></div></div></td>
+                <td class="text-uang">Rp 9.800.000</td>
+                <td class="text-uang">Rp 12.666.500</td>
+                <td class="text-uang">Rp 379.995</td>
+                <td class="text-uang">Rp 379.995</td>
+                <td class="text-uang fw-semibold">Rp 12.286.505</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/113" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0114</td>
+                <td><div class="orang"><span class="avatar avatar-sm">JP</span><div><div class="nama">Jaga Permadi</div><div class="sub">Marketing</div></div></div></td>
+                <td class="text-uang">Rp 9.700.000</td>
+                <td class="text-uang">Rp 12.464.500</td>
+                <td class="text-uang">Rp 373.935</td>
+                <td class="text-uang">Rp 858.935</td>
+                <td class="text-uang fw-semibold">Rp 11.605.565</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/114" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0115</td>
+                <td><div class="orang"><span class="avatar avatar-sm">GS</span><div><div class="nama">Gawati Saptono</div><div class="sub">Marketing</div></div></div></td>
+                <td class="text-uang">Rp 7.700.000</td>
+                <td class="text-uang">Rp 10.010.000</td>
+                <td class="text-uang">Rp 200.200</td>
+                <td class="text-uang">Rp 200.200</td>
+                <td class="text-uang fw-semibold">Rp 9.809.800</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/115" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0116</td>
+                <td><div class="orang"><span class="avatar avatar-sm">IK</span><div><div class="nama">Irma Kuswandari</div><div class="sub">Marketing</div></div></div></td>
+                <td class="text-uang">Rp 7.300.000</td>
+                <td class="text-uang">Rp 9.271.000</td>
+                <td class="text-uang">Rp 162.243</td>
+                <td class="text-uang">Rp 162.243</td>
+                <td class="text-uang fw-semibold">Rp 9.108.757</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/116" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0117</td>
+                <td><div class="orang"><span class="avatar avatar-sm">UN</span><div><div class="nama">Umi Nurdiyanti</div><div class="sub">Marketing</div></div></div></td>
+                <td class="text-uang">Rp 9.500.000</td>
+                <td class="text-uang">Rp 12.278.750</td>
+                <td class="text-uang">Rp 368.363</td>
+                <td class="text-uang">Rp 368.363</td>
+                <td class="text-uang fw-semibold">Rp 11.910.387</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/117" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0118</td>
+                <td><div class="orang"><span class="avatar avatar-sm">IR</span><div><div class="nama">Icha Rajasa</div><div class="sub">Marketing</div></div></div></td>
+                <td class="text-uang">Rp 6.400.000</td>
+                <td class="text-uang">Rp 7.984.000</td>
+                <td class="text-uang">Rp 119.760</td>
+                <td class="text-uang">Rp 439.760</td>
+                <td class="text-uang fw-semibold">Rp 7.544.240</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/118" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0119</td>
+                <td><div class="orang"><span class="avatar avatar-sm">PH</span><div><div class="nama">Paulin Haryanti</div><div class="sub">Marketing</div></div></div></td>
+                <td class="text-uang">Rp 9.900.000</td>
+                <td class="text-uang">Rp 12.870.000</td>
+                <td class="text-uang">Rp 514.800</td>
+                <td class="text-uang">Rp 514.800</td>
+                <td class="text-uang fw-semibold">Rp 12.355.200</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/119" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                    <tr>
+                <td class="fw-semibold">K0120</td>
+                <td><div class="orang"><span class="avatar avatar-sm">TN</span><div><div class="nama">Tania Najmudin</div><div class="sub">Marketing</div></div></div></td>
+                <td class="text-uang">Rp 8.200.000</td>
+                <td class="text-uang">Rp 10.537.000</td>
+                <td class="text-uang">Rp 158.055</td>
+                <td class="text-uang">Rp 568.055</td>
+                <td class="text-uang fw-semibold">Rp 9.968.945</td>
+                <td><a href="http://localhost:8000/payroll/4/karyawan/120" class="btn btn-light btn-icon" title="Rincian"><i data-lucide="eye"></i></a></td>            </tr>
+                </tbody>
+        <tfoot>
+            <tr class="fw-semibold"><td colspan="2">Total (120 karyawan)</td>
+                <td class="text-uang">Rp 963.600.000</td><td class="text-uang">Rp 1.279.840.139</td>
+                <td class="text-uang">Rp 38.293.800</td><td class="text-uang">Rp 48.548.800</td>
+                <td class="text-uang">Rp 1.231.291.339</td><td></td></tr>
+        </tfoot>
+    </table>
+</div>
+</div>
+
+<div class="card">
+    <div class="card-header">Riwayat approval</div>
+    <div class="card-body">
+        <div class="stepper">
+                    <div class="step selesai">
+                <span class="bulat"><i data-lucide="send"></i></span>
+                <div><div class="judul">Diajukan</div><div class="ket">Dewi Lestari · 27 Okt 2026</div></div>
+            </div>
+                    <div class="step selesai">
+                <span class="bulat"><i data-lucide="check"></i></span>
+                <div><div class="judul">Disetujui</div><div class="ket">Bagus Wicaksono · 29 Okt 2026</div><div class="ket fst-italic">“Sudah dicek, sesuai.”</div></div>
+            </div>
+            </div>
+    </div>
+</div>
+        </main>
+
+        <footer class="footer">Powered by <b>Kelompok 6 RPL</b> · Kelas X7N · Universitas Indraprasta PGRI · 2026</footer>
+    </div>
+</div>
+
+<div class="drawer-backdrop" data-tutup-drawer></div>
+<div class="toast-wrap">
+    </div>
+<script>
+    document.querySelectorAll('.toast-item[data-auto="1"]').forEach(t => setTimeout(() => t.remove(), 4000));
+</script>
+
+
+<div class="modal fade" id="modalPassword" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" method="post" action="http://localhost:8000/ganti-password">
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="put">            <div class="modal-header"><h5 class="modal-title fs-6 fw-semibold">Ganti kata sandi</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="mb-3"><label class="form-label">Kata sandi lama</label><input type="password" name="password_lama" class="form-control" required></div>
+                <div class="mb-3"><label class="form-label">Kata sandi baru</label><input type="password" name="password" class="form-control" minlength="8" required><div class="form-text">Minimal 8 karakter.</div></div>
+                <div class="mb-1"><label class="form-label">Ulangi kata sandi baru</label><input type="password" name="password_confirmation" class="form-control" required></div>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button><button class="btn btn-primary">Simpan</button></div>
+        </form>
+    </div>
+</div>
+
+
+<div class="modal fade" id="modalKonfirmasi" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:400px">
+        <div class="modal-content p-2">
+            <div class="modal-body">
+                <h5 class="fw-bold fs-5 mb-2" id="konfJudul">Lanjutkan?</h5>
+                <p class="text-secondary mb-0" id="konfPesan"></p>
+            </div>
+            <div class="modal-footer border-0 pt-0"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button><button type="button" id="konfOk" class="btn btn-primary">Ya</button></div>
+        </div>
+    </div>
+</div>
+
+<script>window.__errors = []; window.__bukaModalPassword = false;</script>
+</body>
+</html>

@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Lembur · Penggajian Karyawan</title>
+    <link rel="icon" href="http://localhost:8000/img/logo-unindra.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css" rel="stylesheet">
+    <link href="http://localhost:8000/css/app.css?v=24" rel="stylesheet">
+    <meta name="turbo-cache-control" content="no-preview">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/id.js"></script>
+    <script src="http://localhost:8000/js/form.js?v=9"></script>
+    <script src="http://localhost:8000/js/app.js?v=6"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.12/dist/turbo.es2017-umd.js"></script>
+    </head>
+<body>
+<div class="d-flex">
+    
+    <aside class="sidebar offcanvas-lg offcanvas-start" tabindex="-1" id="sidebar">
+        <div class="sidebar-brand">
+            <img src="http://localhost:8000/img/logo-unindra.png" alt="Logo Unindra">
+            <div>
+                <div class="nama">Penggajian Karyawan</div>
+                <div class="kampus">Universitas Indraprasta PGRI</div>
+            </div>
+        </div>
+
+        <div class="nav-label">Menu HR</div>
+                    <a href="http://localhost:8000/dashboard" class="nav-item-link ">
+                <i data-lucide="layout-grid"></i> Dashboard
+            </a>
+                    <a href="http://localhost:8000/karyawan" class="nav-item-link ">
+                <i data-lucide="users"></i> Data Karyawan
+            </a>
+                    <a href="http://localhost:8000/kontrak" class="nav-item-link ">
+                <i data-lucide="file-text"></i> Kontrak
+            </a>
+                    <a href="http://localhost:8000/absensi" class="nav-item-link active">
+                <i data-lucide="calendar"></i> Absensi, Cuti &amp; Lembur
+            </a>
+                    <a href="http://localhost:8000/import" class="nav-item-link ">
+                <i data-lucide="upload"></i> Import Excel
+            </a>
+                    <a href="http://localhost:8000/payroll" class="nav-item-link ">
+                <i data-lucide="wallet"></i> Proses Payroll
+            </a>
+                    <a href="http://localhost:8000/laporan" class="nav-item-link ">
+                <i data-lucide="history"></i> Riwayat Payroll
+            </a>
+                            <div class="nav-label">Master Data</div>
+                            <a href="http://localhost:8000/departemen" class="nav-item-link ">
+                    <i data-lucide="building-2"></i> Departemen
+                </a>
+                            <a href="http://localhost:8000/pajak" class="nav-item-link ">
+                    <i data-lucide="percent"></i> Pajak &amp; Tarif TER
+                </a>
+                            <a href="http://localhost:8000/komponen" class="nav-item-link ">
+                    <i data-lucide="layers"></i> Komponen Gaji
+                </a>
+                            <a href="http://localhost:8000/master-payroll" class="nav-item-link ">
+                    <i data-lucide="sliders-horizontal"></i> Periode
+                </a>
+                    
+        <div class="sidebar-user mt-auto">
+            <span class="avatar">DL</span>
+            <div class="text-truncate">
+                <div class="nama text-truncate">Dewi Lestari</div>
+                <div class="peran text-truncate">Staf HR</div>
+            </div>
+        </div>
+        <form method="post" action="http://localhost:8000/logout"><input type="hidden" name="_token" value="TOKEN" autocomplete="off">            <button class="nav-item-link"><i data-lucide="log-out"></i> Keluar</button>
+        </form>
+    </aside>
+
+    <div class="main flex-grow-1">
+        
+        <header class="topbar">
+            <button class="btn-topbar d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-label="Menu"><i data-lucide="menu"></i></button>
+            <div class="me-auto">
+                <div class="crumb">Absensi / Lembur</div>
+                <div class="judul">Lembur</div>
+            </div>
+
+            <form class="topbar-search d-none d-md-block" action="http://localhost:8000/karyawan" data-cari="http://localhost:8000/cari" role="search">
+                <i data-lucide="search"></i>
+                <input name="q" class="form-control" placeholder="Cari karyawan, slip gaji, atau menu..." value="" autocomplete="off" aria-autocomplete="list">
+                <div class="cari-hasil" hidden></div>
+            </form>
+
+            <div class="dropdown">
+                <button class="btn-topbar" data-bs-toggle="dropdown" aria-label="Notifikasi">
+                    <i data-lucide="bell"></i>
+                                    </button>
+                <div class="dropdown-menu dropdown-menu-end p-0 notif-menu">
+                    <div class="d-flex justify-content-between align-items-center px-3 py-3 border-bottom">
+                        <strong>Notifikasi </strong>
+                        <a href="http://localhost:8000/notifikasi" class="small fw-semibold">Lihat semua</a>
+                    </div>
+                                            <a href="http://localhost:8000/notifikasi/68" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Payroll final</span>
+                                <span class="d-block small text-secondary">Payroll periode Oktober 2026 sudah disetujui. Slip gaji sudah terbit.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/56" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Slip gaji tersedia</span>
+                                <span class="d-block small text-secondary">Slip gaji periode Oktober 2026 sudah bisa dilihat dan diunduh.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/51" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Payroll final</span>
+                                <span class="d-block small text-secondary">Payroll periode September 2026 sudah disetujui. Slip gaji sudah terbit.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/39" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Slip gaji tersedia</span>
+                                <span class="d-block small text-secondary">Slip gaji periode September 2026 sudah bisa dilihat dan diunduh.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/34" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Payroll final</span>
+                                <span class="d-block small text-secondary">Payroll periode Agustus 2026 sudah disetujui. Slip gaji sudah terbit.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/22" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Slip gaji tersedia</span>
+                                <span class="d-block small text-secondary">Slip gaji periode Agustus 2026 sudah bisa dilihat dan diunduh.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                    </div>
+            </div>
+
+            <div class="dropdown">
+                <button class="btn-avatar" data-bs-toggle="dropdown" aria-label="Menu profil"><span class="avatar">DL</span></button>
+                <div class="dropdown-menu dropdown-menu-end" style="width:240px">
+                    <div class="px-3 py-2 border-bottom mb-1">
+                        <div class="fw-semibold">Dewi Lestari</div>
+                        <div class="small text-muted">hr · HR</div>
+                    </div>
+                                            <a class="dropdown-item d-flex gap-2" href="http://localhost:8000/profil"><i data-lucide="user"></i> Profil saya</a>
+                                        <button class="dropdown-item d-flex gap-2" data-bs-toggle="modal" data-bs-target="#modalPassword"><i data-lucide="key-round"></i> Ganti kata sandi</button>
+                    <div class="dropdown-divider"></div>
+                    <form method="post" action="http://localhost:8000/logout"><input type="hidden" name="_token" value="TOKEN" autocomplete="off">                        <button class="dropdown-item d-flex gap-2 text-danger"><i data-lucide="log-out"></i> Keluar</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <main class="content">
+            <div class="page-header">
+    <div>
+        <h1>Lembur</h1>
+        <p>Lembur hanya untuk karyawan yang kontraknya punya komponen lembur.</p>    </div>
+    <div class="aksi"><a href="http://localhost:8000/lembur?periode=2026-11&amp;baru=1" class="btn btn-primary"><i data-lucide="plus"></i> Input Lembur</a></div></div>
+
+<div class="md-grid">
+    <div class="card">
+        <form class="card-search" method="get">
+        <label class="input-search d-block position-relative mb-0">
+        <span class="form-control d-flex align-items-center text-secondary">Periode: November 2026</span>
+        <input type="month" name="periode" value="2026-11" onchange="this.form.submit()" onclick="try{this.showPicker()}catch(e){}" style="position:absolute;inset:0;opacity:0;cursor:pointer">
+        <i data-lucide="search"></i>
+    </label>
+</form>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead><tr><th>Tanggal</th><th>Jam · Keterangan</th><th>Karyawan</th><th class="text-end">Durasi</th><th>Aksi</th></tr></thead>
+                <tbody>
+                                    <tr class="">
+                        <td class="fw-semibold text-nowrap">10 Nov</td>
+                        <td>18:00–21:00 · Stock opname</td>
+                        <td><div class="orang"><span class="avatar avatar-sm">DF</span><div><div class="nama">Dwi Fujiati</div><div class="sub">UI/UX Designer</div></div></div></td>
+                        <td class="text-end">3 jam</td>
+                                                    <td class="text-nowrap"><a href="http://localhost:8000/lembur?periode=2026-11&amp;ubah=216" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>
+                                <form method="post" action="http://localhost:8000/lembur/216" class="d-inline" data-confirm="Yakin hapus data ini? Tindakan ini tidak bisa dibatalkan.">
+    <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="delete">    <button class="btn btn-outline-danger btn-icon" title="Hapus"><i data-lucide="trash-2"></i></button>
+</form>
+</td>
+                                            </tr>
+                                    <tr class="">
+                        <td class="fw-semibold text-nowrap">10 Nov</td>
+                        <td>18:00–21:00 · Kejar target pengiriman</td>
+                        <td><div class="orang"><span class="avatar avatar-sm">SW</span><div><div class="nama">Septi Widodo</div><div class="sub">Supervisor Operasional</div></div></div></td>
+                        <td class="text-end">3 jam</td>
+                                                    <td class="text-nowrap"><a href="http://localhost:8000/lembur?periode=2026-11&amp;ubah=296" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>
+                                <form method="post" action="http://localhost:8000/lembur/296" class="d-inline" data-confirm="Yakin hapus data ini? Tindakan ini tidak bisa dibatalkan.">
+    <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="delete">    <button class="btn btn-outline-danger btn-icon" title="Hapus"><i data-lucide="trash-2"></i></button>
+</form>
+</td>
+                                            </tr>
+                                    <tr class="">
+                        <td class="fw-semibold text-nowrap">10 Nov</td>
+                        <td>18:00–21:00 · Perbaikan mesin</td>
+                        <td><div class="orang"><span class="avatar avatar-sm">LM</span><div><div class="nama">Lalita Mulyani</div><div class="sub">Teknisi</div></div></div></td>
+                        <td class="text-end">3 jam</td>
+                                                    <td class="text-nowrap"><a href="http://localhost:8000/lembur?periode=2026-11&amp;ubah=433" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>
+                                <form method="post" action="http://localhost:8000/lembur/433" class="d-inline" data-confirm="Yakin hapus data ini? Tindakan ini tidak bisa dibatalkan.">
+    <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="delete">    <button class="btn btn-outline-danger btn-icon" title="Hapus"><i data-lucide="trash-2"></i></button>
+</form>
+</td>
+                                            </tr>
+                                    <tr class="">
+                        <td class="fw-semibold text-nowrap">10 Nov</td>
+                        <td>18:00–20:00 · Stock opname</td>
+                        <td><div class="orang"><span class="avatar avatar-sm">GH</span><div><div class="nama">Gaman Habibi</div><div class="sub">Supervisor Operasional</div></div></div></td>
+                        <td class="text-end">2 jam</td>
+                                                    <td class="text-nowrap"><a href="http://localhost:8000/lembur?periode=2026-11&amp;ubah=547" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>
+                                <form method="post" action="http://localhost:8000/lembur/547" class="d-inline" data-confirm="Yakin hapus data ini? Tindakan ini tidak bisa dibatalkan.">
+    <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="delete">    <button class="btn btn-outline-danger btn-icon" title="Hapus"><i data-lucide="trash-2"></i></button>
+</form>
+</td>
+                                            </tr>
+                                    <tr class="">
+                        <td class="fw-semibold text-nowrap">10 Nov</td>
+                        <td>17:00–20:00 · Bongkar muat</td>
+                        <td><div class="orang"><span class="avatar avatar-sm">AK</span><div><div class="nama">Ayu Kurniawan</div><div class="sub">Staf Gudang</div></div></div></td>
+                        <td class="text-end">3 jam</td>
+                                                    <td class="text-nowrap"><a href="http://localhost:8000/lembur?periode=2026-11&amp;ubah=663" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>
+                                <form method="post" action="http://localhost:8000/lembur/663" class="d-inline" data-confirm="Yakin hapus data ini? Tindakan ini tidak bisa dibatalkan.">
+    <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="delete">    <button class="btn btn-outline-danger btn-icon" title="Hapus"><i data-lucide="trash-2"></i></button>
+</form>
+</td>
+                                            </tr>
+                                    <tr class="">
+                        <td class="fw-semibold text-nowrap">10 Nov</td>
+                        <td>17:00–20:00 · Perbaikan mesin</td>
+                        <td><div class="orang"><span class="avatar avatar-sm">MS</span><div><div class="nama">Mariadi Susanti</div><div class="sub">Kepala Shift Gudang</div></div></div></td>
+                        <td class="text-end">3 jam</td>
+                                                    <td class="text-nowrap"><a href="http://localhost:8000/lembur?periode=2026-11&amp;ubah=685" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>
+                                <form method="post" action="http://localhost:8000/lembur/685" class="d-inline" data-confirm="Yakin hapus data ini? Tindakan ini tidak bisa dibatalkan.">
+    <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="delete">    <button class="btn btn-outline-danger btn-icon" title="Hapus"><i data-lucide="trash-2"></i></button>
+</form>
+</td>
+                                            </tr>
+                                    <tr class="">
+                        <td class="fw-semibold text-nowrap">10 Nov</td>
+                        <td>18:00–20:00 · Closing gudang</td>
+                        <td><div class="orang"><span class="avatar avatar-sm">HS</span><div><div class="nama">Hafshah Suwarno</div><div class="sub">Kepala Shift Gudang</div></div></div></td>
+                        <td class="text-end">2 jam</td>
+                                                    <td class="text-nowrap"><a href="http://localhost:8000/lembur?periode=2026-11&amp;ubah=767" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>
+                                <form method="post" action="http://localhost:8000/lembur/767" class="d-inline" data-confirm="Yakin hapus data ini? Tindakan ini tidak bisa dibatalkan.">
+    <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="delete">    <button class="btn btn-outline-danger btn-icon" title="Hapus"><i data-lucide="trash-2"></i></button>
+</form>
+</td>
+                                            </tr>
+                                    <tr class="">
+                        <td class="fw-semibold text-nowrap">9 Nov</td>
+                        <td>17:00–20:00 · Perbaikan mesin</td>
+                        <td><div class="orang"><span class="avatar avatar-sm">AS</span><div><div class="nama">Agus Setiawan</div><div class="sub">Staf Gudang</div></div></div></td>
+                        <td class="text-end">3 jam</td>
+                                                    <td class="text-nowrap"><a href="http://localhost:8000/lembur?periode=2026-11&amp;ubah=45" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>
+                                <form method="post" action="http://localhost:8000/lembur/45" class="d-inline" data-confirm="Yakin hapus data ini? Tindakan ini tidak bisa dibatalkan.">
+    <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="delete">    <button class="btn btn-outline-danger btn-icon" title="Hapus"><i data-lucide="trash-2"></i></button>
+</form>
+</td>
+                                            </tr>
+                                    <tr class="">
+                        <td class="fw-semibold text-nowrap">9 Nov</td>
+                        <td>17:00–21:00 · Perbaikan mesin</td>
+                        <td><div class="orang"><span class="avatar avatar-sm">NW</span><div><div class="nama">Niyaga Winarno</div><div class="sub">Programmer</div></div></div></td>
+                        <td class="text-end">4 jam</td>
+                                                    <td class="text-nowrap"><a href="http://localhost:8000/lembur?periode=2026-11&amp;ubah=105" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>
+                                <form method="post" action="http://localhost:8000/lembur/105" class="d-inline" data-confirm="Yakin hapus data ini? Tindakan ini tidak bisa dibatalkan.">
+    <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="delete">    <button class="btn btn-outline-danger btn-icon" title="Hapus"><i data-lucide="trash-2"></i></button>
+</form>
+</td>
+                                            </tr>
+                                    <tr class="">
+                        <td class="fw-semibold text-nowrap">9 Nov</td>
+                        <td>18:00–21:00 · Kejar target pengiriman</td>
+                        <td><div class="orang"><span class="avatar avatar-sm">MU</span><div><div class="nama">Mala Usada</div><div class="sub">Programmer</div></div></div></td>
+                        <td class="text-end">3 jam</td>
+                                                    <td class="text-nowrap"><a href="http://localhost:8000/lembur?periode=2026-11&amp;ubah=147" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>
+                                <form method="post" action="http://localhost:8000/lembur/147" class="d-inline" data-confirm="Yakin hapus data ini? Tindakan ini tidak bisa dibatalkan.">
+    <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="delete">    <button class="btn btn-outline-danger btn-icon" title="Hapus"><i data-lucide="trash-2"></i></button>
+</form>
+</td>
+                                            </tr>
+                                </tbody>
+            </table>
+        </div>
+         <div class="table-foot border-top">
+    <span>Menampilkan 1–10 dari 100 lembur</span>
+            <ul class="pagination">
+                                        <li class="page-item active"><a class="page-link" href="http://localhost:8000/lembur?page=1">1</a></li>
+                            <li class="page-item "><a class="page-link" href="http://localhost:8000/lembur?page=2">2</a></li>
+                            <li class="page-item "><a class="page-link" href="http://localhost:8000/lembur?page=3">3</a></li>
+                        <li class="page-item"><a class="page-link" href="http://localhost:8000/lembur?page=2">›</a></li>        </ul>
+    </div>
+     </div>
+
+            <div id="drawer" class="card panel drawer" role="dialog" aria-modal="true">
+    <div class="card-header d-flex align-items-start gap-2">
+        <div class="me-auto"><div class="judul-panel">Input Lembur</div><span class="sub">Karyawan yang berhak lembur</span></div>
+        <button type="button" class="btn btn-light btn-icon" data-tutup-drawer aria-label="Tutup"><i data-lucide="x"></i></button>
+    </div>
+            <form method="post" action="http://localhost:8000/lembur" class="card-body" >
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off">             <div class="mb-field"><label class="form-label">Karyawan</label>
+                <select name="karyawan_id" class="form-select" required><option value="">Pilih karyawan</option><option value="60" >Abyasa Mandala</option><option value="13" >Agus Setiawan</option><option value="67" >Ajiono Widiastuti</option><option value="83" >Anita Maryati</option><option value="29" >Arsipatra Halimah</option><option value="92" >Asman Hartati</option><option value="86" >Ayu Kurniawan</option><option value="33" >Bajragin Utami</option><option value="62" >Bakianto Lailasari</option><option value="69" >Bakianto Wahyuni</option><option value="54" >Bakijan Andriani</option><option value="91" >Bakijan Lazuardi</option><option value="80" >Cengkir Nashiruddin</option><option value="70" >Chelsea Purwanti</option><option value="63" >Cici Lailasari</option><option value="73" >Darmanto Simbolon</option><option value="11" >Dewi Anggraini</option><option value="36" >Dwi Fujiati</option><option value="82" >Edi Tarihoran</option><option value="76" >Gaman Habibi</option><option value="37" >Gamanto Hartati</option><option value="35" >Gatot Pratiwi</option><option value="89" >Ghaliyati Nasyidah</option><option value="96" >Hafshah Suwarno</option><option value="97" >Harjo Mansur</option><option value="31" >Hasta Mansur</option><option value="74" >Icha Wulandari</option><option value="10" >Joko Susilo</option><option value="61" >Kamal Thamrin</option><option value="52" >Kamaria Wasita</option><option value="53" >Kania Prasetya</option><option value="71" >Karma Dongoran</option><option value="32" >Karma Suartini</option><option value="58" >Kawaca Usamah</option><option value="23" >Kiandra Prakasa</option><option value="87" >Labuh Tarihoran</option><option value="66" >Lalita Mulyani</option><option value="24" >Lanjar Rajata</option><option value="99" >Laras Purwanti</option><option value="72" >Lintang Mansur</option><option value="85" >Luwar Nasyidah</option><option value="59" >Mahdi Hardiansyah</option><option value="65" >Maida Mandala</option><option value="30" >Mala Usada</option><option value="75" >Margana Pertiwi</option><option value="88" >Mariadi Susanti</option><option value="28" >Michelle Winarno</option><option value="25" >Mutia Halimah</option><option value="6" >Nadia Putri</option><option value="26" >Niyaga Winarno</option><option value="90" >Nurul Januar</option><option value="93" >Ophelia Aryani</option><option value="22" >Paiman Aryani</option><option value="38" >Pandu Simanjuntak</option><option value="27" >Pangestu Hastuti</option><option value="78" >Putri Najmudin</option><option value="98" >Qori Saefullah</option><option value="34" >Rama Lazuardi</option><option value="84" >Ratna Hutapea</option><option value="5" >Rizky Maulana</option><option value="56" >Samiah Budiyanto</option><option value="55" >Septi Widodo</option><option value="68" >Suci Pertiwi</option><option value="101" >Tami Purwanti</option><option value="95" >Taufik Sudiati</option><option value="100" >Tina Hardiansyah</option><option value="64" >Umar Wastuti</option><option value="57" >Usyi Maryati</option><option value="81" >Warsa Suryono</option><option value="51" >Xanana Hassanah</option><option value="77" >Yulia Nasyiah</option><option value="94" >Yuni Lailasari</option><option value="79" >Yusuf Kuswandari</option></select></div>
+            <div class="mb-field"><label class="form-label">Tanggal</label><input type="date" name="tanggal" value="2026-11-11" class="form-control" required></div>
+            <div class="row g-2 mb-field">
+                <div class="col"><label class="form-label">Jam mulai</label><input type="time" name="jam_mulai" id="jm" value="17:00" class="form-control" required></div>
+                <div class="col"><label class="form-label">Jam selesai</label><input type="time" name="jam_selesai" id="js" value="19:00" class="form-control" required></div>
+            </div>
+            <div class="mb-field"><label class="form-label">Keterangan</label><input name="keterangan" value="" class="form-control" placeholder="mis. Closing gudang akhir bulan"></div>
+            <div class="notice "><i data-lucide="circle-alert"></i><span>Durasi dihitung otomatis: <b id="durasi">-</b>. Lembur langsung masuk ke perhitungan payroll, tanpa approval.</span></div>
+            <div class="tombol"><a href="http://localhost:8000/lembur?periode=2026-11" class="btn btn-light">Batal</a><button class="btn btn-primary">Simpan</button></div>
+        </form>
+    </div>
+            </div>
+        </main>
+
+        <footer class="footer">Powered by <b>Kelompok 6 RPL</b> · Kelas X7N · Universitas Indraprasta PGRI · 2026</footer>
+    </div>
+</div>
+
+<div class="drawer-backdrop" data-tutup-drawer></div>
+<div class="toast-wrap">
+    </div>
+<script>
+    document.querySelectorAll('.toast-item[data-auto="1"]').forEach(t => setTimeout(() => t.remove(), 4000));
+</script>
+
+
+<div class="modal fade" id="modalPassword" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" method="post" action="http://localhost:8000/ganti-password">
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="put">            <div class="modal-header"><h5 class="modal-title fs-6 fw-semibold">Ganti kata sandi</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="mb-3"><label class="form-label">Kata sandi lama</label><input type="password" name="password_lama" class="form-control" required></div>
+                <div class="mb-3"><label class="form-label">Kata sandi baru</label><input type="password" name="password" class="form-control" minlength="8" required><div class="form-text">Minimal 8 karakter.</div></div>
+                <div class="mb-1"><label class="form-label">Ulangi kata sandi baru</label><input type="password" name="password_confirmation" class="form-control" required></div>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button><button class="btn btn-primary">Simpan</button></div>
+        </form>
+    </div>
+</div>
+
+
+<div class="modal fade" id="modalKonfirmasi" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:400px">
+        <div class="modal-content p-2">
+            <div class="modal-body">
+                <h5 class="fw-bold fs-5 mb-2" id="konfJudul">Lanjutkan?</h5>
+                <p class="text-secondary mb-0" id="konfPesan"></p>
+            </div>
+            <div class="modal-footer border-0 pt-0"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button><button type="button" id="konfOk" class="btn btn-primary">Ya</button></div>
+        </div>
+    </div>
+</div>
+
+<script>window.__errors = []; window.__bukaModalPassword = false;</script>
+        <script>
+            (() => { const m = jm, s = js, o = durasi; const hit = () => { if (!m.value || !s.value) return; let [a, b] = m.value.split(':').map(Number), [c, d] = s.value.split(':').map(Number); let mnt = (c * 60 + d) - (a * 60 + b); if (mnt <= 0) mnt += 1440; o.textContent = (Math.round(mnt / 6) / 10).toString().replace('.', ',') + ' jam'; }; m.oninput = s.oninput = hit; hit(); })();
+        </script>
+        </body>
+</html>

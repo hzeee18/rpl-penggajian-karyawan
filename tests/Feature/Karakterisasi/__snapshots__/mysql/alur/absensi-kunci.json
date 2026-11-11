@@ -1,0 +1,28 @@
+{
+    "periode_final": {
+        "status": 302,
+        "ke": "http://localhost:8000/absensi",
+        "sukses": null,
+        "gagal": null,
+        "errors": {
+            "default": {
+                "format": ":message",
+                "messages": {
+                    "tanggal": [
+                        "Tanggal 4 Oktober 2026 masuk periode payroll yang sudah diajukan/final, data tidak bisa diubah."
+                    ]
+                }
+            }
+        }
+    },
+    "periode_draft": {
+        "status": 302,
+        "ke": "http://localhost:8000/absensi",
+        "sukses": "Absensi disimpan.",
+        "gagal": null,
+        "errors": []
+    },
+    "tersimpan": [
+        "2026-11-08"
+    ]
+}

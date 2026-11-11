@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ubah cuti/izin/sakit · Penggajian Karyawan</title>
+    <link rel="icon" href="http://localhost:8000/img/logo-unindra.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css" rel="stylesheet">
+    <link href="http://localhost:8000/css/app.css?v=24" rel="stylesheet">
+    <meta name="turbo-cache-control" content="no-preview">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/id.js"></script>
+    <script src="http://localhost:8000/js/form.js?v=9"></script>
+    <script src="http://localhost:8000/js/app.js?v=6"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.12/dist/turbo.es2017-umd.js"></script>
+    </head>
+<body>
+<div class="d-flex">
+    
+    <aside class="sidebar offcanvas-lg offcanvas-start" tabindex="-1" id="sidebar">
+        <div class="sidebar-brand">
+            <img src="http://localhost:8000/img/logo-unindra.png" alt="Logo Unindra">
+            <div>
+                <div class="nama">Penggajian Karyawan</div>
+                <div class="kampus">Universitas Indraprasta PGRI</div>
+            </div>
+        </div>
+
+        <div class="nav-label">Menu Manager HR</div>
+                    <a href="http://localhost:8000/dashboard" class="nav-item-link ">
+                <i data-lucide="layout-grid"></i> Dashboard
+            </a>
+                    <a href="http://localhost:8000/approval" class="nav-item-link ">
+                <i data-lucide="circle-check"></i> Approval
+            </a>
+                    <a href="http://localhost:8000/karyawan" class="nav-item-link ">
+                <i data-lucide="users"></i> Data Karyawan
+            </a>
+                    <a href="http://localhost:8000/kontrak" class="nav-item-link ">
+                <i data-lucide="file-text"></i> Kontrak
+            </a>
+                    <a href="http://localhost:8000/absensi" class="nav-item-link active">
+                <i data-lucide="calendar"></i> Absensi, Cuti &amp; Lembur
+            </a>
+                    <a href="http://localhost:8000/import" class="nav-item-link ">
+                <i data-lucide="upload"></i> Import Excel
+            </a>
+                    <a href="http://localhost:8000/payroll" class="nav-item-link ">
+                <i data-lucide="wallet"></i> Proses Payroll
+            </a>
+                    <a href="http://localhost:8000/laporan" class="nav-item-link ">
+                <i data-lucide="history"></i> Riwayat Payroll
+            </a>
+                    <a href="http://localhost:8000/slip" class="nav-item-link ">
+                <i data-lucide="file-text"></i> Slip Gaji
+            </a>
+                            <div class="nav-label">Master Data</div>
+                            <a href="http://localhost:8000/departemen" class="nav-item-link ">
+                    <i data-lucide="building-2"></i> Departemen
+                </a>
+                            <a href="http://localhost:8000/pajak" class="nav-item-link ">
+                    <i data-lucide="percent"></i> Pajak &amp; Tarif TER
+                </a>
+                            <a href="http://localhost:8000/komponen" class="nav-item-link ">
+                    <i data-lucide="layers"></i> Komponen Gaji
+                </a>
+                            <a href="http://localhost:8000/master-payroll" class="nav-item-link ">
+                    <i data-lucide="sliders-horizontal"></i> Periode
+                </a>
+                    
+        <div class="sidebar-user mt-auto">
+            <span class="avatar">SR</span>
+            <div class="text-truncate">
+                <div class="nama text-truncate">Siti Rahmawati</div>
+                <div class="peran text-truncate">Manager HR</div>
+            </div>
+        </div>
+        <form method="post" action="http://localhost:8000/logout"><input type="hidden" name="_token" value="TOKEN" autocomplete="off">            <button class="nav-item-link"><i data-lucide="log-out"></i> Keluar</button>
+        </form>
+    </aside>
+
+    <div class="main flex-grow-1">
+        
+        <header class="topbar">
+            <button class="btn-topbar d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-label="Menu"><i data-lucide="menu"></i></button>
+            <div class="me-auto">
+                <div class="crumb">Absensi, Cuti &amp; Lembur</div>
+                <div class="judul">Ubah cuti/izin/sakit</div>
+            </div>
+
+            <form class="topbar-search d-none d-md-block" action="http://localhost:8000/karyawan" data-cari="http://localhost:8000/cari" role="search">
+                <i data-lucide="search"></i>
+                <input name="q" class="form-control" placeholder="Cari karyawan, slip gaji, atau menu..." value="" autocomplete="off" aria-autocomplete="list">
+                <div class="cari-hasil" hidden></div>
+            </form>
+
+            <div class="dropdown">
+                <button class="btn-topbar" data-bs-toggle="dropdown" aria-label="Notifikasi">
+                    <i data-lucide="bell"></i>
+                                    </button>
+                <div class="dropdown-menu dropdown-menu-end p-0 notif-menu">
+                    <div class="d-flex justify-content-between align-items-center px-3 py-3 border-bottom">
+                        <strong>Notifikasi </strong>
+                        <a href="http://localhost:8000/notifikasi" class="small fw-semibold">Lihat semua</a>
+                    </div>
+                                            <a href="http://localhost:8000/notifikasi/54" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Slip gaji tersedia</span>
+                                <span class="d-block small text-secondary">Slip gaji periode Oktober 2026 sudah bisa dilihat dan diunduh.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/53" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Payroll menunggu approval</span>
+                                <span class="d-block small text-secondary">Payroll periode Oktober 2026 perlu persetujuan Anda. Cukup salah satu manager yang memutus...</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/37" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Slip gaji tersedia</span>
+                                <span class="d-block small text-secondary">Slip gaji periode September 2026 sudah bisa dilihat dan diunduh.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/36" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Payroll menunggu approval</span>
+                                <span class="d-block small text-secondary">Payroll periode September 2026 perlu persetujuan Anda. Cukup salah satu manager yang memut...</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/20" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Slip gaji tersedia</span>
+                                <span class="d-block small text-secondary">Slip gaji periode Agustus 2026 sudah bisa dilihat dan diunduh.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/19" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Payroll menunggu approval</span>
+                                <span class="d-block small text-secondary">Payroll periode Agustus 2026 perlu persetujuan Anda. Cukup salah satu manager yang memutus...</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                    </div>
+            </div>
+
+            <div class="dropdown">
+                <button class="btn-avatar" data-bs-toggle="dropdown" aria-label="Menu profil"><span class="avatar">SR</span></button>
+                <div class="dropdown-menu dropdown-menu-end" style="width:240px">
+                    <div class="px-3 py-2 border-bottom mb-1">
+                        <div class="fw-semibold">Siti Rahmawati</div>
+                        <div class="small text-muted">manager.hr · Manager HR</div>
+                    </div>
+                                            <a class="dropdown-item d-flex gap-2" href="http://localhost:8000/profil"><i data-lucide="user"></i> Profil saya</a>
+                                        <button class="dropdown-item d-flex gap-2" data-bs-toggle="modal" data-bs-target="#modalPassword"><i data-lucide="key-round"></i> Ganti kata sandi</button>
+                    <div class="dropdown-divider"></div>
+                    <form method="post" action="http://localhost:8000/logout"><input type="hidden" name="_token" value="TOKEN" autocomplete="off">                        <button class="dropdown-item d-flex gap-2 text-danger"><i data-lucide="log-out"></i> Keluar</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <main class="content">
+            <div class="page-header">
+    <div>
+        <h1>Ubah cuti/izin/sakit</h1>
+        <p>Cuti mengurangi sisa jatah tahunan sebanyak hari kerja.</p>    </div>
+    </div>
+<div class="card" style="max-width:640px">
+    <form method="post" action="http://localhost:8000/cuti/1" class="card-body">
+        <input type="hidden" name="_token" value="TOKEN" autocomplete="off">  <input type="hidden" name="_method" value="put">         <div class="mb-3"><label class="form-label">Karyawan</label>
+            <select name="karyawan_id" class="form-select" required><option value="">Pilih</option><option value="60" >K0060 · Abyasa Mandala (sisa cuti 6)</option><option value="105" >K0105 · Ade Mardhiyah (sisa cuti 6)</option><option value="13" >K0013 · Agus Setiawan (sisa cuti 7)</option><option value="67" >K0067 · Ajiono Widiastuti (sisa cuti 7)</option><option value="14" >K0014 · Andi Firmansyah (sisa cuti 9)</option><option value="4" >K0004 · Andi Pratama (sisa cuti 5)</option><option value="83" >K0083 · Anita Maryati (sisa cuti 11)</option><option value="29" >K0029 · Arsipatra Halimah (sisa cuti 6)</option><option value="92" >K0092 · Asman Hartati (sisa cuti 5)</option><option value="15" >K0015 · Atma Mandasari (sisa cuti 5)</option><option value="86" >K0086 · Ayu Kurniawan (sisa cuti 12)</option><option value="110" >K0110 · Ayu Wulandari (sisa cuti 9)</option><option value="43" >K0043 · Bagus Tampubolon (sisa cuti 6)</option><option value="2" >K0002 · Bagus Wicaksono (sisa cuti 11)</option><option value="33" >K0033 · Bajragin Utami (sisa cuti 7)</option><option value="62" >K0062 · Bakianto Lailasari (sisa cuti 10)</option><option value="69" >K0069 · Bakianto Wahyuni (sisa cuti 5)</option><option value="54" >K0054 · Bakijan Andriani (sisa cuti 5)</option><option value="91" >K0091 · Bakijan Lazuardi (sisa cuti 7)</option><option value="7" >K0007 · Bambang Hartono (sisa cuti 9)</option><option value="9" >K0009 · Budi Santoso (sisa cuti 2)</option><option value="80" >K0080 · Cengkir Nashiruddin (sisa cuti 7)</option><option value="70" >K0070 · Chelsea Purwanti (sisa cuti 8)</option><option value="63" >K0063 · Cici Lailasari (sisa cuti 10)</option><option value="45" >K0045 · Dadap Laksita (sisa cuti 5)</option><option value="73" >K0073 · Darmanto Simbolon (sisa cuti 12)</option><option value="11" >K0011 · Dewi Anggraini (sisa cuti 10)</option><option value="3" >K0003 · Dewi Lestari (sisa cuti 8)</option><option value="36" >K0036 · Dwi Fujiati (sisa cuti 8)</option><option value="82" >K0082 · Edi Tarihoran (sisa cuti 5)</option><option value="49" >K0049 · Emas Pangestu (sisa cuti 9)</option><option value="112" >K0112 · Endra Farida (sisa cuti 11)</option><option value="50" >K0050 · Estiono Sitorus (sisa cuti 6)</option><option value="8" >K0008 · Fitri Handayani (sisa cuti 6)</option><option value="76" >K0076 · Gaman Habibi (sisa cuti 9)</option><option value="37" >K0037 · Gamanto Hartati (sisa cuti 12)</option><option value="35" >K0035 · Gatot Pratiwi (sisa cuti 6)</option><option value="115" >K0115 · Gawati Saptono (sisa cuti 8)</option><option value="89" >K0089 · Ghaliyati Nasyidah (sisa cuti 8)</option><option value="96" >K0096 · Hafshah Suwarno (sisa cuti 9)</option><option value="97" >K0097 · Harjo Mansur (sisa cuti 9)</option><option value="19" >K0019 · Harsanto Lestari (sisa cuti 3)</option><option value="31" >K0031 · Hasta Mansur (sisa cuti 9)</option><option value="47" >K0047 · Humaira Namaga (sisa cuti 6)</option><option value="118" >K0118 · Icha Rajasa (sisa cuti 5)</option><option value="74" >K0074 · Icha Wulandari (sisa cuti 5)</option><option value="18" >K0018 · Ika Manullang (sisa cuti 6)</option><option value="48" >K0048 · Ira Tampubolon (sisa cuti 8)</option><option value="116" >K0116 · Irma Kuswandari (sisa cuti 7)</option><option value="46" >K0046 · Irma Utami (sisa cuti 10)</option><option value="114" >K0114 · Jaga Permadi (sisa cuti 7)</option><option value="42" >K0042 · Jaiman Usada (sisa cuti 9)</option><option value="20" >K0020 · Jaka Hastuti (sisa cuti 6)</option><option value="17" >K0017 · Jarwa Simbolon (sisa cuti 12)</option><option value="107" >K0107 · Jessica Hutagalung (sisa cuti 10)</option><option value="10" >K0010 · Joko Susilo (sisa cuti 1)</option><option value="61" >K0061 · Kamal Thamrin (sisa cuti 12)</option><option value="52" >K0052 · Kamaria Wasita (sisa cuti 5)</option><option value="53" >K0053 · Kania Prasetya (sisa cuti 12)</option><option value="71" >K0071 · Karma Dongoran (sisa cuti 12)</option><option value="32" >K0032 · Karma Suartini (sisa cuti 7)</option><option value="58" >K0058 · Kawaca Usamah (sisa cuti 5)</option><option value="23" >K0023 · Kiandra Prakasa (sisa cuti 7)</option><option value="87" >K0087 · Labuh Tarihoran (sisa cuti 7)</option><option value="66" >K0066 · Lalita Mulyani (sisa cuti 10)</option><option value="24" >K0024 · Lanjar Rajata (sisa cuti 12)</option><option value="99" >K0099 · Laras Purwanti (sisa cuti 11)</option><option value="72" >K0072 · Lintang Mansur (sisa cuti 9)</option><option value="85" >K0085 · Luwar Nasyidah (sisa cuti 4)</option><option value="59" >K0059 · Mahdi Hardiansyah (sisa cuti 7)</option><option value="65" >K0065 · Maida Mandala (sisa cuti 7)</option><option value="30" >K0030 · Mala Usada (sisa cuti 6)</option><option value="75" >K0075 · Margana Pertiwi (sisa cuti 4)</option><option value="88" >K0088 · Mariadi Susanti (sisa cuti 5)</option><option value="108" >K0108 · Maya Simbolon (sisa cuti 6)</option><option value="28" >K0028 · Michelle Winarno (sisa cuti 9)</option><option value="41" >K0041 · Mitra Laksmiwati (sisa cuti 11)</option><option value="25" >K0025 · Mutia Halimah (sisa cuti 7)</option><option value="6" >K0006 · Nadia Putri (sisa cuti 11)</option><option value="44" >K0044 · Najib Rahmawati (sisa cuti 4)</option><option value="40" >K0040 · Narji Purnawati (sisa cuti 9)</option><option value="26" >K0026 · Niyaga Winarno (sisa cuti 7)</option><option value="90" >K0090 · Nurul Januar (sisa cuti 12)</option><option value="111" >K0111 · Okto Pudjiastuti (sisa cuti 11)</option><option value="93" >K0093 · Ophelia Aryani (sisa cuti 6)</option><option value="22" >K0022 · Paiman Aryani (sisa cuti 10)</option><option value="38" >K0038 · Pandu Simanjuntak (sisa cuti 7)</option><option value="27" >K0027 · Pangestu Hastuti (sisa cuti 5)</option><option value="119" >K0119 · Paulin Haryanti (sisa cuti 9)</option><option value="103" >K0103 · Purwa Sihombing (sisa cuti 8)</option><option value="78" >K0078 · Putri Najmudin (sisa cuti 8)</option><option value="98" >K0098 · Qori Saefullah (sisa cuti 7)</option><option value="34" >K0034 · Rama Lazuardi (sisa cuti 4)</option><option value="84" >K0084 · Ratna Hutapea (sisa cuti 10)</option><option value="5" >K0005 · Rizky Maulana (sisa cuti 6)</option><option value="16" >K0016 · Sadina Rahayu (sisa cuti 10)</option><option value="104" >K0104 · Salwa Palastri (sisa cuti 6)</option><option value="56" >K0056 · Samiah Budiyanto (sisa cuti 9)</option><option value="102" >K0102 · Samsul Pudjiastuti (sisa cuti 0)</option><option value="55" >K0055 · Septi Widodo (sisa cuti 12)</option><option value="1" selected>K0001 · Siti Rahmawati (sisa cuti 5)</option><option value="68" >K0068 · Suci Pertiwi (sisa cuti 7)</option><option value="101" >K0101 · Tami Purwanti (sisa cuti 11)</option><option value="120" >K0120 · Tania Najmudin (sisa cuti 8)</option><option value="95" >K0095 · Taufik Sudiati (sisa cuti 6)</option><option value="12" >K0012 · Teguh Prasetyo (sisa cuti 2)</option><option value="100" >K0100 · Tina Hardiansyah (sisa cuti 6)</option><option value="106" >K0106 · Tirta Januar (sisa cuti 8)</option><option value="113" >K0113 · Ulva Fujiati (sisa cuti 9)</option><option value="64" >K0064 · Umar Wastuti (sisa cuti 3)</option><option value="117" >K0117 · Umi Nurdiyanti (sisa cuti 4)</option><option value="57" >K0057 · Usyi Maryati (sisa cuti 8)</option><option value="81" >K0081 · Warsa Suryono (sisa cuti 11)</option><option value="51" >K0051 · Xanana Hassanah (sisa cuti 12)</option><option value="39" >K0039 · Yessi Hidayat (sisa cuti 8)</option><option value="77" >K0077 · Yulia Nasyiah (sisa cuti 8)</option><option value="94" >K0094 · Yuni Lailasari (sisa cuti 2)</option><option value="79" >K0079 · Yusuf Kuswandari (sisa cuti 8)</option><option value="21" >K0021 · Zulfa Latupono (sisa cuti 6)</option><option value="109" >K0109 · Zulfa Utama (sisa cuti 7)</option></select></div>
+        <div class="mb-3"><label class="form-label">Jenis</label>
+            <select name="jenis" class="form-select"><option value="cuti" selected>Cuti</option><option value="izin" >Izin</option><option value="sakit" >Sakit</option></select></div>
+        <div class="mb-3" data-rentang-wrap>
+    <label class="form-label">Tanggal</label>    <div class="input-ikon">
+        <input type="text" class="form-control" data-rentang data-nonaktif='[]' placeholder="dd/mm/yyyy – dd/mm/yyyy" autocomplete="off" required >
+        <i data-lucide="calendar-range"></i>
+    </div>
+    <input type="hidden" name="tgl_mulai" value="2026-07-14" data-rentang-awal >
+    <input type="hidden" name="tgl_selesai" value="2026-07-16" data-rentang-akhir >
+</div>
+        <div class="mb-3"><label class="form-label">Keterangan</label><input name="keterangan" value="Cuti tahunan" class="form-control"></div>
+        <p class="small text-muted">Cuti mengurangi sisa jatah cuti sebanyak hari kerja (Senin–Jumat). Izin dan sakit tidak mengurangi jatah.</p>
+        <a href="http://localhost:8000/cuti" class="btn btn-light">Batal</a> <button class="btn btn-primary">Simpan</button>
+    </form>
+</div>
+        </main>
+
+        <footer class="footer">Powered by <b>Kelompok 6 RPL</b> · Kelas X7N · Universitas Indraprasta PGRI · 2026</footer>
+    </div>
+</div>
+
+<div class="drawer-backdrop" data-tutup-drawer></div>
+<div class="toast-wrap">
+    </div>
+<script>
+    document.querySelectorAll('.toast-item[data-auto="1"]').forEach(t => setTimeout(() => t.remove(), 4000));
+</script>
+
+
+<div class="modal fade" id="modalPassword" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" method="post" action="http://localhost:8000/ganti-password">
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="put">            <div class="modal-header"><h5 class="modal-title fs-6 fw-semibold">Ganti kata sandi</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="mb-3"><label class="form-label">Kata sandi lama</label><input type="password" name="password_lama" class="form-control" required></div>
+                <div class="mb-3"><label class="form-label">Kata sandi baru</label><input type="password" name="password" class="form-control" minlength="8" required><div class="form-text">Minimal 8 karakter.</div></div>
+                <div class="mb-1"><label class="form-label">Ulangi kata sandi baru</label><input type="password" name="password_confirmation" class="form-control" required></div>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button><button class="btn btn-primary">Simpan</button></div>
+        </form>
+    </div>
+</div>
+
+
+<div class="modal fade" id="modalKonfirmasi" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:400px">
+        <div class="modal-content p-2">
+            <div class="modal-body">
+                <h5 class="fw-bold fs-5 mb-2" id="konfJudul">Lanjutkan?</h5>
+                <p class="text-secondary mb-0" id="konfPesan"></p>
+            </div>
+            <div class="modal-footer border-0 pt-0"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button><button type="button" id="konfOk" class="btn btn-primary">Ya</button></div>
+        </div>
+    </div>
+</div>
+
+<script>window.__errors = []; window.__bukaModalPassword = false;</script>
+</body>
+</html>

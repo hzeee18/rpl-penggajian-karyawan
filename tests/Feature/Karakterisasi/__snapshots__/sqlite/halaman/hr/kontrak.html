@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kontrak Karyawan · Penggajian Karyawan</title>
+    <link rel="icon" href="http://localhost:8000/img/logo-unindra.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css" rel="stylesheet">
+    <link href="http://localhost:8000/css/app.css?v=24" rel="stylesheet">
+    <meta name="turbo-cache-control" content="no-preview">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/id.js"></script>
+    <script src="http://localhost:8000/js/form.js?v=9"></script>
+    <script src="http://localhost:8000/js/app.js?v=6"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.12/dist/turbo.es2017-umd.js"></script>
+    </head>
+<body>
+<div class="d-flex">
+    
+    <aside class="sidebar offcanvas-lg offcanvas-start" tabindex="-1" id="sidebar">
+        <div class="sidebar-brand">
+            <img src="http://localhost:8000/img/logo-unindra.png" alt="Logo Unindra">
+            <div>
+                <div class="nama">Penggajian Karyawan</div>
+                <div class="kampus">Universitas Indraprasta PGRI</div>
+            </div>
+        </div>
+
+        <div class="nav-label">Menu HR</div>
+                    <a href="http://localhost:8000/dashboard" class="nav-item-link ">
+                <i data-lucide="layout-grid"></i> Dashboard
+            </a>
+                    <a href="http://localhost:8000/karyawan" class="nav-item-link ">
+                <i data-lucide="users"></i> Data Karyawan
+            </a>
+                    <a href="http://localhost:8000/kontrak" class="nav-item-link active">
+                <i data-lucide="file-text"></i> Kontrak
+            </a>
+                    <a href="http://localhost:8000/absensi" class="nav-item-link ">
+                <i data-lucide="calendar"></i> Absensi, Cuti &amp; Lembur
+            </a>
+                    <a href="http://localhost:8000/import" class="nav-item-link ">
+                <i data-lucide="upload"></i> Import Excel
+            </a>
+                    <a href="http://localhost:8000/payroll" class="nav-item-link ">
+                <i data-lucide="wallet"></i> Proses Payroll
+            </a>
+                    <a href="http://localhost:8000/laporan" class="nav-item-link ">
+                <i data-lucide="history"></i> Riwayat Payroll
+            </a>
+                            <div class="nav-label">Master Data</div>
+                            <a href="http://localhost:8000/departemen" class="nav-item-link ">
+                    <i data-lucide="building-2"></i> Departemen
+                </a>
+                            <a href="http://localhost:8000/pajak" class="nav-item-link ">
+                    <i data-lucide="percent"></i> Pajak &amp; Tarif TER
+                </a>
+                            <a href="http://localhost:8000/komponen" class="nav-item-link ">
+                    <i data-lucide="layers"></i> Komponen Gaji
+                </a>
+                            <a href="http://localhost:8000/master-payroll" class="nav-item-link ">
+                    <i data-lucide="sliders-horizontal"></i> Periode
+                </a>
+                    
+        <div class="sidebar-user mt-auto">
+            <span class="avatar">DL</span>
+            <div class="text-truncate">
+                <div class="nama text-truncate">Dewi Lestari</div>
+                <div class="peran text-truncate">Staf HR</div>
+            </div>
+        </div>
+        <form method="post" action="http://localhost:8000/logout"><input type="hidden" name="_token" value="TOKEN" autocomplete="off">            <button class="nav-item-link"><i data-lucide="log-out"></i> Keluar</button>
+        </form>
+    </aside>
+
+    <div class="main flex-grow-1">
+        
+        <header class="topbar">
+            <button class="btn-topbar d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-label="Menu"><i data-lucide="menu"></i></button>
+            <div class="me-auto">
+                <div class="crumb">Karyawan / Kontrak</div>
+                <div class="judul">Kontrak Karyawan</div>
+            </div>
+
+            <form class="topbar-search d-none d-md-block" action="http://localhost:8000/karyawan" data-cari="http://localhost:8000/cari" role="search">
+                <i data-lucide="search"></i>
+                <input name="q" class="form-control" placeholder="Cari karyawan, slip gaji, atau menu..." value="" autocomplete="off" aria-autocomplete="list">
+                <div class="cari-hasil" hidden></div>
+            </form>
+
+            <div class="dropdown">
+                <button class="btn-topbar" data-bs-toggle="dropdown" aria-label="Notifikasi">
+                    <i data-lucide="bell"></i>
+                                    </button>
+                <div class="dropdown-menu dropdown-menu-end p-0 notif-menu">
+                    <div class="d-flex justify-content-between align-items-center px-3 py-3 border-bottom">
+                        <strong>Notifikasi </strong>
+                        <a href="http://localhost:8000/notifikasi" class="small fw-semibold">Lihat semua</a>
+                    </div>
+                                            <a href="http://localhost:8000/notifikasi/68" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Payroll final</span>
+                                <span class="d-block small text-secondary">Payroll periode Oktober 2026 sudah disetujui. Slip gaji sudah terbit.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/56" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Slip gaji tersedia</span>
+                                <span class="d-block small text-secondary">Slip gaji periode Oktober 2026 sudah bisa dilihat dan diunduh.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/51" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Payroll final</span>
+                                <span class="d-block small text-secondary">Payroll periode September 2026 sudah disetujui. Slip gaji sudah terbit.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/39" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Slip gaji tersedia</span>
+                                <span class="d-block small text-secondary">Slip gaji periode September 2026 sudah bisa dilihat dan diunduh.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/34" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Payroll final</span>
+                                <span class="d-block small text-secondary">Payroll periode Agustus 2026 sudah disetujui. Slip gaji sudah terbit.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                            <a href="http://localhost:8000/notifikasi/22" class="notif-item text-reset ">
+                            <span class="ikon"><i data-lucide="bell"></i></span>
+                            <span>
+                                <span class="d-block fw-semibold small">Slip gaji tersedia</span>
+                                <span class="d-block small text-secondary">Slip gaji periode Agustus 2026 sudah bisa dilihat dan diunduh.</span>
+                                <span class="d-block small text-muted">0 detik yang lalu</span>
+                            </span>
+                        </a>
+                                    </div>
+            </div>
+
+            <div class="dropdown">
+                <button class="btn-avatar" data-bs-toggle="dropdown" aria-label="Menu profil"><span class="avatar">DL</span></button>
+                <div class="dropdown-menu dropdown-menu-end" style="width:240px">
+                    <div class="px-3 py-2 border-bottom mb-1">
+                        <div class="fw-semibold">Dewi Lestari</div>
+                        <div class="small text-muted">hr · HR</div>
+                    </div>
+                                            <a class="dropdown-item d-flex gap-2" href="http://localhost:8000/profil"><i data-lucide="user"></i> Profil saya</a>
+                                        <button class="dropdown-item d-flex gap-2" data-bs-toggle="modal" data-bs-target="#modalPassword"><i data-lucide="key-round"></i> Ganti kata sandi</button>
+                    <div class="dropdown-divider"></div>
+                    <form method="post" action="http://localhost:8000/logout"><input type="hidden" name="_token" value="TOKEN" autocomplete="off">                        <button class="dropdown-item d-flex gap-2 text-danger"><i data-lucide="log-out"></i> Keluar</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <main class="content">
+            <div class="page-header">
+    <div>
+        <h1>Kontrak Karyawan</h1>
+        <p>Satu baris per karyawan. Kontrak baru dan perpanjangan otomatis diajukan ke Manager divisi.</p>    </div>
+    <div class="aksi"><a href="http://localhost:8000/kontrak?baru=1" class="btn btn-primary"><i data-lucide="plus"></i> Kontrak Karyawan Baru</a></div></div>
+
+<div class="card">
+    <div class="card-search d-flex flex-wrap gap-2 align-items-center">
+        <form method="get" class="flex-grow-1" style="max-width:420px">
+                        <div class="input-ikon"><input name="q" value="" class="form-control" placeholder="Cari nama, NIK, atau nomor kontrak..."><i data-lucide="search"></i></div>
+        </form>
+        <div class="chips ms-auto">
+            <a href="http://localhost:8000/kontrak" class="chip active">Semua <b>120</b></a>
+            <a href="http://localhost:8000/kontrak?status=berakhir" class="chip ">Segera berakhir <b>4</b></a>
+            <a href="http://localhost:8000/kontrak?status=menunggu" class="chip ">Diajukan <b>1</b></a>
+            <a href="http://localhost:8000/kontrak?status=ditolak" class="chip ">Ditolak <b>0</b></a>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead><tr><th>Nomor kontrak</th><th>Karyawan</th><th>Jenis</th><th>Masa berlaku</th><th class="text-end">Gaji pokok</th><th>Status</th><th>Aksi</th></tr></thead>
+            <tbody>
+                                            <tr class="">
+                    <td><span class="kode">PKWT/MKT/0074/VI/2024</span></td>
+                    <td><div class="orang"><span class="avatar avatar-sm">AM</span><div><div class="nama">Ade Mardhiyah</div><div class="sub">K0105 · Marketing</div></div></div></td>
+                    <td>PKWT</td>
+                    <td class="text-nowrap">1 Jun 2024 – 20 Nov 2026
+                        <div class="small text-warning-emphasis fw-semibold">sisa 9 hari</div>                    </td>
+                    <td class="text-uang">7,4 jt</td>
+                    <td><span class="badge badge-soft-warning">Segera berakhir</span>
+                                            </td>
+                    <td class="text-nowrap">
+                        <a href="http://localhost:8000/kontrak?lihat=164" class="btn btn-light btn-icon" title="Lihat detail & riwayat"><i data-lucide="eye"></i></a>
+                                                    <a href="http://localhost:8000/kontrak?perbarui=164" class="btn btn-primary btn-sm"><i data-lucide="refresh-cw"></i> Perbarui</a>
+                                            </td>
+                </tr>
+                                            <tr class="">
+                    <td><span class="kode">PKWT/OPS/0048/II/2024</span></td>
+                    <td><div class="orang"><span class="avatar avatar-sm">BW</span><div><div class="nama">Bakianto Wahyuni</div><div class="sub">K0069 · Operasional</div></div></div></td>
+                    <td>PKWT</td>
+                    <td class="text-nowrap">1 Feb 2024 – 24 Nov 2026
+                        <div class="small text-warning-emphasis fw-semibold">sisa 13 hari</div>                    </td>
+                    <td class="text-uang">9,4 jt</td>
+                    <td><span class="badge badge-soft-warning">Segera berakhir</span>
+                                            </td>
+                    <td class="text-nowrap">
+                        <a href="http://localhost:8000/kontrak?lihat=107" class="btn btn-light btn-icon" title="Lihat detail & riwayat"><i data-lucide="eye"></i></a>
+                                                    <a href="http://localhost:8000/kontrak?perbarui=107" class="btn btn-primary btn-sm"><i data-lucide="refresh-cw"></i> Perbarui</a>
+                                            </td>
+                </tr>
+                                            <tr class="">
+                    <td><span class="kode">PKWT/IT/0023/I/2024</span><div class="small text-muted">2 kontrak</div></td>
+                    <td><div class="orang"><span class="avatar avatar-sm">HM</span><div><div class="nama">Hasta Mansur</div><div class="sub">K0031 · Teknologi Informasi</div></div></div></td>
+                    <td>PKWT</td>
+                    <td class="text-nowrap">1 Jan 2024 – 28 Nov 2026
+                        <div class="small text-warning-emphasis fw-semibold">sisa 17 hari</div>                    </td>
+                    <td class="text-uang">7,8 jt</td>
+                    <td><span class="badge badge-soft-warning">Segera berakhir</span>
+                                            </td>
+                    <td class="text-nowrap">
+                        <a href="http://localhost:8000/kontrak?lihat=52" class="btn btn-light btn-icon" title="Lihat detail & riwayat"><i data-lucide="eye"></i></a>
+                                                    <a href="http://localhost:8000/kontrak?perbarui=52" class="btn btn-primary btn-sm"><i data-lucide="refresh-cw"></i> Perbarui</a>
+                                            </td>
+                </tr>
+                                            <tr class="">
+                    <td><span class="kode">PKWT/IT/0004/II/2025</span></td>
+                    <td><div class="orang"><span class="avatar avatar-sm">LR</span><div><div class="nama">Lanjar Rajata</div><div class="sub">K0024 · Teknologi Informasi</div></div></div></td>
+                    <td>PKWT</td>
+                    <td class="text-nowrap">1 Feb 2025 – 8 Des 2026
+                        <div class="small text-warning-emphasis fw-semibold">sisa 27 hari</div>                    </td>
+                    <td class="text-uang">10 jt</td>
+                    <td><span class="badge badge-soft-warning">Segera berakhir</span>
+                                            </td>
+                    <td class="text-nowrap">
+                        <a href="http://localhost:8000/kontrak?lihat=41" class="btn btn-light btn-icon" title="Lihat detail & riwayat"><i data-lucide="eye"></i></a>
+                                                    <a href="http://localhost:8000/kontrak?perbarui=41" class="btn btn-primary btn-sm"><i data-lucide="refresh-cw"></i> Perbarui</a>
+                                            </td>
+                </tr>
+                                            <tr class="">
+                    <td><span class="kode">PKWT/IT/0016/VII/2026</span><div class="small text-muted">2 kontrak</div></td>
+                    <td><div class="orang"><span class="avatar avatar-sm">NP</span><div><div class="nama">Nadia Putri</div><div class="sub">K0006 · Teknologi Informasi</div></div></div></td>
+                    <td>PKWT</td>
+                    <td class="text-nowrap">1 Jul 2026 – 30 Nov 2026
+                        <div class="small text-warning-emphasis fw-semibold">sisa 19 hari</div>                    </td>
+                    <td class="text-uang">8 jt</td>
+                    <td><span class="badge badge-soft-info">Perpanjangan diajukan</span>
+                        <div class="small text-muted mt-1">PKWT/IT/0017/XII/2026 · mulai 1 Des 2026</div>                    </td>
+                    <td class="text-nowrap">
+                        <a href="http://localhost:8000/kontrak?lihat=11" class="btn btn-light btn-icon" title="Lihat detail & riwayat"><i data-lucide="eye"></i></a>
+                                            </td>
+                </tr>
+                                            <tr class="">
+                    <td><span class="kode">PKWT/KEU/0033/II/2024</span></td>
+                    <td><div class="orang"><span class="avatar avatar-sm">DL</span><div><div class="nama">Dadap Laksita</div><div class="sub">K0045 · Keuangan</div></div></div></td>
+                    <td>PKWT</td>
+                    <td class="text-nowrap">1 Feb 2024 – 28 Feb 2027
+                        <div class="small text-muted">sisa 4 bulan</div>                    </td>
+                    <td class="text-uang">7,3 jt</td>
+                    <td><span class="badge badge-soft-success">Aktif</span>
+                                            </td>
+                    <td class="text-nowrap">
+                        <a href="http://localhost:8000/kontrak?lihat=73" class="btn btn-light btn-icon" title="Lihat detail & riwayat"><i data-lucide="eye"></i></a>
+                                            </td>
+                </tr>
+                                            <tr class="">
+                    <td><span class="kode">PKWT/GDG/0012/V/2026</span></td>
+                    <td><div class="orang"><span class="avatar avatar-sm">GN</span><div><div class="nama">Ghaliyati Nasyidah</div><div class="sub">K0089 · Gudang</div></div></div></td>
+                    <td>PKWT</td>
+                    <td class="text-nowrap">1 Mei 2026 – 28 Feb 2027
+                        <div class="small text-muted">sisa 4 bulan</div>                    </td>
+                    <td class="text-uang">5,5 jt</td>
+                    <td><span class="badge badge-soft-success">Aktif</span>
+                                            </td>
+                    <td class="text-nowrap">
+                        <a href="http://localhost:8000/kontrak?lihat=137" class="btn btn-light btn-icon" title="Lihat detail & riwayat"><i data-lucide="eye"></i></a>
+                                            </td>
+                </tr>
+                                            <tr class="">
+                    <td><span class="kode">PKWT/KEU/0034/VII/2024</span></td>
+                    <td><div class="orang"><span class="avatar avatar-sm">IU</span><div><div class="nama">Irma Utami</div><div class="sub">K0046 · Keuangan</div></div></div></td>
+                    <td>PKWT</td>
+                    <td class="text-nowrap">1 Jul 2024 – 28 Feb 2027
+                        <div class="small text-muted">sisa 4 bulan</div>                    </td>
+                    <td class="text-uang">7,3 jt</td>
+                    <td><span class="badge badge-soft-success">Aktif</span>
+                                            </td>
+                    <td class="text-nowrap">
+                        <a href="http://localhost:8000/kontrak?lihat=74" class="btn btn-light btn-icon" title="Lihat detail & riwayat"><i data-lucide="eye"></i></a>
+                                            </td>
+                </tr>
+                                            <tr class="">
+                    <td><span class="kode">PKWT/GDG/0061/I/2024</span><div class="small text-muted">2 kontrak</div></td>
+                    <td><div class="orang"><span class="avatar avatar-sm">NJ</span><div><div class="nama">Nurul Januar</div><div class="sub">K0090 · Gudang</div></div></div></td>
+                    <td>PKWT</td>
+                    <td class="text-nowrap">1 Jan 2024 – 28 Feb 2027
+                        <div class="small text-muted">sisa 4 bulan</div>                    </td>
+                    <td class="text-uang">5,1 jt</td>
+                    <td><span class="badge badge-soft-success">Aktif</span>
+                                            </td>
+                    <td class="text-nowrap">
+                        <a href="http://localhost:8000/kontrak?lihat=139" class="btn btn-light btn-icon" title="Lihat detail & riwayat"><i data-lucide="eye"></i></a>
+                                            </td>
+                </tr>
+                                            <tr class="">
+                    <td><span class="kode">PKWT/GDG/0011/III/2026</span></td>
+                    <td><div class="orang"><span class="avatar avatar-sm">AK</span><div><div class="nama">Ayu Kurniawan</div><div class="sub">K0086 · Gudang</div></div></div></td>
+                    <td>PKWT</td>
+                    <td class="text-nowrap">1 Mar 2026 – 31 Mar 2027
+                        <div class="small text-muted">sisa 5 bulan</div>                    </td>
+                    <td class="text-uang">5,9 jt</td>
+                    <td><span class="badge badge-soft-success">Aktif</span>
+                                            </td>
+                    <td class="text-nowrap">
+                        <a href="http://localhost:8000/kontrak?lihat=133" class="btn btn-light btn-icon" title="Lihat detail & riwayat"><i data-lucide="eye"></i></a>
+                                            </td>
+                </tr>
+                        </tbody>
+        </table>
+    </div>
+     <div class="table-foot border-top">
+    <span>Menampilkan 1–10 dari 120 karyawan</span>
+            <ul class="pagination">
+                                        <li class="page-item active"><a class="page-link" href="http://localhost:8000/kontrak?page=1">1</a></li>
+                            <li class="page-item "><a class="page-link" href="http://localhost:8000/kontrak?page=2">2</a></li>
+                            <li class="page-item "><a class="page-link" href="http://localhost:8000/kontrak?page=3">3</a></li>
+                        <li class="page-item"><a class="page-link" href="http://localhost:8000/kontrak?page=2">›</a></li>        </ul>
+    </div>
+ </div>
+
+    <div id="drawer" class="card panel drawer" role="dialog" aria-modal="true">
+    <div class="card-header d-flex align-items-start gap-2">
+        <div class="me-auto"><div class="judul-panel">Kontrak Karyawan Baru</div><span class="sub">Untuk karyawan yang belum punya kontrak aktif</span></div>
+        <button type="button" class="btn btn-light btn-icon" data-tutup-drawer aria-label="Tutup"><i data-lucide="x"></i></button>
+    </div>
+            <form method="post" action="http://localhost:8000/kontrak" class="card-body" >
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off">             <div class="mb-field"><label class="form-label">Karyawan</label>
+        <select name="karyawan_id" class="form-select" required><option value="">Pilih karyawan</option></select>
+        <div class="form-text">Semua karyawan aktif sudah punya kontrak. Untuk melanjutkan kontrak yang mau habis, pakai tombol Perbarui di tabel.</div></div>
+        <div class="mb-field"><label class="form-label">Jenis &amp; periode</label>
+        <select name="jenis" id="jenisKontrak" class="form-select mb-2"><option value="PKWT" selected>PKWT (waktu tertentu)</option><option value="PKWTT" >PKWTT (tetap)</option></select>
+        <div class="d-flex gap-2 align-items-center">
+            <input type="date" name="tgl_mulai" value="2026-12-01" class="form-control" required>
+            <span class="akhir-kontrak text-muted">–</span>
+            <input type="date" name="tgl_akhir" value="2027-11-30" class="form-control akhir-kontrak">
+        </div>
+    </div>
+    <div class="mb-field"><label class="form-label">Gaji pokok</label>
+        <div class="input-group"><span class="input-group-text bg-white">Rp</span><input type="number" min="0" data-rupiah name="gaji_pokok" value="" class="form-control" placeholder="4800000" required></div></div>
+    <div class="mb-field"><label class="form-label">Komponen gaji</label>
+        <div class="multi-chip">
+                                            <label><input type="checkbox" name="komponen[2][pakai]" value="1" checked><span>Uang Makan</span></label>
+                <input type="hidden" name="komponen[2][tipe_nilai]" value="persen">
+                <input type="hidden" name="komponen[2][nilai]" value="15">
+                                            <label><input type="checkbox" name="komponen[3][pakai]" value="1" checked><span>Uang Transport</span></label>
+                <input type="hidden" name="komponen[3][tipe_nilai]" value="persen">
+                <input type="hidden" name="komponen[3][nilai]" value="15">
+                                            <label><input type="checkbox" name="komponen[4][pakai]" value="1" checked><span>Lembur</span></label>
+                <input type="hidden" name="komponen[4][tipe_nilai]" value="nominal">
+                <input type="hidden" name="komponen[4][nilai]" value="0">
+                    </div>
+        <div class="form-text">Nilai mengikuti master Komponen Gaji. Gaji pokok, potongan alfa, dan PPh21 otomatis.</div>
+    </div>
+    <div class="notice "><i data-lucide="circle-alert"></i><span>Setelah disimpan, kontrak dikirim ke Manager divisi karyawan (sesuai approval mapping) untuk disetujui.</span></div>
+    <div class="tombol"><a href="http://localhost:8000/kontrak" class="btn btn-light">Batal</a><button class="btn btn-primary">Simpan &amp; Ajukan</button></div>
+        </form>
+    </div>
+        </main>
+
+        <footer class="footer">Powered by <b>Kelompok 6 RPL</b> · Kelas X7N · Universitas Indraprasta PGRI · 2026</footer>
+    </div>
+</div>
+
+<div class="drawer-backdrop" data-tutup-drawer></div>
+<div class="toast-wrap">
+    </div>
+<script>
+    document.querySelectorAll('.toast-item[data-auto="1"]').forEach(t => setTimeout(() => t.remove(), 4000));
+</script>
+
+
+<div class="modal fade" id="modalPassword" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" method="post" action="http://localhost:8000/ganti-password">
+            <input type="hidden" name="_token" value="TOKEN" autocomplete="off"> <input type="hidden" name="_method" value="put">            <div class="modal-header"><h5 class="modal-title fs-6 fw-semibold">Ganti kata sandi</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="mb-3"><label class="form-label">Kata sandi lama</label><input type="password" name="password_lama" class="form-control" required></div>
+                <div class="mb-3"><label class="form-label">Kata sandi baru</label><input type="password" name="password" class="form-control" minlength="8" required><div class="form-text">Minimal 8 karakter.</div></div>
+                <div class="mb-1"><label class="form-label">Ulangi kata sandi baru</label><input type="password" name="password_confirmation" class="form-control" required></div>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button><button class="btn btn-primary">Simpan</button></div>
+        </form>
+    </div>
+</div>
+
+
+<div class="modal fade" id="modalKonfirmasi" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:400px">
+        <div class="modal-content p-2">
+            <div class="modal-body">
+                <h5 class="fw-bold fs-5 mb-2" id="konfJudul">Lanjutkan?</h5>
+                <p class="text-secondary mb-0" id="konfPesan"></p>
+            </div>
+            <div class="modal-footer border-0 pt-0"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button><button type="button" id="konfOk" class="btn btn-primary">Ya</button></div>
+        </div>
+    </div>
+</div>
+
+<script>window.__errors = []; window.__bukaModalPassword = false;</script>
+<script>
+    (() => { const j = document.getElementById('jenisKontrak'); const atur = () => document.querySelectorAll('.akhir-kontrak').forEach(e => e.style.display = j.value === 'PKWTT' ? 'none' : ''); j.addEventListener('change', atur); atur(); })();
+</script>
+</body>
+</html>
