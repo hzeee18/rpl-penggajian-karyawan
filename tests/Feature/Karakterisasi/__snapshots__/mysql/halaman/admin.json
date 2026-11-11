@@ -37,7 +37,7 @@
         "ke": "http://localhost:8000/roles?role=2"
     },
     "/menus": {
-        "status": 200,
+        "status": 403,
         "tipe": "text/html"
     },
     "/departemen": {
