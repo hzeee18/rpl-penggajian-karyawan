@@ -216,3 +216,19 @@ Cara menjalankan test:
 php artisan test                                      # SQLite :memory: (cepat)
 php artisan test --configuration=phpunit.mysql.xml    # MySQL penggajian_test (generated column, CHECK, perilaku MySQL)
 ```
+
+## 10. Tambahan setelah AGENTS.md diperbarui (Fase 1a, 2026-11-11)
+
+- **Pembaruan kebijakan §6 butir 3**: AGENTS.md sekarang mewajibkan scope tenant di **semua** model, termasuk model lama. Kalimat "scope hanya di model baru" di §6/§9 tidak berlaku lagi.
+- **Klasifikasi tabel** (dipakai migration Fase 1a):
+  - Bertenant (`company_id`, 21 tabel): `users`, `roles`, `privileges`, `karyawan`, `departemen`, `departemen_manager`, `kontrak`, `kontrak_komponen`, `attendance`, `leave`, `overtime`, `notifikasi`, `approval`, `approval_mapping`, `log_aktivitas`, `import_excel`, `payslip_component`, `master_payroll`, `payroll`, `payroll_detail`, `payslip`.
+    `users`, `roles`, `privileges` tetap boleh `company_id NULL` (level platform / Super Admin).
+  - Global: `menus` (sesuai `docs/schema.sql`).
+  - Nasional: `golongan_ter`, `pajak`, `tarif_ter` (tanpa kolom `company_id`).
+  - Infrastruktur Laravel: tidak bertenant.
+- **Unique index yang diganti per perusahaan**: `roles.nama` (via `company_key`), `departemen.kode`, `karyawan.nik`, `kontrak.nomor`, `master_payroll.periode`, `payroll.periode`. `users.username` tetap global.
+- **Temuan untuk fase 1c/1d** (belum diperbaiki):
+  - Menu "Pajak & Tarif TER" saat ini bisa diubah HR (`privileges` HR = vcud). Bila tabel TER nasional hanya boleh diubah Super Admin, hak HR berubah. Ini **perubahan perilaku lama** dan perlu keputusan.
+  - Validasi controller lama masih unique global (mis. `unique:karyawan,nik`), lebih ketat dari DB. Akan diaudit di 1c.
+  - `Kontrak::buatNomor()` menghitung urutan dari semua kontrak (lintas perusahaan). Perlu dibatasi per perusahaan di 1c.
+- `docs/schema.sql` mendefinisikan `roles.company_key` sebagai STORED. Migration memakai VIRTUAL karena kolom STORED tidak bisa ditambah lewat ALTER di SQLite (unique index tetap berfungsi sama).
