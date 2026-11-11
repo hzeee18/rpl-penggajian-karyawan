@@ -406,3 +406,47 @@ php artisan test --configuration=phpunit.mysql.xml    # MySQL penggajian_test (g
 - File di disk privat `payslips/{company_id}/{run_id}/{nomor}.pdf`; tanda tangan di `signatures/{company_id}/` (diunggah Super Admin di menu Perusahaan).
 - Akses: karyawan hanya slip miliknya (`employee_id = users.karyawan_id`), user dengan hak lihat Generate Payroll (HR) melihat slip perusahaannya; slip perusahaan lain 404.
 - Tes: `SlipTest` (7), tes kebocoran mencakup slip & unduh perusahaan lain.
+
+## 24. Fase 8: seed data demo dan uji akhir (2026-11-11)
+
+- `PayrollDemoSeeder` (manual: `php artisan db:seed --class=PayrollDemoSeeder`; tidak masuk `DatabaseSeeder`, tidak menghapus data, menolak berjalan dua kali). Butuh data `DatabaseSeeder` (role perusahaan DEFAULT sebagai templat).
+  - Perusahaan **DEMOA** (PT Demo Sejahtera, 12 karyawan, cut off lintas bulan 26–25) dan **DEMOB** (PT Contoh Makmur, 10 karyawan, cut off kalender). Role Admin/HR/Manager/Karyawan, menu payroll baru aktif. Login: `hr.demoa`, `manager.demoa`, `admin.demoa`, `staf.demoa` (dan `.demob`), password `password`. Approver HR = manager perusahaannya.
+  - 2 departemen, 2 jabatan, kontrak aktif dengan nilai berbeda per karyawan, 4 tipe leave (termasuk `sakit_bersurat`), absensi/leave/lembur Sep–Nov 2026 dengan alpha, terlambat, lembur hari kerja dan akhir pekan.
+  - Master "Payroll Usual" **berbeda**: DEMOA uang makan `kontrak / 22 × (hadir + cuti)`, potongan alpha, lembur Rp25.000/jam, BPJS dari kontrak; DEMOB lembur 1,5×/2× upah per jam (pembagi 173, hari kerja vs akhir pekan/libur), potongan terlambat Rp20.000/jam, tunjangan transport dari kontrak.
+  - **Libur nasional 2026**: hanya yang bertanggal tetap (1 Jan, 1 Mei, 1 Jun, 17 Agu, 25 Des). Libur keagamaan/lunar mengikuti SKB 3 Menteri dan **harus ditambahkan HR**; tanggalnya tidak dikarang.
+  - File contoh import: `database/seeders/data/contoh_import/{absensi,leave,lembur}_{valid,error}.csv` (NIK perusahaan DEMOA, periode Desember 2026).
+- **TER/PTKP**: `database/seeders/data/ter_pph21.csv` **belum ada**, jadi tabel TER dan komponen PPh21 dilewati (seeder memberi peringatan). Format yang dibaca seeder:
+  ```
+  tabel,kunci,batas_bawah,batas_atas,hasil_angka,hasil_teks
+  kategori_ptkp,TK/0,,,,A            <- status PTKP -> kategori TER
+  ter_bulanan,A,0,5400000,0,          <- kategori, rentang bruto, tarif (desimal, mis. 0.0025 untuk 0,25%)
+  ```
+  (baris di atas hanya contoh format; angkanya wajib dari PP 58/2023 / PMK 168/2023). Bila file tersedia, seeder membuat tabel nasional `ter_bulanan` dan `kategori_ptkp` lalu memasang komponen PPh21 `ROUND(gross_taxable * LOOKUP('ter_bulanan', LOOKUP_TEXT('kategori_ptkp', ptkp_status), gross_taxable))`.
+- Tes: `PayrollDemoSeederTest` (3): data dua perusahaan, isolasi, aturan berbeda per perusahaan dihitung ulang dari snapshot variabel, jalur dengan file TER (berisi angka uji fiktif di file sementara).
+
+## 25. Ringkasan akhir dan yang menunggu pemilik
+
+### Migration yang belum dijalankan di DB dev (urut)
+| Migration | Ubah data lama? |
+|---|---|
+| `2026_11_12_000001_super_admin_dan_menu_perusahaan` | Ya (hak Pajak HR, role/menu baru) |
+| `2026_11_12_000002_company_id_not_null` | Tidak |
+| `2026_11_13_000001_create_pay_master_tables` | Tidak |
+| `2026_11_13_000002_add_payroll_columns_to_karyawan` | Ya (kolom baru `bank_account_no` diisi terenkripsi dari `no_rekening`) |
+| `2026_11_13_000003_menu_payroll_baru` | Menu baru saja |
+| `2026_11_14_000001_create_pay_contracts_tables` | Tidak |
+| `2026_11_15_000001_create_pay_attendance_tables` | Tidak |
+| `2026_11_16_000001_create_pay_reference_and_master_tables` | Tidak |
+| `2026_11_17_000001_create_pay_runs_tables` | Ya (`users.approver_user_id` isi awal) |
+| `2026_11_18_000001_create_pay_payslips_table` | Tidak |
+
+Semua diuji up → rollback → up di DB `penggajian_test` berisi data. Saran: backup lalu jalankan sekaligus, kemudian `php artisan payroll:aktifkan DEFAULT` bila modul baru ingin dicoba di perusahaan DEFAULT, dan `php artisan super-admin:buat {username}` untuk akun Super Admin. Queue: `php artisan queue:work --tries=1 --timeout=0` (preview, generate, slip berjalan di background).
+
+### Keputusan yang menunggu
+1. **File `ter_pph21.csv`** (format di §24) dari peraturan resmi.
+2. **Manajemen Menu** global masih bisa diubah Admin tiap perusahaan (§16). Usul: khusus Super Admin.
+3. **Import karyawan** di modul baru tidak dibuat; data inti karyawan tetap dari modul lama (§20).
+4. **Approver untuk Manager HR** yang membuat payroll (§22).
+5. **Libur keagamaan 2026** diisi HR dari SKB 3 Menteri (§24).
+6. **Modul payroll lama**: masih aktif berdampingan; dinonaktifkan setelah modul baru diterima (lewat hak akses menu, tanpa menghapus kode/data).
+7. Tambahan di luar `docs/schema.sql` yang perlu disetujui: `pay_payslips.note`, `company_id` di tabel anak (`pay_contract_components`, `pay_import_batch_rows`, versi/baris referensi, variabel/parameter/item), `roles.company_key` VIRTUAL.
