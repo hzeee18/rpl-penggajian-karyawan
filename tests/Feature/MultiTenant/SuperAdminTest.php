@@ -121,6 +121,23 @@ final class SuperAdminTest extends TestCase
         $this->actingAs(User::withoutGlobalScope(CompanyScope::class)->where('username', 'admin')->firstOrFail())->post("/perusahaan/{$pta->id}/admin", ['admin_username' => 'x.pta'])->assertForbidden();
     }
 
+    public function test_perusahaan_baru_tetap_bisa_dibuat_tanpa_templat_default(): void
+    {
+        $super = $this->buatSuperAdmin();
+        Company::where('code', 'DEFAULT')->update(['code' => 'LAMA']); // seperti DEFAULT sudah dihapus
+
+        $this->actingAs($super)->post('/perusahaan', ['code' => 'PTN', 'name' => 'PT Nol', 'admin_username' => 'admin.ptn',
+            'admin_password' => 'rahasia123', 'admin_password_confirmation' => 'rahasia123'])->assertSessionHasNoErrors();
+        $ptn = Company::where('code', 'PTN')->firstOrFail();
+        $this->assertEqualsCanonicalizing([Role::ADMIN, Role::HR, Role::MANAGER, Role::KARYAWAN], DB::table('roles')->where('company_id', $ptn->id)->pluck('nama')->all());
+
+        $this->post('/logout');
+        $this->post('/login', ['username' => 'admin.ptn', 'password' => 'rahasia123'])->assertRedirect('/dashboard');
+        $this->get('/dashboard')->assertOk();
+        $this->get('/users')->assertOk();
+        $this->get('/pay/master')->assertOk();
+    }
+
     public function test_perusahaan_baru_langsung_memakai_payroll_baru(): void
     {
         $super = $this->buatSuperAdmin();

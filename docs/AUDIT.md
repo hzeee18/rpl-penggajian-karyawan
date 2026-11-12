@@ -605,3 +605,12 @@ Permintaan pemilik: hapus seluruh data transaksi untuk QA manual dari awal, tanp
 - Dihapus: semua transaksi payroll baru (absensi/leave/lembur, import, run, slip, riwayat pajak), kontrak payroll, master payroll; transaksi modul lama (absensi, cuti, lembur, kontrak, payroll, slip, approval, import); notifikasi, log aktivitas, audit log, sesi, cache, antrean; tabel referensi milik perusahaan; seluruh karyawan; perusahaan MTS beserta user, role, privilege, dan master datanya.
 - Tetap: menu (42), DEFAULT dengan role/privilege dan 15 user (tautan ke karyawan dikosongkan), departemen DEFAULT (manager dikosongkan), Super Admin, tabel nasional TER & PTKP, tabel pajak lama.
 - Akibat: semua user perlu login ulang; user DEFAULT belum terhubung ke karyawan sehingga Manager HR belum dikenali sebagai HR sampai karyawan dan manager departemen diisi ulang. `/absensi` untuk akun tanpa karyawan kini menampilkan pesan, bukan 404.
+
+## 39. Perusahaan DEFAULT ikut dihapus (2026-11-12)
+
+Permintaan pemilik: perusahaan DEFAULT juga dihapus semua (lanjutan §38). Database dev kini hanya berisi Super Admin, menu, dan tabel nasional TER/PTKP.
+
+- Kode: `BuatPerusahaan` tidak lagi bergantung pada DEFAULT. Bila templat DEFAULT tidak ada, perusahaan baru mendapat role Admin, HR, Manager, Karyawan dengan hak menu umum dari `BuatPerusahaan::ROLE_BAWAAN`. Hak payroll baru, HR, Admin, dan Super Admin tetap dipasang `AlihkanKePayrollBaru`. Approval mapping lama tidak dibuat (hanya dipakai modul lama). Test: `SuperAdminTest::test_perusahaan_baru_tetap_bisa_dibuat_tanpa_templat_default`.
+- Dev: semua baris ber-`company_id` milik DEFAULT dihapus (user, role, privilege, departemen, approval mapping, master_payroll lama), lalu baris `companies`. Backup sebelum: `penggajian_karyawan-sebelum-hapus-default-20261112-155449.sql`.
+- **Temuan:** sebagian hak Super Admin (users, roles, menus, departemen, pajak, pay-*) ternyata tersimpan dengan `company_id` DEFAULT, bukan NULL. Kemungkinan dari backfill Fase 1a, atau dari baris yang dibuat sebelum role Super Admin ada. Baris itu ikut terhapus bersama DEFAULT, lalu dipasang ulang dengan `PasangHakPlatform` (`company_id` NULL). Kini 11 hak Super Admin, semuanya `company_id` NULL. Di instalasi lain yang masih punya DEFAULT, hak itu tetap berfungsi (cekAkses tanpa scope), hanya penandaannya keliru.
+- Seeder (`DatabaseSeeder`, `PayrollDemoSeeder`) masih memakai DEFAULT sebagai perusahaan instalasi; tidak diubah. Untuk mengisi data dummy: buat perusahaan dari menu Company, lalu `php artisan payroll:isi-data {kode}`.
