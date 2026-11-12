@@ -43,6 +43,21 @@ final class PasangMenuPayroll
         'pay-slip' => ['Slip Gaji Payroll', 'file-text', ['Karyawan' => 'v', 'Manager' => 'v', 'HR' => 'v']],
     ];
 
+    /**
+     * Alamat halaman untuk url menu. Kunci hak akses modul ini memakai tanda hubung (`pay-karyawan`),
+     * sedangkan halamannya berada di bawah prefix `/pay` (`pay/karyawan`). Url menu lain tidak berubah.
+     */
+    public static function alamat(string $url): string
+    {
+        return isset(self::MENU[$url]) ? 'pay/'.substr($url, 4) : $url;
+    }
+
+    /** Kebalikan alamat(): url menu dari segmen path `pay/{segmen}`, null bila bukan halaman modul ini. */
+    public static function menuDariSegmen(?string $segmen): ?string
+    {
+        return $segmen !== null && isset(self::MENU['pay-'.$segmen]) ? 'pay-'.$segmen : null;
+    }
+
     public function handle(): void
     {
         $now = now();

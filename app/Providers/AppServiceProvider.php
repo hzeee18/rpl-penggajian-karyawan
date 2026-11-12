@@ -66,7 +66,9 @@ class AppServiceProvider extends ServiceProvider
 
             // menu aktif: segmen pertama URL (cuti/lembur yang disembunyikan ikut ke absensi)
             $segmen = request()->segment(1);
-            $aktif = $induk[$segmen] ?? $segmen;
+            $aktif = $segmen === 'pay'
+                ? \App\Domain\Payroll\Actions\PasangMenuPayroll::menuDariSegmen(request()->segment(2))
+                : ($induk[$segmen] ?? $segmen);
 
             $view->with('sidebarUtama', $menus->whereNotNull('url'))
                 ->with('sidebarGrup', $menus->whereNull('url'))

@@ -29,6 +29,12 @@ class Menu extends Model
         return $q->where(fn ($w) => $w->whereNull('url')->orWhereNotIn('url', \App\Domain\Company\Actions\PasangHakPlatform::MENU_PLATFORM));
     }
 
+    /** Alamat halaman menu (menu Payroll Baru `pay-x` berada di `/pay/x`; menu lama sama dengan url). */
+    public function alamat(): string
+    {
+        return \App\Domain\Payroll\Actions\PasangMenuPayroll::alamat((string) $this->url);
+    }
+
     public function isPlatform(): bool
     {
         return in_array($this->url, \App\Domain\Company\Actions\PasangHakPlatform::MENU_PLATFORM, true);

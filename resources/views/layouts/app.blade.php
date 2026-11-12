@@ -40,14 +40,14 @@
 
         <div class="nav-label">Menu {{ $labelRole }}</div>
         @foreach ($sidebarUtama as $menu)
-            <a href="{{ url($menu->url) }}" class="nav-item-link {{ $menuAktif === $menu->url ? 'active' : '' }}">
+            <a href="{{ url($menu->alamat()) }}" class="nav-item-link {{ $menuAktif === $menu->url ? 'active' : '' }}">
                 <i data-lucide="{{ $menu->icon ?? 'circle' }}"></i> {{ $menu->nama }}
             </a>
         @endforeach
         @foreach ($sidebarGrup as $grup)
             <div class="nav-label">{{ $grup->nama }}</div>
             @foreach ($grup->children as $child)
-                <a href="{{ url($child->url) }}" class="nav-item-link {{ $menuAktif === $child->url ? 'active' : '' }}">
+                <a href="{{ url($child->alamat()) }}" class="nav-item-link {{ $menuAktif === $child->url ? 'active' : '' }}">
                     <i data-lucide="{{ $child->icon ?? 'circle' }}"></i> {{ $child->nama }}
                 </a>
             @endforeach

@@ -22,7 +22,7 @@ class CariController extends Controller
         // Menu yang boleh dibuka
         $menu = Menu::whereNotNull('url')->where('nama', 'like', "%$q%")->orderBy('urutan')->get()
             ->filter(fn ($m) => $user->bisa($m->url))->take(4)
-            ->map(fn ($m) => ['judul' => $m->nama, 'sub' => 'Menu', 'ikon' => $m->icon ?: 'circle', 'url' => url($m->url)])->values();
+            ->map(fn ($m) => ['judul' => $m->nama, 'sub' => 'Menu', 'ikon' => $m->icon ?: 'circle', 'url' => url($m->alamat())])->values();
         if ($menu->isNotEmpty()) {
             $grup[] = ['nama' => 'Menu', 'item' => $menu];
         }

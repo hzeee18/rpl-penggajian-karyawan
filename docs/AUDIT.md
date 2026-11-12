@@ -474,3 +474,10 @@ Tes baru: `KeputusanAksesTest` (2). `PayrollDemoSeederTest` jalur "TER belum ada
 - TER: pemilik memilih tabel **nasional**. Logika dipindah dari `PayrollDemoSeeder` ke `TerPph21Seeder` (idempoten, dipakai ulang demo). Dijalankan di DB dev: `ter_bulanan` 125 lapisan, `kategori_ptkp` 8 baris (company_id NULL). Contoh pemakaian di rumus: `ROUND(gross_taxable * LOOKUP('ter_bulanan', LOOKUP_TEXT('kategori_ptkp', ptkp_status), gross_taxable))`.
 - Seeder data perusahaan baru (permintaan pemilik): `DataPerusahaanSeeder` + `php artisan payroll:isi-data {kode} [--karyawan=12]` untuk perusahaan yang sudah dibuat dan masih kosong. Mengisi hak menu payroll, cut off kalender, libur tetap 2026, tipe leave, jabatan, 2 departemen, karyawan, user admin/hr/manager/staf.{kode} (password `password`, approver HR = Manager), 9 komponen, kontrak aktif, absensi/leave/lembur periode lalu dan berjalan. **Tanpa master/rumus.** Menolak bila perusahaan sudah berisi karyawan/departemen atau username contoh sudah dipakai. `PayrollDemoSeeder` memakai kelas yang sama (perilaku demo dan tesnya tetap). Tes: `DataPerusahaanSeederTest`.
 - Catatan lingkungan: `php` di PATH Git Bash adalah PHP 8.5 tanpa pdo_sqlite; test dan server dijalankan dengan PHP Laragon 8.4.27.
+
+## 28. Perbaikan: tautan menu Payroll Baru 404 (2026-11-12)
+
+- Gejala (dilaporkan pemilik): semua menu grup Payroll Baru membuka halaman tidak ditemukan.
+- Penyebab (bug Fase 2-7): sidebar membuat tautan `url($menu->url)`, sehingga menu `pay-karyawan` mengarah ke `/pay-karyawan`, padahal halamannya di `/pay/karyawan`. Url menu dipakai juga sebagai kunci hak akses (`akses:pay-karyawan`), jadi data menu tidak diubah.
+- Perbaikan: `PasangMenuPayroll::alamat()` / `Menu::alamat()` (url `pay-x` dari daftar MENU menjadi `pay/x`; url menu lain tetap) dipakai di sidebar `layouts/app.blade.php` dan pencarian `CariController`; penanda menu aktif untuk `/pay/{x}` di `AppServiceProvider`. Menu lama tidak berubah (snapshot karakterisasi tetap).
+- Tes: `MenuSidebarTest` membuka setiap tautan sidebar untuk setiap role (termasuk Super Admin) dan memastikan semua 17 menu Payroll Baru terbuka.
