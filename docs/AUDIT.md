@@ -614,3 +614,14 @@ Permintaan pemilik: perusahaan DEFAULT juga dihapus semua (lanjutan §38). Datab
 - Dev: semua baris ber-`company_id` milik DEFAULT dihapus (user, role, privilege, departemen, approval mapping, master_payroll lama), lalu baris `companies`. Backup sebelum: `penggajian_karyawan-sebelum-hapus-default-20261112-155449.sql`.
 - **Temuan:** sebagian hak Super Admin (users, roles, menus, departemen, pajak, pay-*) ternyata tersimpan dengan `company_id` DEFAULT, bukan NULL. Kemungkinan dari backfill Fase 1a, atau dari baris yang dibuat sebelum role Super Admin ada. Baris itu ikut terhapus bersama DEFAULT, lalu dipasang ulang dengan `PasangHakPlatform` (`company_id` NULL). Kini 11 hak Super Admin, semuanya `company_id` NULL. Di instalasi lain yang masih punya DEFAULT, hak itu tetap berfungsi (cekAkses tanpa scope), hanya penandaannya keliru.
 - Seeder (`DatabaseSeeder`, `PayrollDemoSeeder`) masih memakai DEFAULT sebagai perusahaan instalasi; tidak diubah. Untuk mengisi data dummy: buat perusahaan dari menu Company, lalu `php artisan payroll:isi-data {kode}`.
+
+## 40. Super Admin hanya Dashboard & Perusahaan; Admin perusahaan mengelola semuanya (2026-11-12)
+
+Keputusan pemilik (mengganti sebagian §34): Super Admin hanya mengakses Dashboard dan Perusahaan, dan dari sana membuat perusahaan beserta akun Admin-nya. **Admin perusahaan mendapat semua akses kecuali Perusahaan.**
+
+- `PasangHakPlatform::HAK_SUPER_ADMIN` = dashboard (v), perusahaan (vcud). `handle()` mencabut hak Super Admin lain yang pernah dipasang (users, roles, menus, pajak, departemen, pay-jabatan, pay-tipe-leave, pay-cutoff, pay-referensi). Diterapkan di dev.
+- Jabatan, Departemen, Tipe Leave, Cut Off, Tabel Referensi kini dikelola **Admin perusahaan** (hak sudah ada lewat `AlihkanKePayrollBaru::hakAdmin()`, §35). HR tetap tidak punya menu itu (§34).
+- Tombol "Pilih" / "Keluar dari perusahaan aktif" dihapus dari halaman Perusahaan dan dashboard Super Admin. Route pilih/keluar dan middleware `perlu-perusahaan` dibiarkan sebagai cadangan.
+- **Perlu diketahui pemilik:**
+  - **Manajemen Menu** tidak diberikan ke Admin perusahaan. Tabel `menus` dipakai bersama semua perusahaan, jadi perubahan oleh satu Admin akan mengubah menu perusahaan lain. Susunan menu diatur kode (`TataMenu`), sehingga saat ini tidak ada role yang membuka menu ini.
+  - **Tabel nasional TER/PTKP** (company_id NULL) hanya bisa diubah Super Admin, dan Super Admin kini tidak punya menu Tabel Referensi. Perubahan tarif nasional dilakukan lewat file `database/seeders/data/ter_pph21.csv` lalu `TerPph21Seeder`. Admin perusahaan tetap bisa melihat dan memakai tabel nasional, dan membuat tabel referensi milik perusahaannya sendiri.

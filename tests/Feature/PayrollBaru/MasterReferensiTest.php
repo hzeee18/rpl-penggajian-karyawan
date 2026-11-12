@@ -119,11 +119,9 @@ final class MasterReferensiTest extends TestCase
 
     public function test_tabel_referensi_perusahaan_dan_nasional(): void
     {
-        // Tabel Referensi dikelola Super Admin dengan perusahaan terpilih (AUDIT.md §34); HR tidak punya menu ini
+        // Tabel Referensi dikelola Admin perusahaan (AUDIT.md §40); HR tidak punya menu ini
         $this->actingAs($this->hr)->get('/pay/referensi')->assertForbidden();
-        $this->artisan('super-admin:buat', ['username' => 'super', '--password' => 'rahasia123'])->assertSuccessful();
-        $super = User::withoutGlobalScope(\App\Domain\Company\Tenancy\CompanyScope::class)->where('username', 'super')->firstOrFail();
-        $sa = fn () => $this->actingAs($super)->withSession([CurrentCompany::SESSION_KEY => (int) $this->hr->company_id]);
+        $sa = fn () => $this->actingAs(User::where('username', 'admin')->firstOrFail());
 
         $sa()->post('/pay/referensi', ['code' => 'tarif_lembur', 'name' => 'Tarif lembur'])->assertSessionHasNoErrors();
         $versi = ReferenceTableVersion::latest('id')->firstOrFail();

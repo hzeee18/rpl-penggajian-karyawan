@@ -10,8 +10,9 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Data master per perusahaan yang dikelola Super Admin (AUDIT.md §34): Super Admin harus memilih perusahaan
- * dulu di menu Perusahaan, karena datanya milik satu perusahaan. User perusahaan tidak terpengaruh.
+ * Pengaman halaman data master perusahaan: bila diakses akun platform (Super Admin) tanpa perusahaan terpilih,
+ * arahkan ke menu Perusahaan. Sejak AUDIT.md §40 Super Admin tidak punya hak menu ini (dikelola Admin perusahaan),
+ * jadi lapisan ini hanya cadangan bila hak diberikan lagi. User perusahaan tidak terpengaruh.
  */
 final class PerluPerusahaan
 {

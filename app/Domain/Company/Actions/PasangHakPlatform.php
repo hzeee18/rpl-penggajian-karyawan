@@ -23,15 +23,12 @@ final class PasangHakPlatform
     /** Menu khusus Super Admin: tidak bisa diberikan ke role perusahaan dan tidak tampil di Manajemen Menu perusahaan. */
     public const MENU_PLATFORM = [self::MENU_PERUSAHAAN];
 
-    /** url menu => hak (v c u d a). Menu yang belum ada dilewati. */
-    private const HAK_SUPER_ADMIN = [
-        'dashboard' => 'v', 'perusahaan' => 'vcud', 'pajak' => 'vcud', 'users' => 'vcud', 'roles' => 'vcud', 'menus' => 'vcud',
-        // data master per perusahaan yang dikelola Super Admin (keputusan pemilik, AUDIT.md §34); perusahaan dipilih dulu
-        'departemen' => 'vcud', 'pay-jabatan' => 'vcud', 'pay-tipe-leave' => 'vcud', 'pay-cutoff' => 'vu', 'pay-referensi' => 'vcud',
-    ];
-
-    /** Menu yang butuh perusahaan terpilih bila dibuka Super Admin (middleware perlu-perusahaan). */
-    public const MENU_MASTER_SUPER_ADMIN = ['departemen', 'pay-jabatan', 'pay-tipe-leave', 'pay-cutoff', 'pay-referensi'];
+    /**
+     * url menu => hak (v c u d a). Menu yang belum ada dilewati. Keputusan pemilik (AUDIT.md §40): Super Admin hanya
+     * Dashboard dan Perusahaan (membuat perusahaan + akun Admin-nya); isi perusahaan dikelola Admin perusahaan.
+     * Hak Super Admin lain yang pernah dipasang dicabut oleh handle().
+     */
+    public const HAK_SUPER_ADMIN = ['dashboard' => 'v', 'perusahaan' => 'vcud'];
 
     public function handle(): int
     {
@@ -59,6 +56,11 @@ final class PasangHakPlatform
                 ],
             );
         }
+
+        // cabut hak Super Admin di luar HAK_SUPER_ADMIN (dulu: users, roles, menus, pajak, data master; AUDIT.md §40)
+        DB::table('privileges')->where('role_id', $roleId)
+            ->whereNotIn('menu_id', DB::table('menus')->whereIn('url', array_keys(self::HAK_SUPER_ADMIN))->pluck('id'))
+            ->update(['can_view' => false, 'can_create' => false, 'can_update' => false, 'can_delete' => false, 'can_approve' => false, 'updated_at' => $now]);
 
         // HR semua perusahaan: Pajak & Tarif TER hanya lihat (keputusan AUDIT.md §11 butir 2)
         $pajak = DB::table('menus')->where('url', 'pajak')->value('id');

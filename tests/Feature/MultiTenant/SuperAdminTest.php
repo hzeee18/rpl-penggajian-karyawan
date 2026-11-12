@@ -47,29 +47,22 @@ final class SuperAdminTest extends TestCase
             ->assertSee('DEFAULT')->assertSee('grafikKaryawan')->assertDontSee('Rizky Maulana');
         $this->get('/perusahaan')->assertOk()->assertSee('DEFAULT');
 
-        $this->get('/users')->assertOk()->assertDontSee('rizky');
+        $this->get('/users')->assertForbidden();
         $this->get('/karyawan')->assertForbidden();
     }
 
-    public function test_memilih_perusahaan_lalu_bekerja_di_perusahaan_itu_saja(): void
+    public function test_super_admin_hanya_dashboard_dan_perusahaan(): void
     {
         $super = $this->buatSuperAdmin();
-        $b = $this->perusahaanLain('B', [Role::ADMIN]);
         $default = Company::where('code', 'DEFAULT')->firstOrFail();
 
-        // daftar user berhalaman: cari lewat ?q=, lalu cek nama karyawan di baris (kata kunci ikut tampil di kotak cari)
-        $this->actingAs($super)->post("/perusahaan/{$default->id}/pilih")->assertRedirect();
-        $this->get('/users?q=rizky')->assertOk()->assertSee('Rizky Maulana');
-        $this->get('/users?q=admin.b')->assertOk()->assertDontSee('admin.b</', false);
-        $this->get('/perusahaan')->assertSee('Super Admin · DEFAULT');
-
-        $this->post("/perusahaan/{$b['company']->id}/pilih");
-        $this->get('/users?q=admin.b')->assertOk()->assertSee('admin.b</', false);
-        $this->get('/users?q=rizky')->assertOk()->assertDontSee('Rizky Maulana');
-
-        $this->post('/perusahaan/keluar');
-        $this->get('/users?q=rizky')->assertOk()->assertDontSee('Rizky Maulana');
-        $this->get('/users?q=admin.b')->assertOk()->assertDontSee('admin.b</', false);
+        // keputusan pemilik (AUDIT.md §40): isi perusahaan dikelola Admin perusahaan, bukan Super Admin
+        $html = $this->actingAs($super)->get('/perusahaan')->assertOk()->assertDontSee('>Pilih</button>', false)->getContent();
+        preg_match_all('#<a href="https?://[^/"]+/([^"]*)" class="nav-item-link#', $html, $m);
+        $this->assertEqualsCanonicalizing(['dashboard', 'perusahaan'], array_values(array_unique($m[1])));
+        foreach (['/users', '/roles', '/menus', '/karyawan', '/departemen', '/pay/jabatan', '/pay/referensi', '/pajak'] as $url) {
+            $this->actingAs($super)->withSession([\App\Domain\Company\Tenancy\CurrentCompany::SESSION_KEY => (int) $default->id])->get($url)->assertForbidden();
+        }
     }
 
     public function test_perusahaan_baru_mendapat_role_hak_akses_dan_approval_bawaan(): void
@@ -161,7 +154,7 @@ final class SuperAdminTest extends TestCase
         $hr = User::where('username', 'hr')->firstOrFail();
         $admin = User::where('username', 'admin')->firstOrFail();
 
-        $this->assertTrue($super->bisa('pajak', 'update'));
+        $this->assertFalse($super->bisa('pajak'), 'Super Admin hanya Dashboard & Perusahaan (AUDIT.md §40)');
         $this->assertTrue($hr->bisa('pajak'));
         $this->assertFalse($hr->bisa('pajak', 'update'), 'tabel TER nasional hanya diubah Super Admin');
         $this->actingAs($hr)->put('/pajak/tarif/'.DB::table('tarif_ter')->value('id'), [])->assertForbidden();

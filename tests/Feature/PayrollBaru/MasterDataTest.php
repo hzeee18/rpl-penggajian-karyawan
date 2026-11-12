@@ -31,30 +31,22 @@ final class MasterDataTest extends TestCase
         $this->hr = User::where('username', 'hr')->firstOrFail();
     }
 
-    /** Jabatan, Tipe Leave, Cut Off dikelola Super Admin dengan perusahaan terpilih (AUDIT.md §34). */
-    private function superAdmin(): static
+    /** Jabatan, Tipe Leave, Cut Off, Departemen, Tabel Referensi dikelola Admin perusahaan (AUDIT.md §40). */
+    private function admin(): static
     {
-        $this->artisan('super-admin:buat', ['username' => 'super', '--password' => 'rahasia123'])->assertSuccessful();
-        $super = User::withoutGlobalScope(\App\Domain\Company\Tenancy\CompanyScope::class)->where('username', 'super')->firstOrFail();
-
-        return $this->actingAs($super)->withSession([\App\Domain\Company\Tenancy\CurrentCompany::SESSION_KEY => (int) $this->hr->company_id]);
+        return $this->actingAs(User::where('username', 'admin')->firstOrFail());
     }
 
-    public function test_master_tertentu_dikelola_super_admin_bukan_hr(): void
+    public function test_master_tertentu_dikelola_admin_bukan_hr(): void
     {
         foreach (['/pay/jabatan', '/pay/tipe-leave', '/pay/cutoff', '/pay/referensi', '/departemen'] as $url) {
             $this->actingAs($this->hr)->get($url)->assertForbidden();
+            $this->admin()->get($url)->assertOk();
         }
         foreach (['/pay/komponen', '/pay/libur', '/pay/kontrak', '/users'] as $url) {
             $this->actingAs($this->hr)->get($url)->assertOk();
         }
-        $this->superAdmin();
-        foreach (['/pay/jabatan', '/pay/tipe-leave', '/pay/cutoff', '/pay/referensi', '/departemen'] as $url) {
-            $this->get($url)->assertOk();
-        }
-        // tanpa perusahaan terpilih: diminta memilih dulu
-        $this->withSession([\App\Domain\Company\Tenancy\CurrentCompany::SESSION_KEY => null])->get('/pay/jabatan')
-            ->assertRedirect(route('perusahaan.index'))->assertSessionHas('gagal');
+        $this->admin()->get('/perusahaan')->assertForbidden();
     }
 
     public function test_menu_payroll_baru_tertutup_sampai_diaktifkan(): void
@@ -74,7 +66,7 @@ final class MasterDataTest extends TestCase
 
     public function test_jabatan_crud_unik_per_perusahaan_dan_hanya_dinonaktifkan(): void
     {
-        $this->superAdmin()->post('/pay/jabatan', ['code' => 'STF', 'name' => 'Staf', 'is_active' => 1])->assertSessionHasNoErrors();
+        $this->admin()->post('/pay/jabatan', ['code' => 'STF', 'name' => 'Staf', 'is_active' => 1])->assertSessionHasNoErrors();
         $this->from('/pay/jabatan')->post('/pay/jabatan', ['code' => 'STF', 'name' => 'Staf lagi'])->assertSessionHasErrors('code');
         $jabatan = Position::where('code', 'STF')->firstOrFail();
 
@@ -115,13 +107,13 @@ final class MasterDataTest extends TestCase
         $this->actingAs($this->hr)->delete("/pay/libur/{$id}");
         $this->assertDatabaseMissing('pay_holidays', ['id' => $id]);
 
-        $this->superAdmin()->post('/pay/tipe-leave', ['code' => 'sakit_bersurat', 'name' => 'Sakit dengan surat dokter', 'is_active' => 1])->assertSessionHasNoErrors();
+        $this->admin()->post('/pay/tipe-leave', ['code' => 'sakit_bersurat', 'name' => 'Sakit dengan surat dokter', 'is_active' => 1])->assertSessionHasNoErrors();
         $this->assertDatabaseHas('pay_leave_types', ['code' => 'sakit_bersurat', 'company_id' => $this->hr->company_id]);
     }
 
     public function test_cut_off_lintas_bulan_dan_kalender_bulanan(): void
     {
-        $this->superAdmin()->put('/pay/cutoff', ['start_day' => 26, 'end_day' => 25, 'start_in_previous_month' => 1])->assertSessionHasNoErrors();
+        $this->admin()->put('/pay/cutoff', ['start_day' => 26, 'end_day' => 25, 'start_in_previous_month' => 1])->assertSessionHasNoErrors();
         [$mulai, $selesai] = PeriodConfig::firstOrFail()->rentang('2026-11');
         $this->assertSame(['2026-10-26', '2026-11-25'], [$mulai->toDateString(), $selesai->toDateString()]);
         $this->assertSame(['2026-02-26', '2026-03-25'], array_map(fn ($d) => $d->toDateString(), PeriodConfig::firstOrFail()->rentang('2026-03')));

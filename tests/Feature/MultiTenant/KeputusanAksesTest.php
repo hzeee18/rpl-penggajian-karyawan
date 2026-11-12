@@ -26,7 +26,8 @@ final class KeputusanAksesTest extends TestCase
 
         $this->artisan('super-admin:buat', ['username' => 'super', '--password' => 'rahasia123']);
         $super = User::withoutGlobalScope(CompanyScope::class)->where('username', 'super')->firstOrFail();
-        $this->actingAs($super)->get('/menus')->assertOk()->assertSee('Manajemen Menu');
+        // Super Admin hanya Dashboard & Perusahaan (AUDIT.md §40); susunan menu diatur kode (TataMenu)
+        $this->actingAs($super)->get('/menus')->assertForbidden();
     }
 
     public function test_payroll_hanya_dibuat_role_hr_bukan_hak_warisan_manager_hr(): void

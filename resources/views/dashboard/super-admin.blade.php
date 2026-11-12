@@ -77,7 +77,6 @@
                     <td class="text-nowrap"><div class="d-inline-flex gap-2">
                         <a href="{{ route('perusahaan.index', ['admin' => $p->id]) }}" class="btn btn-light btn-icon" title="Akun Admin perusahaan"><i data-lucide="user-cog"></i></a>
                         <a href="{{ route('perusahaan.index', ['ubah' => $p->id]) }}" class="btn btn-light btn-icon" title="Ubah perusahaan"><i data-lucide="pencil"></i></a>
-                        @if ($p->aktif)<form method="post" action="{{ route('perusahaan.pilih', $p->id) }}">@csrf<button class="btn btn-outline-primary btn-sm">Pilih</button></form>@endif
                     </div></td>
                 </tr>
             @empty

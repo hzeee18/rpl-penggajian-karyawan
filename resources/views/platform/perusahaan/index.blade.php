@@ -2,10 +2,7 @@
 @section('title', 'Perusahaan')
 @section('breadcrumb', 'Platform / Perusahaan')
 @section('content')
-<x-page-header judul="Perusahaan" sub="Kelola perusahaan dan pilih perusahaan yang sedang dikerjakan.">
-    @if ($aktif)
-        <form method="post" action="{{ route('perusahaan.keluar') }}">@csrf<button class="btn btn-light"><i data-lucide="log-out"></i> Keluar dari perusahaan aktif</button></form>
-    @endif
+<x-page-header judul="Perusahaan" sub="Kelola perusahaan dan akun Admin-nya. Isi perusahaan dikelola Admin perusahaan.">
     <a href="{{ route('perusahaan.index', ['baru' => 1]) }}" class="btn btn-primary"><i data-lucide="plus"></i> Tambah Perusahaan</a>
 </x-page-header>
 
@@ -18,16 +15,13 @@
                 @forelse ($perusahaan as $p)
                     <tr class="{{ $ubah->id === $p->id ? 'terpilih' : '' }}">
                         <td class="kode">{{ $p->code }}</td>
-                        <td>{{ $p->name }}@if ($aktif === $p->id) <span class="badge badge-soft-primary">Aktif dikerjakan</span>@endif</td>
+                        <td>{{ $p->name }}</td>
                         <td class="text-center">{{ $karyawan[$p->id] ?? 0 }}</td>
                         <td class="text-center">{{ $pengguna[$p->id] ?? 0 }}</td>
                         <td>{!! badge_status($p->is_active ? 'aktif' : 'nonaktif') !!}</td>
                         <td class="text-nowrap"><div class="d-inline-flex gap-2">
                             <a href="{{ route('perusahaan.index', ['ubah' => $p->id]) }}" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>
                             <a href="{{ route('perusahaan.index', ['admin' => $p->id]) }}" class="btn btn-light btn-icon" title="Akun Admin perusahaan"><i data-lucide="user-cog"></i></a>
-                            @if ($p->is_active && $aktif !== $p->id)
-                                <form method="post" action="{{ route('perusahaan.pilih', $p) }}">@csrf<button class="btn btn-outline-primary btn-sm">Pilih</button></form>
-                            @endif
                         </div></td>
                     </tr>
                 @empty
