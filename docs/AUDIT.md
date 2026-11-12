@@ -596,3 +596,12 @@ Permintaan pemilik: dashboard Super Admin berisi kartu dan grafik (jumlah perusa
   - User aktif per role (bar), "Perlu Perhatian" (perusahaan aktif tanpa Admin, karyawan tanpa kontrak payroll, payroll menunggu approval).
   - Tabel per perusahaan (cari tanpa reload): karyawan, kontrak payroll, user aktif, jumlah Admin, payroll terakhir, status, aksi Admin/Ubah/Pilih.
 - Data lintas perusahaan diambil dengan `DB::table` agregat per `company_id` (sama seperti halaman Perusahaan): hanya angka, tanpa data pribadi karyawan. Dashboard perusahaan lain tidak berubah.
+
+## 38. Cleansing data dev untuk QA manual (2026-11-12)
+
+Permintaan pemilik: hapus seluruh data transaksi untuk QA manual dari awal, tanpa menghapus menu, Super Admin, dan data pokok. Jawaban pemilik: kontrak payroll **dihapus**; perusahaan **mulai kosong** (hanya Super Admin dan DEFAULT dengan user lamanya); master payroll & tabel referensi perusahaan **dihapus**.
+
+- Hanya database dev `penggajian_karyawan` (skrip menolak database lain). Backup sebelum: `penggajian_karyawan-sebelum-cleansing-qa-20261112-155105.sql`. PDF slip dipindah (bukan dihapus) ke `storage/app/private/backups/arsip-file-sebelum-cleansing-qa-20261112/`.
+- Dihapus: semua transaksi payroll baru (absensi/leave/lembur, import, run, slip, riwayat pajak), kontrak payroll, master payroll; transaksi modul lama (absensi, cuti, lembur, kontrak, payroll, slip, approval, import); notifikasi, log aktivitas, audit log, sesi, cache, antrean; tabel referensi milik perusahaan; seluruh karyawan; perusahaan MTS beserta user, role, privilege, dan master datanya.
+- Tetap: menu (42), DEFAULT dengan role/privilege dan 15 user (tautan ke karyawan dikosongkan), departemen DEFAULT (manager dikosongkan), Super Admin, tabel nasional TER & PTKP, tabel pajak lama.
+- Akibat: semua user perlu login ulang; user DEFAULT belum terhubung ke karyawan sehingga Manager HR belum dikenali sebagai HR sampai karyawan dan manager departemen diisi ulang. `/absensi` untuk akun tanpa karyawan kini menampilkan pesan, bukan 404.

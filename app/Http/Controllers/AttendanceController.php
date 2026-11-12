@@ -45,7 +45,9 @@ class AttendanceController extends Controller
     private function riwayatSayaPayrollBaru(Request $request)
     {
         $k = $request->user()->karyawan;
-        abort_unless($k, 404);
+        if (! $k) {
+            return view('absensi.tanpa-karyawan'); // akun belum dihubungkan ke data karyawan
+        }
         $periode = preg_match('/^\d{4}-\d{2}$/', (string) $request->input('periode')) ? $request->input('periode') : now()->format('Y-m');
         [$awal, $akhir] = \App\Domain\Payroll\KehadiranKaryawan::rentang($periode);
         ['rekap' => $rekap, 'baris' => $semua] = \App\Domain\Payroll\KehadiranKaryawan::untuk($k->id, $awal, $akhir);
