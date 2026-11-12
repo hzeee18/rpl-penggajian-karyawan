@@ -86,6 +86,22 @@ final class SuperAdminTest extends TestCase
         $this->assertSame(DB::table('approval_mapping')->where('company_id', $this->defaultId())->count(), DB::table('approval_mapping')->where('company_id', $baru->id)->count());
     }
 
+    public function test_perusahaan_baru_bisa_langsung_mengaktifkan_payroll_baru(): void
+    {
+        $super = $this->buatSuperAdmin();
+        $menuRun = DB::table('menus')->where('url', 'pay-run')->value('id');
+        $hakRun = fn (string $kode) => DB::table('privileges')->join('roles', 'roles.id', '=', 'privileges.role_id')
+            ->where('roles.company_id', Company::where('code', $kode)->value('id'))->where('roles.nama', Role::HR)
+            ->where('privileges.menu_id', $menuRun)->value('privileges.can_create');
+
+        $this->actingAs($super)->post('/perusahaan', ['code' => 'PTP', 'name' => 'PT Payroll', 'aktifkan_payroll' => '1'])->assertSessionHasNoErrors();
+        $this->actingAs($super)->post('/perusahaan', ['code' => 'PTL', 'name' => 'PT Lama', 'aktifkan_payroll' => '0'])->assertSessionHasNoErrors();
+
+        $this->assertTrue((bool) $hakRun('PTP'));
+        $this->assertNull($hakRun('PTL'));
+        $this->assertNull($hakRun('DEFAULT'), 'perusahaan lain tidak ikut berubah');
+    }
+
     public function test_hak_pajak_dan_menu_perusahaan(): void
     {
         $super = $this->buatSuperAdmin();

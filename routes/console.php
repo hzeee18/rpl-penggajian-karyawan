@@ -54,3 +54,24 @@ Artisan::command('payroll:aktifkan {kode : kode perusahaan}', function (string $
 
     return 0;
 })->purpose('Aktifkan menu payroll baru (hak akses bawaan) untuk satu perusahaan');
+
+Artisan::command('payroll:isi-data {kode : kode perusahaan yang sudah dibuat} {--karyawan=12 : jumlah karyawan contoh (4-50)}', function (string $kode) {
+    $company = \App\Domain\Company\Models\Company::where('code', $kode)->first();
+    if ($company === null) {
+        $this->error("Perusahaan {$kode} tidak ditemukan. Buat dulu lewat menu Perusahaan (Super Admin).");
+
+        return 1;
+    }
+    if (($alasan = \Database\Seeders\DataPerusahaanSeeder::alasanTolak($company)) !== null) {
+        $this->error($alasan.' Tidak ada yang diubah.');
+
+        return 1;
+    }
+    (new \Database\Seeders\TerPph21Seeder)->pasang(); // tabel TER nasional (bila file tersedia), idempoten
+    \Database\Seeders\DataPerusahaanSeeder::$kode = $kode;
+    \Database\Seeders\DataPerusahaanSeeder::$jumlah = (int) $this->option('karyawan');
+    $this->call('db:seed', ['--class' => \Database\Seeders\DataPerusahaanSeeder::class, '--force' => true]);
+    $this->line('Master payroll/rumus TIDAK dibuat: isi sendiri di menu Master Payroll (login HR).');
+
+    return 0;
+})->purpose('Isi data contoh lengkap (tanpa rumus) untuk satu perusahaan baru yang masih kosong');

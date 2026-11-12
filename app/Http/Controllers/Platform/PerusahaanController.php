@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Platform;
 use App\Domain\Company\Actions\BuatPerusahaan;
 use App\Domain\Company\Models\Company;
 use App\Domain\Company\Tenancy\CurrentCompany;
+use App\Domain\Payroll\Actions\PasangMenuPayroll;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -35,15 +36,21 @@ final class PerusahaanController extends Controller
         ]);
     }
 
-    public function store(Request $request, BuatPerusahaan $buat)
+    public function store(Request $request, BuatPerusahaan $buat, PasangMenuPayroll $payroll)
     {
         $data = $request->validate([
             'code' => ['required', 'max:32', 'alpha_dash', Rule::unique('companies', 'code')],
+            'aktifkan_payroll' => 'boolean',
         ] + $this->aturan());
+        $aktifkanPayroll = (bool) ($data['aktifkan_payroll'] ?? false);
+        unset($data['aktifkan_payroll']);
         $company = $buat->handle($data);
+        if ($aktifkanPayroll) {
+            $payroll->berikanHak((int) $company->id);
+        }
 
         return redirect()->route('perusahaan.index', ['ubah' => $company->id])
-            ->with('sukses', "Perusahaan {$company->name} dibuat dengan role dan hak akses bawaan.");
+            ->with('sukses', "Perusahaan {$company->name} dibuat dengan role dan hak akses bawaan".($aktifkanPayroll ? ', modul Payroll Baru aktif.' : '.'));
     }
 
     public function update(Request $request, Company $perusahaan)

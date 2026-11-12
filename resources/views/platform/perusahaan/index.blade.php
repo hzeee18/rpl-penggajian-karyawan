@@ -46,6 +46,11 @@
         <div class="mb-field"><label class="form-label">Alamat</label><textarea name="address" class="form-control" rows="2">{{ old('address', $ubah->address) }}</textarea></div>
         <div class="mb-field"><label class="form-label">Penanda tangan slip</label><input name="signer_name" value="{{ old('signer_name', $ubah->signer_name) }}" class="form-control"></div>
         <div class="mb-field"><label class="form-label">Jabatan penanda tangan</label><input name="signer_title" value="{{ old('signer_title', $ubah->signer_title) }}" class="form-control"></div>
+        @unless ($ubah->exists)
+            <input type="hidden" name="aktifkan_payroll" value="0">
+            <div class="mb-field form-check"><input type="checkbox" name="aktifkan_payroll" value="1" id="aktifkan_payroll" class="form-check-input" @checked(old('aktifkan_payroll', '1') === '1')>
+                <label class="form-check-label" for="aktifkan_payroll">Aktifkan modul Payroll Baru (hak akses bawaan untuk HR, Manager, Admin, Karyawan)</label></div>
+        @endunless
         @if ($ubah->exists)
             <div class="mb-field"><label class="form-label">Gambar tanda tangan (PNG/JPG, maks. 1 MB)</label><input type="file" name="tanda_tangan" accept="image/png,image/jpeg" class="form-control">
                 <div class="form-text">{{ $ubah->signature_path ? 'Sudah ada. Unggah untuk mengganti.' : 'Belum ada.' }}</div></div>

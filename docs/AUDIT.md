@@ -464,3 +464,13 @@ Semua diuji up → rollback → up di DB `penggajian_test` berisi data. Saran: b
 | 7 | File TER dari pemilik | Dipindah ke `database/seeders/data/ter_pph21.csv` (lokasi yang dibaca seeder). Dicek strukturnya: kategori PTKP 8 status (A/B/C), TER A/B/C 44/40/41 lapisan mulai 0, tanpa celah/tumpang tindih, tarif tidak turun, lapisan terakhir tak terbatas. Kebenaran angka terhadap PP 58/2023 / PMK 168/2023 tanggung jawab pemilik. |
 
 Tes baru: `KeputusanAksesTest` (2). `PayrollDemoSeederTest` jalur "TER belum ada" sekarang memakai path file uji yang sengaja tidak ada, karena file resmi sudah tersedia.
+
+## 27. Persiapan pemakaian oleh pemilik (2026-11-12)
+
+- Backup DB dev `storage/app/private/backups/penggajian_karyawan-sebelum-menu-super-admin-20261112-085902.sql`, lalu migration `2026_11_19_000001_menu_khusus_super_admin` **dijalankan di DB dev** (disetujui pemilik). Hasil: hak `menus` role Admin/HR/Manager/Karyawan DEFAULT = 0, Super Admin = 1.
+- Akun platform `superadmin` dibuat dengan `php artisan super-admin:buat` (password awal dibangkitkan, diberikan sekali ke pemilik).
+- Form Tambah Perusahaan (Super Admin) diberi centang **Aktifkan modul Payroll Baru** (bawaan tercentang): memanggil `PasangMenuPayroll::berikanHak` hanya untuk perusahaan baru itu; perusahaan lain (termasuk DEFAULT) tidak berubah. Tes: `SuperAdminTest::test_perusahaan_baru_bisa_langsung_mengaktifkan_payroll_baru`.
+- Rumus/master payroll diisi pemilik sendiri; `PayrollDemoSeeder` **tidak** dijalankan di DB dev.
+- TER: pemilik memilih tabel **nasional**. Logika dipindah dari `PayrollDemoSeeder` ke `TerPph21Seeder` (idempoten, dipakai ulang demo). Dijalankan di DB dev: `ter_bulanan` 125 lapisan, `kategori_ptkp` 8 baris (company_id NULL). Contoh pemakaian di rumus: `ROUND(gross_taxable * LOOKUP('ter_bulanan', LOOKUP_TEXT('kategori_ptkp', ptkp_status), gross_taxable))`.
+- Seeder data perusahaan baru (permintaan pemilik): `DataPerusahaanSeeder` + `php artisan payroll:isi-data {kode} [--karyawan=12]` untuk perusahaan yang sudah dibuat dan masih kosong. Mengisi hak menu payroll, cut off kalender, libur tetap 2026, tipe leave, jabatan, 2 departemen, karyawan, user admin/hr/manager/staf.{kode} (password `password`, approver HR = Manager), 9 komponen, kontrak aktif, absensi/leave/lembur periode lalu dan berjalan. **Tanpa master/rumus.** Menolak bila perusahaan sudah berisi karyawan/departemen atau username contoh sudah dipakai. `PayrollDemoSeeder` memakai kelas yang sama (perilaku demo dan tesnya tetap). Tes: `DataPerusahaanSeederTest`.
+- Catatan lingkungan: `php` di PATH Git Bash adalah PHP 8.5 tanpa pdo_sqlite; test dan server dijalankan dengan PHP Laragon 8.4.27.
