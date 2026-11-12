@@ -481,3 +481,23 @@ Tes baru: `KeputusanAksesTest` (2). `PayrollDemoSeederTest` jalur "TER belum ada
 - Penyebab (bug Fase 2-7): sidebar membuat tautan `url($menu->url)`, sehingga menu `pay-karyawan` mengarah ke `/pay-karyawan`, padahal halamannya di `/pay/karyawan`. Url menu dipakai juga sebagai kunci hak akses (`akses:pay-karyawan`), jadi data menu tidak diubah.
 - Perbaikan: `PasangMenuPayroll::alamat()` / `Menu::alamat()` (url `pay-x` dari daftar MENU menjadi `pay/x`; url menu lain tetap) dipakai di sidebar `layouts/app.blade.php` dan pencarian `CariController`; penanda menu aktif untuk `/pay/{x}` di `AppServiceProvider`. Menu lama tidak berubah (snapshot karakterisasi tetap).
 - Tes: `MenuSidebarTest` membuka setiap tautan sidebar untuk setiap role (termasuk Super Admin) dan memastikan semua 17 menu Payroll Baru terbuka.
+
+## 29. Modul payroll baru diterima: penggabungan form karyawan dan pengalihan kontrak (2026-11-12)
+
+Keputusan pemilik: (1) data Karyawan Payroll digabung ke form Data Karyawan; (2) menu Kontrak diarahkan ke kontrak baru; (3) dikerjakan sekarang (modul baru diterima); (4) data kontrak lama **diabaikan** (tidak disalin ke `pay_contracts`; dianggap tidak ada).
+
+Dampak yang sudah dijelaskan ke pemilik sebelum diputuskan: Proses Payroll lama, approval kontrak oleh Manager, kartu kontrak di Profil, dan cek boleh-lembur bergantung pada kontrak lama.
+
+Rancangan: saklar per perusahaan `companies.payroll_baru` (migration `2026_11_20_000001_add_payroll_baru_to_companies`, bawaan false). Kode lama tidak dihapus; perusahaan yang belum beralih (dan tes karakterisasi) berperilaku seperti semula.
+
+- `ModulPayroll::aktif()` membaca saklar perusahaan konteks. `ModulPayroll::MENU_DIGANTIKAN`: `kontrak` -> Kontrak Payroll, `payroll` & `laporan` -> Generate Payroll, `slip` -> Slip Gaji Payroll, `komponen` (Komponen Gaji lama) -> Katalog Komponen, `pay-karyawan` -> Data Karyawan.
+- `AlihkanKePayrollBaru` (dipakai `php artisan payroll:aktifkan {kode}`, pembuatan perusahaan oleh Super Admin, dan `payroll:isi-data`): hak bawaan payroll baru, saklar on, hak role perusahaan atas menu yang digantikan dicabut (menu tersembunyi). Perusahaan lain tidak berubah. Centang "Aktifkan modul Payroll Baru" (§27) dihapus: perusahaan baru selalu memakai payroll baru.
+- Middleware `modul-lama:{menu}` pada route lama (kontrak, kontrak-pdf, payroll, laporan, slip, komponen, pay/karyawan): bila saklar on, dialihkan ke halaman pengganti.
+- Form Data Karyawan (`karyawan/form`): bagian "Data payroll" (jabatan payroll, tanggal resign, punya NPWP, NPWP terenkripsi; kosong = tidak diubah) hanya bila saklar on; hanya diproses dari form lengkap (penanda `data_payroll`), sehingga panel cepat "Ubah Karyawan" tidak menghapusnya. Perubahan kolom payroll dicatat di `audit_logs` (NPWP/rekening tidak ikut).
+- Detail karyawan, Tim Saya, Profil & Kontrak: kontrak dari `pay_contracts` (partial `payroll-baru/_kontrak-karyawan`, `profil/_kontrak-payroll`); tombol Unduh Kontrak (PDF kontrak lama) disembunyikan.
+- Cek boleh-lembur (`Karyawan::berhakLembur`, daftar di Absensi): saklar on = punya kontrak payroll aktif (nilai lembur dihitung rumus master, bukan komponen kontrak).
+- Dashboard: HR (kartu Kontrak Payroll Aktif & Payroll dari `pay_runs`, pengingat kontrak habis / payroll ditolak, tombol Proses Payroll ke Generate Payroll); Manager (tanpa estimasi upah lembur dari gaji pokok lama); Karyawan (slip lama tidak ditampilkan, lembur "dihitung saat payroll").
+- Import Excel jenis `kontrak` ditolak bila saklar on.
+- Tes: `ModulPayrollBaruTest` (5), `SuperAdminTest` disesuaikan, `MenuSidebarTest` (menu yang digantikan dikecualikan).
+
+Belum berubah (di luar permintaan, menunggu keputusan bila perlu): menu Absensi/Cuti/Lembur/Import Excel lama tetap ada berdampingan dengan Absensi/Leave/Lembur/Import CSV payroll baru (mesin rumus hanya membaca data `pay_*`); menu Approval lama tetap (cuti/lembur); Periode (master payroll lama) tetap karena dipakai filter/penguncian absensi lama; job harian `kontrak:aktifkan` tetap berjalan (tidak berdampak bila tidak ada kontrak lama baru).

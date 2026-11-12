@@ -79,27 +79,28 @@ final class SuperAdminTest extends TestCase
         $baru = Company::where('code', 'PTC')->firstOrFail();
         $roles = DB::table('roles')->where('company_id', $baru->id)->orderBy('id')->pluck('nama')->all();
         $this->assertSame([Role::ADMIN, Role::HR, Role::MANAGER, Role::KARYAWAN], $roles);
-        $this->assertSame(
-            DB::table('privileges')->where('company_id', $this->defaultId())->count(),
-            DB::table('privileges')->where('company_id', $baru->id)->count(),
-        );
+        // hak bawaan disalin dari DEFAULT (lalu modul payroll baru ditambahkan, AUDIT.md §29)
+        $pasangan = fn (int $cid) => DB::table('privileges')->join('roles', 'roles.id', '=', 'privileges.role_id')->join('menus', 'menus.id', '=', 'privileges.menu_id')
+            ->where('privileges.company_id', $cid)->get(['roles.nama', 'menus.url'])->map(fn ($r) => "{$r->nama}:{$r->url}")->all();
+        $this->assertSame([], array_diff($pasangan($this->defaultId()), $pasangan((int) $baru->id)));
         $this->assertSame(DB::table('approval_mapping')->where('company_id', $this->defaultId())->count(), DB::table('approval_mapping')->where('company_id', $baru->id)->count());
     }
 
-    public function test_perusahaan_baru_bisa_langsung_mengaktifkan_payroll_baru(): void
+    public function test_perusahaan_baru_langsung_memakai_payroll_baru(): void
     {
         $super = $this->buatSuperAdmin();
-        $menuRun = DB::table('menus')->where('url', 'pay-run')->value('id');
-        $hakRun = fn (string $kode) => DB::table('privileges')->join('roles', 'roles.id', '=', 'privileges.role_id')
+        $hak = fn (string $kode, string $url) => DB::table('privileges')->join('roles', 'roles.id', '=', 'privileges.role_id')
             ->where('roles.company_id', Company::where('code', $kode)->value('id'))->where('roles.nama', Role::HR)
-            ->where('privileges.menu_id', $menuRun)->value('privileges.can_create');
+            ->where('privileges.menu_id', DB::table('menus')->where('url', $url)->value('id'))->value('privileges.can_view');
 
-        $this->actingAs($super)->post('/perusahaan', ['code' => 'PTP', 'name' => 'PT Payroll', 'aktifkan_payroll' => '1'])->assertSessionHasNoErrors();
-        $this->actingAs($super)->post('/perusahaan', ['code' => 'PTL', 'name' => 'PT Lama', 'aktifkan_payroll' => '0'])->assertSessionHasNoErrors();
+        $this->actingAs($super)->post('/perusahaan', ['code' => 'PTP', 'name' => 'PT Payroll'])->assertSessionHasNoErrors();
 
-        $this->assertTrue((bool) $hakRun('PTP'));
-        $this->assertNull($hakRun('PTL'));
-        $this->assertNull($hakRun('DEFAULT'), 'perusahaan lain tidak ikut berubah');
+        $this->assertTrue(Company::where('code', 'PTP')->firstOrFail()->payroll_baru);
+        $this->assertTrue((bool) $hak('PTP', 'pay-run'));
+        $this->assertFalse((bool) $hak('PTP', 'kontrak'), 'menu Kontrak lama disembunyikan');
+        $this->assertFalse(Company::where('code', 'DEFAULT')->firstOrFail()->payroll_baru, 'perusahaan lain tidak ikut berubah');
+        $this->assertTrue((bool) $hak('DEFAULT', 'kontrak'));
+        $this->assertNull($hak('DEFAULT', 'pay-run'));
     }
 
     public function test_hak_pajak_dan_menu_perusahaan(): void

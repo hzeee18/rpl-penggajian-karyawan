@@ -7,7 +7,7 @@ namespace Database\Seeders;
 use App\Domain\Company\Models\Company;
 use App\Domain\Company\Tenancy\CurrentCompany;
 use App\Domain\Payroll\Actions\BuatKontrak;
-use App\Domain\Payroll\Actions\PasangMenuPayroll;
+use App\Domain\Payroll\Actions\AlihkanKePayrollBaru;
 use App\Domain\Payroll\Models\Attendance;
 use App\Domain\Payroll\Models\Component;
 use App\Domain\Payroll\Models\Holiday;
@@ -29,7 +29,7 @@ use RuntimeException;
 
 /**
  * Data contoh lengkap untuk SATU perusahaan yang sudah ada, TANPA master payroll/rumus (diisi pemilik):
- * hak menu payroll baru, cut off, libur nasional bertanggal tetap, tipe leave, jabatan, 2 departemen,
+ * modul payroll baru aktif (menu lama yang digantikan dialihkan), cut off, libur nasional bertanggal tetap, tipe leave, jabatan, 2 departemen,
  * karyawan, user Admin/HR/Manager/Staf (+ approver HR = Manager), katalog komponen, kontrak aktif dengan
  * nilai berbeda, serta absensi/leave/lembur 2 periode (alpha, terlambat, cuti, sakit bersurat, lembur akhir pekan).
  *
@@ -120,7 +120,7 @@ final class DataPerusahaanSeeder extends Seeder
         $cutoff = $opsi['cutoff'] ?? ['start_day' => 1, 'end_day' => 31, 'start_in_previous_month' => false];
         $varian = $opsi['varian'] ?? 'lengkap';
         $user = self::username($company->code);
-        (new PasangMenuPayroll)->berikanHak((int) $company->id);
+        app(AlihkanKePayrollBaru::class)->handle((int) $company->id);
 
         return app(CurrentCompany::class)->runAs((int) $company->id, function () use ($company, $opsi, $jumlah, $awalan, $cutoff, $varian, $user) {
             return DB::transaction(function () use ($company, $opsi, $jumlah, $awalan, $cutoff, $varian, $user) {

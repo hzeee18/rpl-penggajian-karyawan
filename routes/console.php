@@ -49,11 +49,11 @@ Artisan::command('payroll:aktifkan {kode : kode perusahaan}', function (string $
 
         return 1;
     }
-    (new \App\Domain\Payroll\Actions\PasangMenuPayroll)->berikanHak((int) $id);
-    $this->info("Menu payroll baru aktif untuk perusahaan {$kode}.");
+    app(\App\Domain\Payroll\Actions\AlihkanKePayrollBaru::class)->handle((int) $id);
+    $this->info("Perusahaan {$kode} memakai modul payroll baru: menu payroll baru aktif, menu Kontrak/Proses Payroll/Riwayat/Slip/Komponen lama dialihkan.");
 
     return 0;
-})->purpose('Aktifkan menu payroll baru (hak akses bawaan) untuk satu perusahaan');
+})->purpose('Pakai modul payroll baru untuk satu perusahaan (menu lama yang digantikan dialihkan)');
 
 Artisan::command('payroll:isi-data {kode : kode perusahaan yang sudah dibuat} {--karyawan=12 : jumlah karyawan contoh (4-50)}', function (string $kode) {
     $company = \App\Domain\Company\Models\Company::where('code', $kode)->first();

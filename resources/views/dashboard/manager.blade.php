@@ -58,7 +58,7 @@
 
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <span>Lembur Tim Bulan Ini<span class="sub">Hanya karyawan yang kontraknya memiliki komponen lembur</span></span>
+        <span>Lembur Tim Bulan Ini<span class="sub">{{ ($payrollBaru ?? false) ? 'Karyawan dengan kontrak payroll aktif' : 'Hanya karyawan yang kontraknya memiliki komponen lembur' }}</span></span>
     </div>
     <div class="table-responsive">
         <table class="table">

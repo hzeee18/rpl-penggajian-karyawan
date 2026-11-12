@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Payroll\Models\Contract;
+use App\Domain\Payroll\Models\PayrollRun;
+use App\Domain\Payroll\ModulPayroll;
 use App\Models\Approval;
 use App\Models\Attendance;
 use App\Models\Departemen;
@@ -32,14 +35,15 @@ class DashboardController extends Controller
         $master = MasterPayroll::aktif();
         $periode = now()->format('Y-m');
         [$awal, $akhir] = $master->rentang($periode);
-        $d = compact('master', 'periode', 'awal', 'akhir');
+        $payrollBaru = ModulPayroll::aktif(); // kontrak & payroll dari modul baru (AUDIT.md §29)
+        $d = compact('master', 'periode', 'awal', 'akhir', 'payrollBaru');
         $rentang = [$awal->toDateString(), $akhir->toDateString()];
 
         return match ($user->role->nama) {
             Role::ADMIN => view('dashboard.admin', $d + $this->admin()),
-            Role::HR => view('dashboard.hr', $d + $this->hr($svc, $rentang)),
-            Role::MANAGER => view('dashboard.manager', $d + $this->manager($user, $svc, $master, $rentang)),
-            default => view('dashboard.karyawan', $d + $this->karyawan($user, $svc, $master, $awal, $akhir)),
+            Role::HR => view('dashboard.hr', $d + ($payrollBaru ? $this->hrPayrollBaru($this->hr($svc, $rentang)) : $this->hr($svc, $rentang))),
+            Role::MANAGER => view('dashboard.manager', $d + $this->manager($user, $svc, $master, $rentang, $payrollBaru)),
+            default => view('dashboard.karyawan', $d + $this->karyawan($user, $svc, $master, $awal, $akhir, $payrollBaru)),
         };
     }
 
@@ -125,7 +129,34 @@ class DashboardController extends Controller
         ];
     }
 
-    private function manager(User $user, PayrollService $svc, MasterPayroll $master, array $rentang): array
+    /**
+     * Dashboard HR untuk perusahaan dengan payroll baru: kartu kontrak & payroll dari modul baru,
+     * bagian lain (karyawan, kehadiran, cuti/lembur) tetap seperti dashboard lama.
+     */
+    private function hrPayrollBaru(array $d): array
+    {
+        $hariIni = now()->toDateString();
+        $kontrakAktif = Contract::where('is_active', true)->count();
+        $kontrakHabis = Contract::where('is_active', true)->whereNotNull('end_date')
+            ->whereBetween('end_date', [$hariIni, now()->addDays(30)->toDateString()])->count();
+        $run = PayrollRun::orderByDesc('period_end')->orderByDesc('id')->first();
+        $status = [PayrollRun::DRAFT => 'Draft', PayrollRun::PENDING => 'Menunggu approval', PayrollRun::APPROVED => 'Disetujui, slip terbit', PayrollRun::REJECTED => 'Ditolak'];
+
+        $d['stat'][2] = ['Kontrak Payroll Aktif', $kontrakAktif, $kontrakHabis ? "{$kontrakHabis} habis dalam 30 hari" : 'Tidak ada yang segera habis'];
+        $d['stat'][3] = ['Payroll ' . ($run?->title ?? '-'), $run ? $status[$run->status] ?? $run->status : '-', $run ? tgl($run->period_start, 'j M') . ' – ' . tgl($run->period_end, 'j M Y') : 'Belum ada payroll'];
+        $d['payroll'] = null; // progres payroll lama tidak dipakai
+        // pengingat lama yang masih berlaku hanya alfa (absensi); kontrak & payroll diganti modul baru
+        $alfa = array_values(array_filter($d['pengingat'], fn ($p) => str_contains($p[0], 'alfa')));
+        $d['pengingat'] = array_values(array_filter([
+            $alfa[0] ?? null,
+            $kontrakHabis ? ["{$kontrakHabis} kontrak payroll habis dalam 30 hari", 'Perbarui di menu Kontrak Payroll'] : null,
+            $run && $run->status === PayrollRun::REJECTED ? ["Payroll {$run->title} ditolak", 'Buat payroll baru dari awal'] : null,
+        ]));
+
+        return $d;
+    }
+
+    private function manager(User $user, PayrollService $svc, MasterPayroll $master, array $rentang, bool $payrollBaru = false): array
     {
         $timIds = collect($user->karyawanIds())->reject(fn ($id) => $id === $user->karyawan_id)->values();
         $dept = Departemen::dikelola($user->karyawan_id)->first();
@@ -165,7 +196,7 @@ class DashboardController extends Controller
             'stat' => [
                 ['Menunggu Persetujuan', $approvals->count(), $approvals->countBy('jenis_ref')->map(fn ($n, $j) => "{$n} {$j}")->join(' · ') ?: 'Tidak ada pengajuan'],
                 ['Anggota Tim', $timIds->count(), ($hariIniBar[0][1]) . ' hadir · ' . ($leaveHariIni['cuti'] ?? 0) . ' cuti hari ini'],
-                ['Lembur Periode Ini', rtrim(rtrim(number_format($lembur->sum('jam'), 1, ',', '.'), '0'), ',') . ' jam', $user->bolehLihatGaji() ? 'Estimasi ' . rupiah($lembur->sum('upah')) : $lembur->count() . ' orang lembur'],
+                ['Lembur Periode Ini', rtrim(rtrim(number_format($lembur->sum('jam'), 1, ',', '.'), '0'), ',') . ' jam', $user->bolehLihatGaji() && ! $payrollBaru ? 'Estimasi ' . rupiah($lembur->sum('upah')) : $lembur->count() . ' orang lembur'],
                 ['Kehadiran Tim', $persen . '%', 'Rata-rata ' . tgl($rentang[0], 'j M') . ' – ' . tgl($rentang[1], 'j M')],
             ],
             'approvals' => $approvals->take(5),
@@ -175,13 +206,13 @@ class DashboardController extends Controller
         ];
     }
 
-    private function karyawan(User $user, PayrollService $svc, MasterPayroll $master, $awal, $akhir): array
+    private function karyawan(User $user, PayrollService $svc, MasterPayroll $master, $awal, $akhir, bool $payrollBaru = false): array
     {
         $k = $user->karyawan?->load('departemen', 'kontrakAktif');
         if (! $k) {
             return ['karyawan' => null];
         }
-        $slip = Payslip::with('payroll')->where('karyawan_id', $k->id)
+        $slip = $payrollBaru ? null : Payslip::with('payroll')->where('karyawan_id', $k->id)
             ->whereHas('payroll', fn ($q) => $q->where('status', 'final'))
             ->join('payroll', 'payroll.id', '=', 'payslip.payroll_id')->orderByDesc('payroll.periode')->select('payslip.*')->first();
         $rekap = $svc->rekapKaryawan($k->id, $awal, $akhir);
@@ -207,7 +238,7 @@ class DashboardController extends Controller
             'stat' => [
                 ['Kehadiran ' . tgl($akhir, 'F'), $rekap['hadir'] . '/' . MasterPayroll::hariKerja(now()->format('Y-m')) . ' hari', $rekap['sakit'] . ' sakit · ' . $rekap['cuti'] . ' cuti · ' . $rekap['alfa'] . ' alfa'],
                 ['Sisa Cuti Tahunan', $k->sisa_cuti . ' hari', 'Jatah 12 hari per tahun'],
-                ['Lembur ' . tgl($akhir, 'F'), rtrim(rtrim(number_format($rekap['jam_lembur'], 1, ',', '.'), '0'), ',') . ' jam', $rekap['jam_lembur'] ? rupiah($upahLembur) . ' · estimasi' : 'Belum ada lembur'],
+                ['Lembur ' . tgl($akhir, 'F'), rtrim(rtrim(number_format($rekap['jam_lembur'], 1, ',', '.'), '0'), ',') . ' jam', $rekap['jam_lembur'] ? ($payrollBaru ? 'Dihitung saat payroll' : rupiah($upahLembur) . ' · estimasi') : 'Belum ada lembur'],
                 ['Masa Kerja', intdiv($masa, 12) . ' th ' . ($masa % 12) . ' bln', $masa >= 12 ? 'Berhak THR 1× gaji pokok' : 'THR prorata ' . $masa . '/12'],
             ],
             'riwayat' => $riwayat,

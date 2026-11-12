@@ -14,11 +14,11 @@ final class Company extends Model
     protected $table = 'companies';
 
     protected $fillable = [
-        'code', 'name', 'address', 'logo_path', 'signer_name', 'signer_title', 'signature_path', 'is_active',
+        'code', 'name', 'address', 'logo_path', 'signer_name', 'signer_title', 'signature_path', 'is_active', 'payroll_baru',
     ];
 
     protected function casts(): array
     {
-        return ['is_active' => 'boolean'];
+        return ['is_active' => 'boolean', 'payroll_baru' => 'boolean'];
     }
 }

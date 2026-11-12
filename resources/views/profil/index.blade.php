@@ -7,7 +7,7 @@
 @else
 @php $kt = $karyawan->kontrakAktif; $kode = fn ($k) => $k->kode; $bln = fn ($k) => $k->tgl_akhir ? (int) round($k->tgl_mulai->diffInMonths($k->tgl_akhir)) . ' bulan' : ''; @endphp
 <x-page-header judul="Profil & Kontrak" sub="Data diri dan kontrak kerja Anda. Perubahan data dilakukan oleh HR.">
-    @if ($kt)<a href="{{ route('kontrak.pdf', $kt) }}" class="btn btn-primary"><i data-lucide="file-down"></i> Unduh Kontrak</a>@endif
+    @if ($kt && ! $payrollBaru)<a href="{{ route('kontrak.pdf', $kt) }}" class="btn btn-primary"><i data-lucide="file-down"></i> Unduh Kontrak</a>@endif
 </x-page-header>
 
 <div class="profil-head">
@@ -33,6 +33,9 @@
             </div>
         </div>
     </div>
+@if ($payrollBaru)
+    @include('profil._kontrak-payroll')
+@else
     <div class="col-lg-6">
         <div class="card h-100">
             <div class="card-header d-flex justify-content-between">Kontrak Aktif @if ($kt)<span class="badge badge-soft-success">Aktif</span>@endif</div>
@@ -50,8 +53,15 @@
             </div>
         </div>
     </div>
+@endif
 </div>
 
+@if ($payrollBaru)
+<div class="card">
+    <div class="card-header">Riwayat Kontrak</div>
+    @include('payroll-baru._kontrak-karyawan', ['kontrak' => $karyawan->kontrakPayroll, 'lihatGaji' => true])
+</div>
+@else
 <div class="card">
     <div class="card-header">Riwayat Kontrak</div>
     <div class="table-responsive">
@@ -72,5 +82,6 @@
         </table>
     </div>
 </div>
+@endif
 @endif
 @endsection

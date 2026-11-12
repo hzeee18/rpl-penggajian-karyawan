@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Audit\AuditLogger;
+use App\Domain\Payroll\ModulPayroll;
+use App\Domain\Payroll\Models\Position;
 use App\Models\Departemen;
 use App\Models\Karyawan;
 use App\Models\Notifikasi;
@@ -9,14 +12,17 @@ use App\Models\Pajak;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class KaryawanController extends Controller
 {
+    private const KOLOM_PAYROLL = ['position_id', 'resign_date', 'has_npwp', 'npwp'];
+
     public function index(Request $request)
     {
         $user = $request->user();
-        $query = $user->batasi(Karyawan::with(['departemen', 'kontrakAktif', 'pajak', 'user', 'kontrak']), 'id')
+        $query = $user->batasi(Karyawan::with(['departemen', 'kontrakAktif', 'pajak', 'user', 'kontrak', 'kontrakPayrollAktif']), 'id')
             ->when($request->q, fn ($q, $s) => $q->where(fn ($q) => $q->where('nama', 'like', "%$s%")->orWhere('nik', 'like', "%$s%")))
             ->when($request->departemen_id, fn ($q, $d) => $q->where('departemen_id', $d))
             ->when($request->filled('status'), fn ($q) => $q->where('is_active', $request->status === 'aktif'));
@@ -26,11 +32,11 @@ class KaryawanController extends Controller
             $karyawan = $query->where('id', '!=', $user->karyawan_id)->orderBy('nik')->paginate(10)->withQueryString();
             if ($request->export) {
                 return \App\Support\Ekspor::excel('tim-saya', 'Tim Saya', ['NIK', 'Nama', 'Jabatan', 'Kontrak', 'Sisa cuti'],
-                    $query->get()->map(fn ($k) => [$k->nik, $k->nama, $k->jabatan, $k->kontrakAktif?->jenis, $k->sisa_cuti]));
+                    $query->get()->map(fn ($k) => [$k->nik, $k->nama, $k->jabatan, ModulPayroll::aktif() ? $k->kontrakPayrollAktif?->contract_name : $k->kontrakAktif?->jenis, $k->sisa_cuti]));
             }
             $pilih = $karyawan->firstWhere('id', $request->integer('lihat')) ?? $karyawan->first();
 
-            return view('karyawan.tim', ['karyawan' => $karyawan, 'pilih' => $pilih, 'dept' => Departemen::dikelola($user->karyawan_id)->first()]);
+            return view('karyawan.tim', ['karyawan' => $karyawan, 'pilih' => $pilih, 'dept' => Departemen::dikelola($user->karyawan_id)->first(), 'payrollBaru' => ModulPayroll::aktif()]);
         }
 
         $karyawan = $query->orderBy('nik')->paginate(10)->withQueryString();
@@ -45,9 +51,9 @@ class KaryawanController extends Controller
     public function show(Request $request, Karyawan $karyawan)
     {
         $this->cekScope($request, $karyawan);
-        $karyawan->load(['departemen', 'pajak', 'user.role', 'kontrak.komponen.component']);
+        $karyawan->load(['departemen', 'pajak', 'user.role', 'kontrak.komponen.component', 'position', 'kontrakPayroll.components.component']);
 
-        return view('karyawan.show', compact('karyawan'));
+        return view('karyawan.show', ['karyawan' => $karyawan, 'payrollBaru' => ModulPayroll::aktif()]);
     }
 
     public function create()
@@ -61,7 +67,7 @@ class KaryawanController extends Controller
         Notifikasi::kirim(User::idsRole(Role::ADMIN), 'Karyawan baru',
             "Karyawan baru {$karyawan->nama} ({$karyawan->nik}) ditambahkan. Silakan buatkan akun login.", 'karyawan', $karyawan->id);
 
-        return redirect()->route('karyawan.show', $karyawan)->with('sukses', 'Karyawan ditambahkan. Lanjut buat kontraknya.');
+        return redirect()->route('karyawan.show', $karyawan)->with('sukses', 'Karyawan ditambahkan. Lanjut buat kontraknya'.(ModulPayroll::aktif() ? ' di Kontrak Payroll.' : '.'));
     }
 
     public function edit(Karyawan $karyawan)
@@ -71,7 +77,14 @@ class KaryawanController extends Controller
 
     public function update(Request $request, Karyawan $karyawan)
     {
-        $karyawan->update($this->validasi($request, $karyawan));
+        $karyawan->fill($this->validasi($request, $karyawan));
+        $ubahPayroll = array_intersect(array_keys($karyawan->getDirty()), self::KOLOM_PAYROLL);
+        DB::transaction(function () use ($karyawan, $ubahPayroll) {
+            $karyawan->save();
+            if ($ubahPayroll !== []) {
+                app(AuditLogger::class)->logChanges('updated', $karyawan); // npwp/rekening tidak ikut dicatat
+            }
+        });
 
         // simpan dari panel "Ubah Karyawan" di halaman daftar
         if ($request->kembali === 'index') {
@@ -102,6 +115,8 @@ class KaryawanController extends Controller
             'karyawan' => $karyawan,
             'departemen' => Departemen::orderBy('nama')->get(),
             'pajak' => Pajak::orderBy('status_ptkp')->get(),
+            'payrollBaru' => ModulPayroll::aktif(),
+            'jabatanPayroll' => ModulPayroll::aktif() ? Position::where('is_active', true)->orderBy('name')->get() : collect(),
         ];
     }
 
@@ -124,6 +139,20 @@ class KaryawanController extends Controller
             'sisa_cuti' => 'required|integer|min:0|max:365',
         ]);
         $data['is_active'] = $request->boolean('is_active');
+
+        // data payroll baru: hanya dari form lengkap (penanda data_payroll), bukan panel "Ubah Karyawan"
+        if (ModulPayroll::aktif() && $request->boolean('data_payroll')) {
+            $payroll = $request->validate([
+                'position_id' => ['nullable', \App\Domain\Company\Tenancy\TenantRule::exists('pay_positions')],
+                'resign_date' => 'nullable|date',
+                'npwp' => ['nullable', 'regex:/^[0-9.\-]{15,20}$/'],
+            ]);
+            $payroll['has_npwp'] = $request->boolean('has_npwp');
+            if (($payroll['npwp'] ?? null) === null) {
+                unset($payroll['npwp']); // kosong = tidak diubah (tersimpan terenkripsi)
+            }
+            $data += $payroll;
+        }
 
         return $data;
     }

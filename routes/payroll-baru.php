@@ -113,7 +113,8 @@ Route::prefix('pay')->name('pay.')->group(function () {
         Route::get('/{id}/unduh', [PayrollBaru\SlipPayrollController::class, 'unduh'])->whereNumber('id')->name('unduh');
     });
 
-    Route::middleware('akses:pay-karyawan')->prefix('karyawan')->name('karyawan.')->group(function () {
+    // digabung ke form Data Karyawan bila perusahaan memakai payroll baru (AUDIT.md §29)
+    Route::middleware(['modul-lama:pay-karyawan', 'akses:pay-karyawan'])->prefix('karyawan')->name('karyawan.')->group(function () {
         Route::get('/', [PayrollBaru\KaryawanPayrollController::class, 'index'])->name('index');
         Route::put('/{id}', [PayrollBaru\KaryawanPayrollController::class, 'update'])->whereNumber('id')->middleware('akses:pay-karyawan,update')->name('update');
     });

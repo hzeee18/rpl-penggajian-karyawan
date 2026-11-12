@@ -14,8 +14,12 @@ class Karyawan extends Model
     protected $fillable = [
         'departemen_id', 'pajak_id', 'nik', 'nama', 'jabatan', 'tgl_masuk', 'no_rekening',
         'jenis_kelamin', 'email', 'telepon', 'alamat', 'nama_bank', 'status_kepegawaian', 'sisa_cuti', 'is_active',
+        // data payroll baru (form Data Karyawan bila perusahaan memakai payroll baru, AUDIT.md §29)
+        'position_id', 'resign_date', 'has_npwp', 'npwp',
     ];
-    protected $casts = ['tgl_masuk' => \App\Casts\Tanggal::class, 'is_active' => 'boolean'];
+    protected $hidden = ['npwp', 'bank_account_no'];
+    protected $casts = ['tgl_masuk' => \App\Casts\Tanggal::class, 'is_active' => 'boolean',
+        'resign_date' => \App\Casts\Tanggal::class, 'has_npwp' => 'boolean', 'npwp' => 'encrypted'];
 
     public function departemen()
     {
@@ -73,9 +77,32 @@ class Karyawan extends Model
         return $this->tgl_masuk ? (int) $this->tgl_masuk->diffInMonths(Carbon::today()) : 0;
     }
 
-    /** Karyawan berhak lembur kalau kontrak aktifnya punya komponen lembur. */
+    /** Jabatan modul payroll baru. */
+    public function position()
+    {
+        return $this->belongsTo(\App\Domain\Payroll\Models\Position::class);
+    }
+
+    /** Kontrak modul payroll baru (pay_contracts). */
+    public function kontrakPayroll()
+    {
+        return $this->hasMany(\App\Domain\Payroll\Models\Contract::class, 'employee_id')->orderByDesc('start_date')->orderByDesc('id');
+    }
+
+    public function kontrakPayrollAktif()
+    {
+        return $this->hasOne(\App\Domain\Payroll\Models\Contract::class, 'employee_id')->where('is_active', true);
+    }
+
+    /**
+     * Karyawan berhak lembur kalau kontrak aktifnya punya komponen lembur.
+     * Perusahaan dengan payroll baru: cukup punya kontrak payroll aktif (nilai lembur dihitung rumus master).
+     */
     public function berhakLembur(): bool
     {
+        if (\App\Domain\Payroll\ModulPayroll::aktif()) {
+            return $this->kontrakPayrollAktif()->exists();
+        }
         $kontrak = $this->getKontrakAktif();
 
         return $kontrak && $kontrak->komponen()->where('is_active', true)

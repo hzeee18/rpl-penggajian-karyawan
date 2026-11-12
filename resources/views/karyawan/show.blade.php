@@ -21,6 +21,11 @@
                     <dt>Kontak</dt><dd>{{ $karyawan->email ?? '-' }}<br>{{ $karyawan->telepon }}</dd>
                     <dt>Alamat</dt><dd>{{ $karyawan->alamat ?? '-' }}</dd>
                     <dt>Rekening</dt><dd>{{ $karyawan->nama_bank }} {{ $karyawan->no_rekening }}</dd>
+@if ($payrollBaru)
+                        <dt>Jabatan payroll</dt><dd>{{ $karyawan->position ? $karyawan->position->code . ' · ' . $karyawan->position->name : '-' }}</dd>
+                        <dt>NPWP</dt><dd>{{ $karyawan->has_npwp ? 'Punya' : 'Tidak punya' }}{{ $karyawan->npwp ? ' · tersimpan (terenkripsi)' : '' }}</dd>
+                        <dt>Tanggal resign</dt><dd>{{ $karyawan->resign_date ? tgl($karyawan->resign_date) : '-' }}</dd>
+@endif
                     <dt>Akun login</dt><dd>{{ $karyawan->user ? $karyawan->user->username . ' (' . $karyawan->user->role->nama . ')' : 'Belum ada' }}</dd>
                 </dl>
                 @if (auth()->user()->bisa('karyawan', 'update'))<a href="{{ route('karyawan.edit', $karyawan) }}" class="btn btn-outline-primary btn-sm"><i data-lucide="pencil"></i> Ubah data</a>@endif
@@ -28,6 +33,15 @@
         </div>
     </div>
     <div class="col-lg-8">
+@if ($payrollBaru)
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                Riwayat kontrak
+                @if (auth()->user()->bisa('pay-kontrak'))<a href="{{ route('pay.kontrak.index', ['q' => $karyawan->nik]) }}" class="btn btn-sm btn-primary"><i data-lucide="file-signature"></i> Kelola di Kontrak Payroll</a>@endif
+            </div>
+            @include('payroll-baru._kontrak-karyawan', ['kontrak' => $karyawan->kontrakPayroll, 'lihatGaji' => auth()->user()->bolehLihatGaji()])
+        </div>
+@else
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 Riwayat kontrak
@@ -53,6 +67,7 @@
                 </table>
             </div>
         </div>
+@endif
     </div>
 </div>
 @endsection

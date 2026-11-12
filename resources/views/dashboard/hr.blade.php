@@ -3,7 +3,7 @@
 @section('content')
 <x-page-header judul="Dashboard HR" :sub="'Periode ' . nama_periode($periode) . ' · ' . tgl($awal, 'j M') . ' – ' . tgl($akhir, 'j M Y')">
     <a href="{{ route('import.index', ['jenis' => 'absensi']) }}" class="btn btn-light"><i data-lucide="upload"></i> Import Absensi</a>
-    <a href="{{ route('payroll.rekap') }}" class="btn btn-primary"><i data-lucide="play"></i> Proses Payroll</a>
+    <a href="{{ ($payrollBaru ?? false) ? route('pay.run.index') : route('payroll.rekap') }}" class="btn btn-primary"><i data-lucide="play"></i> Proses Payroll</a>
 </x-page-header>
 
 @include('dashboard._stat')

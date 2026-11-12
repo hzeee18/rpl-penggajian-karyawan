@@ -17,8 +17,12 @@ class ProfilController extends Controller
     public function index(Request $request)
     {
         $karyawan = $request->user()->karyawan?->load(['departemen.manager', 'pajak', 'kontrakAktif.komponen.component', 'kontrak.approvals.approver.karyawan']);
+        $payrollBaru = \App\Domain\Payroll\ModulPayroll::aktif();
+        if ($payrollBaru) {
+            $karyawan?->load(['position', 'kontrakPayroll.components.component']); // kontrak modul baru (AUDIT.md §29)
+        }
 
-        return view('profil.index', compact('karyawan'));
+        return view('profil.index', compact('karyawan', 'payrollBaru'));
     }
 
     /** Unduh kontrak kerja (PDF). Karyawan hanya kontraknya sendiri; HR semua. */

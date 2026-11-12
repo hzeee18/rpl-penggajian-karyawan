@@ -111,7 +111,10 @@ final class MasterDataTest extends TestCase
         $rizky = Karyawan::where('nama', 'Rizky Maulana')->firstOrFail();
         $jabatan = Position::create(['code' => 'PRG', 'name' => 'Programmer']);
 
-        $this->actingAs($this->hr)->put("/pay/karyawan/{$rizky->id}", ['position_id' => $jabatan->id, 'has_npwp' => 1, 'npwp' => '12.345.678.9-012.345'])
+        // setelah beralih ke payroll baru, data payroll diisi di form Data Karyawan (AUDIT.md §29)
+        $isi = collect($rizky->only(['nik', 'nama', 'jenis_kelamin', 'departemen_id', 'jabatan', 'pajak_id', 'status_kepegawaian', 'email', 'telepon', 'alamat', 'nama_bank', 'no_rekening', 'sisa_cuti']))
+            ->put('tgl_masuk', $rizky->tgl_masuk->toDateString())->put('is_active', 1)->all();
+        $this->actingAs($this->hr)->put("/karyawan/{$rizky->id}", $isi + ['data_payroll' => 1, 'position_id' => $jabatan->id, 'has_npwp' => 1, 'npwp' => '12.345.678.9-012.345'])
             ->assertSessionHasNoErrors();
 
         $raw = DB::table('karyawan')->where('id', $rizky->id)->first();
@@ -125,6 +128,6 @@ final class MasterDataTest extends TestCase
         $rizky->update(['no_rekening' => '1112223334']);
         $this->assertSame('1112223334', Employee::findOrFail($rizky->id)->bank_account_no);
         $this->assertSame('******3334', Employee::findOrFail($rizky->id)->rekeningSamaran());
-        $this->actingAs($this->hr)->get('/pay/karyawan?q=Rizky')->assertSee('******3334')->assertDontSee('1112223334');
+        $this->actingAs($this->hr)->get('/pay/karyawan?q=Rizky')->assertRedirect(route('karyawan.index')); // digabung ke Data Karyawan
     }
 }

@@ -63,8 +63,11 @@ Route::middleware(['auth', 'aktif'])->group(function () {
 
     // ===== Master data (HR) =====
     crud('departemen', Master\DepartemenController::class);
-    Route::post('/komponen/pratinjau', [Master\KomponenController::class, 'pratinjau'])->middleware('akses:komponen')->name('komponen.pratinjau');
-    crud('komponen', Master\KomponenController::class);
+    // modul-lama:{menu}: dialihkan ke modul payroll baru bila perusahaan sudah beralih (AUDIT.md §29)
+    Route::middleware('modul-lama:komponen')->group(function () {
+        Route::post('/komponen/pratinjau', [Master\KomponenController::class, 'pratinjau'])->middleware('akses:komponen')->name('komponen.pratinjau');
+        crud('komponen', Master\KomponenController::class);
+    });
 
     Route::middleware('akses:pajak')->prefix('pajak')->name('pajak.')->group(function () {
         Route::get('/', [Master\PajakController::class, 'index'])->name('index');
@@ -87,7 +90,7 @@ Route::middleware(['auth', 'aktif'])->group(function () {
 
     // ===== Karyawan & kontrak =====
     crud('karyawan', Controllers\KaryawanController::class, show: true);
-    crud('kontrak', Controllers\KontrakController::class, show: true);
+    Route::middleware('modul-lama:kontrak')->group(fn () => crud('kontrak', Controllers\KontrakController::class, show: true));
 
     // ===== Absensi, cuti, lembur =====
     Route::post('/absensi/harian', [Controllers\AttendanceController::class, 'simpanHarian'])->middleware('akses:absensi,update')->name('absensi.harian');
@@ -105,7 +108,7 @@ Route::middleware(['auth', 'aktif'])->group(function () {
     });
 
     // ===== Payroll =====
-    Route::middleware('akses:payroll')->prefix('payroll')->name('payroll.')->group(function () {
+    Route::middleware(['modul-lama:payroll', 'akses:payroll'])->prefix('payroll')->name('payroll.')->group(function () {
         Route::get('/', [Controllers\PayrollController::class, 'index'])->name('index');
         Route::get('/rekap', [Controllers\PayrollController::class, 'rekap'])->name('rekap');
         Route::get('/riwayat', [Controllers\PayrollController::class, 'riwayat'])->name('riwayat');
@@ -116,7 +119,7 @@ Route::middleware(['auth', 'aktif'])->group(function () {
         Route::delete('/{payroll}', [Controllers\PayrollController::class, 'destroy'])->middleware('akses:payroll,delete')->name('destroy');
     });
 
-    Route::middleware('akses:laporan')->prefix('laporan')->name('laporan.')->group(function () {
+    Route::middleware(['modul-lama:laporan', 'akses:laporan'])->prefix('laporan')->name('laporan.')->group(function () {
         Route::get('/', [Controllers\LaporanController::class, 'index'])->name('index');
         Route::get('/excel', [Controllers\LaporanController::class, 'excel'])->name('excel');
         Route::get('/pdf', [Controllers\LaporanController::class, 'pdf'])->name('pdf');
@@ -132,13 +135,13 @@ Route::middleware(['auth', 'aktif'])->group(function () {
     });
 
     // ===== Slip gaji & profil =====
-    Route::middleware('akses:slip')->prefix('slip')->name('slip.')->group(function () {
+    Route::middleware(['modul-lama:slip', 'akses:slip'])->prefix('slip')->name('slip.')->group(function () {
         Route::get('/', [Controllers\PayslipController::class, 'index'])->name('index');
         Route::get('/{payslip}', [Controllers\PayslipController::class, 'show'])->name('show');
         Route::get('/{payslip}/unduh', [Controllers\PayslipController::class, 'download'])->name('download');
     });
     Route::get('/profil', [Controllers\ProfilController::class, 'index'])->middleware('akses:profil')->name('profil.index');
-    Route::get('/kontrak-pdf/{kontrak}', [Controllers\ProfilController::class, 'kontrakPdf'])->name('kontrak.pdf');
+    Route::get('/kontrak-pdf/{kontrak}', [Controllers\ProfilController::class, 'kontrakPdf'])->middleware('modul-lama:kontrak')->name('kontrak.pdf');
 
     // ===== Payroll baru (modul berdampingan dengan payroll lama) =====
     require __DIR__.'/payroll-baru.php';

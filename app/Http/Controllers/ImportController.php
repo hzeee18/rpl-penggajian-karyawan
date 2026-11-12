@@ -96,6 +96,10 @@ class ImportController extends Controller
             'periode' => 'nullable|date_format:Y-m',
         ]);
         $jenis = $request->jenis;
+        if ($jenis === 'kontrak' && \App\Domain\Payroll\ModulPayroll::aktif()) {
+            // payroll baru: kontrak dibuat di menu Kontrak Payroll (AUDIT.md §29)
+            return back()->with('gagal', 'Kontrak sekarang dibuat di menu Kontrak Payroll.');
+        }
         $rentang = $request->periode && in_array($jenis, ['absensi', 'cuti', 'lembur'])
             ? \App\Models\MasterPayroll::untuk($request->periode)->rentang($request->periode) : null;
 

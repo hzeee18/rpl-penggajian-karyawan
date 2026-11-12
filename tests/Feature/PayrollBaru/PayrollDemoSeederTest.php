@@ -84,8 +84,8 @@ final class PayrollDemoSeederTest extends TestCase
 
         // isolasi: HR DEMOA tidak melihat karyawan DEMOB
         $hrA = User::withoutGlobalScopes()->where('username', 'hr.demoa')->firstOrFail();
-        $this->actingAs($hrA)->get('/pay/karyawan?q=B0001')->assertOk()->assertDontSee('B0001</td>', false);
-        $this->actingAs($hrA)->get('/pay/karyawan?q=A0001')->assertOk()->assertSee('A0001</td>', false);
+        $this->actingAs($hrA)->get('/pay/kontrak')->assertOk()->assertSee('PKWT DEMOA 2026')->assertDontSee('PKWT DEMOB 2026');
+        $this->assertTrue(Company::where('code', 'DEMOA')->value('payroll_baru'), 'perusahaan demo memakai payroll baru');
 
         // tidak berjalan dua kali
         $this->seed(PayrollDemoSeeder::class);

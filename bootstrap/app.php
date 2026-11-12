@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'akses' => \App\Http\Middleware\CekAkses::class,
             'aktif' => \App\Http\Middleware\AkunAktif::class,
             'super-admin' => \App\Domain\Company\Tenancy\HanyaSuperAdmin::class,
+            'modul-lama' => \App\Http\Middleware\AlihkanModulLama::class,
         ]);
         $middleware->redirectGuestsTo('/login');
         $middleware->redirectUsersTo('/dashboard');

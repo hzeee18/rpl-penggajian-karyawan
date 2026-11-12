@@ -101,8 +101,10 @@ class AttendanceController extends Controller
             'data' => $data, 'dari' => $dari, 'sampai' => $sampai, 'ubah' => $ubah, 'fKaryawan' => $kid, 'fDepartemen' => $did, 'fJenis' => $jenis, 'rentangDefault' => [Carbon::parse($awalDef)->toDateString(), Carbon::parse($akhirDef)->toDateString()], 'hitung' => $hitung, 'total' => $rows->count(),
             'karyawan' => Karyawan::where('is_active', true)->orderBy('nama')->get(),
             'departemen' => \App\Models\Departemen::orderBy('nama')->get(),
-            'berhakLembur' => Karyawan::whereHas('kontrakAktif.komponen', fn ($q) => $q->where('is_active', true)
-                ->whereHas('component', fn ($q) => $q->where('dasar_bayar', 'lembur')))->pluck('id')->all(),
+            'berhakLembur' => (\App\Domain\Payroll\ModulPayroll::aktif()
+                ? Karyawan::whereHas('kontrakPayrollAktif') // payroll baru: cukup kontrak payroll aktif (AUDIT.md §29)
+                : Karyawan::whereHas('kontrakAktif.komponen', fn ($q) => $q->where('is_active', true)
+                    ->whereHas('component', fn ($q) => $q->where('dasar_bayar', 'lembur'))))->pluck('id')->all(),
         ]);
     }
 

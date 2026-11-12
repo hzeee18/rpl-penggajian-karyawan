@@ -18,7 +18,12 @@
                     <tr class="{{ $pilih?->id === $k->id ? 'terpilih' : '' }}">
                         <td class="kode">{{ $k->nik }}</td>
                         <td>
-                            @if ($menunggu && ! $kt)<span class="badge badge-soft-warning">Menunggu approval</span>
+                            @if ($payrollBaru ?? false)
+                                @php $kp = $k->kontrakPayrollAktif; @endphp
+                                @if (! $kp)<span class="badge badge-soft-neutral">Belum ada</span>
+                                @elseif (! $kp->end_date)<span class="badge badge-soft-success">{{ $kp->contract_name }}</span>
+                                @else<span class="badge {{ now()->diffInDays($kp->end_date, false) < 60 ? 'badge-soft-warning' : 'badge-soft-info' }}">s.d. {{ $kp->end_date->translatedFormat('M Y') }}</span>@endif
+                            @elseif ($menunggu && ! $kt)<span class="badge badge-soft-warning">Menunggu approval</span>
                             @elseif (! $kt)<span class="badge badge-soft-neutral">Belum ada</span>
                             @elseif ($kt->jenis === 'PKWTT')<span class="badge badge-soft-success">PKWTT</span>
                             @else<span class="badge {{ now()->diffInDays($kt->tgl_akhir, false) < 60 ? 'badge-soft-warning' : 'badge-soft-info' }}">PKWT s.d. {{ $kt->tgl_akhir->translatedFormat('M Y') }}</span>@endif
@@ -38,7 +43,12 @@
     @if ($pilih)
         <x-panel :judul="$pilih->nama" :sub="$pilih->nik . ' · ' . $pilih->jabatan">
             @php $kt = $pilih->kontrakAktif; @endphp
+@if ($payrollBaru ?? false)
+                @php $kp = $pilih->kontrakPayrollAktif; @endphp
+                <div class="rinci"><span class="k">Kontrak</span><span class="v">{{ $kp ? $kp->contract_name . ($kp->end_date ? ' s.d. ' . tgl($kp->end_date, 'j M Y') : '') : '-' }}</span></div>
+@else
             <div class="rinci"><span class="k">Kontrak</span><span class="v">{{ $kt ? $kt->jenis . ($kt->tgl_akhir ? ' s.d. ' . tgl($kt->tgl_akhir, 'j M Y') : '') : '-' }}</span></div>
+@endif
             <div class="rinci"><span class="k">Mulai kerja</span><span class="v">{{ tgl($pilih->tgl_masuk, 'M Y') }}</span></div>
             <div class="rinci mb-3"><span class="k">Sisa cuti</span><span class="v">{{ $pilih->sisa_cuti }} hari</span></div>
             <x-catatan>Manager hanya bisa melihat data tim. Perubahan data dilakukan oleh HR.</x-catatan>

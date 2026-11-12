@@ -7,6 +7,7 @@ namespace Tests\Feature\PayrollBaru;
 use App\Domain\Company\Models\Company;
 use App\Domain\Company\Tenancy\CompanyScope;
 use App\Domain\Payroll\Actions\PasangMenuPayroll;
+use App\Domain\Payroll\ModulPayroll;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -49,8 +50,8 @@ final class MenuSidebarTest extends TestCase
             }
         }
 
-        // semua menu Payroll Baru ikut teruji dan berada di /pay/...
-        foreach (array_keys(PasangMenuPayroll::MENU) as $url) {
+        // semua menu Payroll Baru ikut teruji dan berada di /pay/... (Karyawan Payroll digabung ke Data Karyawan)
+        foreach (array_diff(array_keys(PasangMenuPayroll::MENU), array_keys(ModulPayroll::MENU_DIGANTIKAN)) as $url) {
             $this->assertContains('/'.PasangMenuPayroll::alamat($url), $diuji, "menu {$url} tidak muncul untuk role mana pun");
         }
     }
