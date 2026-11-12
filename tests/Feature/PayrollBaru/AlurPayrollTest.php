@@ -142,6 +142,24 @@ final class AlurPayrollTest extends TestCase
         $this->assertSame([$rizky], $ketiga->employees()->pluck('employee_id')->all(), 'karyawan bebas lagi setelah ditolak');
     }
 
+    public function test_generate_dua_draft_periode_sama_tidak_error_dan_mencatat_alasan(): void
+    {
+        $rizky = $this->id('Rizky Maulana');
+        $pertama = $this->runBaru([$rizky]);
+        $kedua = $this->runBaru([$rizky]); // preview dua-duanya sebelum ada yang digenerate
+        $this->assertSame(1, $kedua->employees()->count());
+
+        $this->actingAs($this->hr)->post("/pay/run/{$pertama->id}/generate")->assertRedirect();
+        $this->actingAs($this->hr)->post("/pay/run/{$kedua->id}/generate")->assertRedirect("/pay/run/{$kedua->id}");
+
+        $kedua->refresh();
+        $this->assertSame([PayrollRun::DRAFT, 'failed'], [$kedua->status, $kedua->job_status]);
+        $this->assertStringContainsString('Tidak ada karyawan yang bisa digenerate', (string) $kedua->job_error);
+        $this->assertSame('sudah punya payroll aktif di periode ini', collect($kedua->skipped_employees)->firstWhere('employee_id', $rizky)['alasan'] ?? null);
+        $this->actingAs($this->hr)->get("/pay/run/{$kedua->id}")->assertOk()->assertSee('Rizky Maulana');
+        $this->assertSame(PayrollRun::PENDING, $pertama->fresh()->status);
+    }
+
     public function test_kunci_periode_absensi_setelah_generate(): void
     {
         $rizky = $this->id('Rizky Maulana');
