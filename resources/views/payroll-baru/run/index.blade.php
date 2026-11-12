@@ -7,6 +7,11 @@
     @if (auth()->user()->bisa('pay-run', 'create'))<a href="{{ route('pay.run.index', ['baru' => 1]) }}" class="btn btn-primary"><i data-lucide="plus"></i> Payroll Baru</a>@endif
 </x-page-header>
 
+@if (! $approver)
+    <div class="alert alert-warning">Akun Anda belum punya <b>approver payroll</b>, jadi payroll belum bisa di-generate. Minta Admin mengisinya di <b>Manajemen User</b> (ubah user Anda → Approver payroll) atau menu <b>Data HRIS → Approver</b>.</div>
+@else
+    <div class="mb-3"><x-catatan>Payroll yang di-generate akan disetujui oleh <b>{{ $approver->namaTampil() }}</b> ({{ $approver->username }}).</x-catatan></div>
+@endif
 <div class="md-grid">
     <div class="card"><div class="table-responsive"><table class="table table-hover">
         <thead><tr><th>Judul</th><th>Periode</th><th>Status</th><th>Dibuat</th><th></th></tr></thead>

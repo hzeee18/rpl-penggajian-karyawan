@@ -633,3 +633,11 @@ Permintaan pemilik: `/pay/kontrak` bisa diedit (mis. koreksi nominal) tanpa memb
 - `App\Domain\Payroll\Actions\UbahKontrak` + route `PUT /pay/kontrak/{id}` (`akses:pay-kontrak,update`): mengubah nama, tanggal, THP info, dan komponen/nominal kontrak **aktif** di tempat (komponen yang tidak dicentang dilepas, yang baru ditambahkan). Audit log `updated` dengan nilai lama/baru per kode komponen.
 - Sesuai `PAYROLL_SPEC.md` aturan 3–4: kontrak yang sudah dipakai payroll **diajukan/disetujui** (`Contract::terkunci()`: ada `pay_run_employees.contract_id` pada run `pending_approval`/`approved`) **tidak bisa diubah**. Tombol Ubah disembunyikan dan diganti keterangan, `?ubah=` dialihkan, PUT ditolak. Perubahan nominal lewat Perbarui. Run draft/ditolak tidak mengunci; pratinjau draft perlu diulang setelah kontrak diubah.
 - Panel Detail Kontrak: tombol **Ubah** (koreksi) dan **Perbarui** (versi baru).
+
+## 42. Approver payroll diisi dari form Manajemen User (2026-11-12)
+
+Masukan pemilik saat QA: approver payroll kosong dan tidak ada alur yang jelas bagi pengguna awam untuk mengisinya. Sebelumnya hanya bisa lewat menu terpisah Data HRIS → Approver.
+
+- Form **Tambah/Ubah user** (perusahaan payroll baru) memuat field **Approver payroll** (daftar user Manager aktif, kecuali user itu sendiri). Disimpan hanya bila role yang dipilih HR; role lain → `approver_user_id` NULL. Validasi sama dengan menu Approver: Manager aktif, bukan diri sendiri. `approver_user_id` bukan kolom fillable `User` (model lama tidak diubah), jadi disimpan eksplisit (`forceFill`). Tampilan mode lama tidak berubah (snapshot karakterisasi lulus).
+- Halaman **Generate Payroll**: HR tanpa approver aktif melihat peringatan dan cara mengisinya. HR dengan approver melihat siapa yang akan menyetujui.
+- Halaman **Approver** (§41) tetap ada: kolom "Approver saat ini", keterangan alur, peringatan bila belum ada Manager.

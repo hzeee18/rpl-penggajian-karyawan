@@ -86,6 +86,28 @@ final class ModulPayrollBaruTest extends TestCase
         $this->actingAs($hr)->get('/absensi')->assertForbidden();
     }
 
+    public function test_approver_payroll_diisi_dari_form_user_dan_terlihat_di_generate_payroll(): void
+    {
+        $this->beralih();
+        $admin = $this->user('admin');
+        $manager = $this->user('manager.it');
+        $roleHr = DB::table('roles')->where('company_id', $admin->company_id)->where('nama', 'HR')->value('id');
+
+        $this->actingAs($admin)->get('/users/create')->assertOk()->assertSee('Approver payroll')->assertSee('('.$manager->username.')', false);
+        // approver harus Manager aktif
+        $this->actingAs($admin)->from('/users/create')->post('/users', ['username' => 'hr_baru', 'role_id' => $roleHr, 'password' => 'rahasia123', 'is_active' => 1,
+            'form_approver' => 1, 'approver_user_id' => $this->user('hr')->id])->assertSessionHasErrors('approver_user_id');
+        $this->actingAs($admin)->post('/users', ['username' => 'hr_baru', 'role_id' => $roleHr, 'password' => 'rahasia123', 'is_active' => 1,
+            'form_approver' => 1, 'approver_user_id' => $manager->id])->assertSessionHasNoErrors();
+        $hrBaru = User::where('username', 'hr_baru')->firstOrFail();
+        $this->assertSame($manager->id, (int) $hrBaru->approver_user_id);
+
+        $this->actingAs($hrBaru)->get('/pay/run')->assertOk()->assertSee('akan disetujui oleh')->assertSee($manager->username);
+        $this->actingAs($admin)->put("/users/{$hrBaru->id}", ['username' => 'hr_baru', 'role_id' => $roleHr, 'is_active' => 1, 'form_approver' => 1, 'approver_user_id' => ''])
+            ->assertSessionHasNoErrors();
+        $this->actingAs($hrBaru->fresh())->get('/pay/run')->assertOk()->assertSee('belum punya <b>approver payroll</b>', false);
+    }
+
     public function test_tanpa_beralih_fitur_lama_tidak_berubah(): void
     {
         $hr = $this->user('hr');

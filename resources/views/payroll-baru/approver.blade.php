@@ -4,7 +4,6 @@
 @section('content')
 <x-page-header judul="Approver Payroll" sub="Manager yang menyetujui payroll buatan masing-masing user HR." />
 @if ($errors->any())<div class="alert alert-danger">{{ implode(' ', $errors->all()) }}</div>@endif
-<div class="mb-3"><x-catatan>Alur: HR membuat dan generate payroll → payroll masuk ke menu <b>Approval</b> milik approver di bawah → setelah disetujui, slip gaji terbit. HR yang belum punya approver tidak bisa generate payroll.</x-catatan></div>
 @if ($manager->isEmpty())
     <div class="alert alert-warning">Belum ada user <b>Manager</b> aktif. Buat dulu di Manajemen User (role Manager), lalu pilih di sini sebagai approver.</div>
 @endif

@@ -20,7 +20,12 @@ final class RunController extends Controller
 
     public function index()
     {
-        return view('payroll-baru.run.index', ['run' => PayrollRun::with('creator')->orderByDesc('id')->paginate(15)]);
+        $approver = \App\Models\User::find(auth()->user()->approver_user_id);
+
+        return view('payroll-baru.run.index', [
+            'run' => PayrollRun::with('creator')->orderByDesc('id')->paginate(15),
+            'approver' => $approver?->is_active ? $approver : null, // tanpa approver aktif, generate ditolak
+        ]);
     }
 
     public function store(Request $request)
