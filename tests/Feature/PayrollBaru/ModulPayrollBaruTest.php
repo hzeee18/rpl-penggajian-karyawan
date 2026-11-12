@@ -41,6 +41,30 @@ final class ModulPayrollBaruTest extends TestCase
         app(BuatKontrak::class)->handle(['employee_id' => $k->id, 'contract_name' => 'PKWT Uji 2026', 'start_date' => '2026-01-01', 'end_date' => '2026-12-31'], [$gp->id => '7250000']);
     }
 
+    public function test_dashboard_dan_absensi_staf_dari_payroll_baru_tanpa_slip(): void
+    {
+        $this->beralih();
+        $rizky = $this->user('rizky');
+        $k = Karyawan::findOrFail($rizky->karyawan_id);
+        $sakit = \App\Domain\Payroll\Models\LeaveType::create(['code' => 'SKT', 'name' => 'Sakit Uji']);
+        $tgl = \App\Domain\Payroll\KehadiranKaryawan::rentang(now()->format('Y-m'))[0];
+        \App\Domain\Payroll\Models\Attendance::create(['employee_id' => $k->id, 'attendance_date' => $tgl->toDateString(), 'check_in' => '08:30', 'check_out' => '17:00', 'late_hours' => '0.5']);
+        \App\Domain\Payroll\Models\Leave::create(['employee_id' => $k->id, 'leave_type_id' => $sakit->id, 'leave_date' => $tgl->addDay()->toDateString(), 'note' => 'Demam uji']);
+        \App\Domain\Payroll\Models\Overtime::create(['employee_id' => $k->id, 'overtime_date' => $tgl->toDateString(), 'duration_hours' => '2.5', 'note' => 'Lembur uji']);
+
+        $this->actingAs($rizky)->get('/dashboard')->assertOk()
+            ->assertSee('1 Sakit Uji')->assertSee('2,5 jam')->assertSee('1 kali terlambat')
+            ->assertDontSee('Slip gaji belum tersedia')->assertDontSee('Gaji bersih')->assertDontSee('Unduh Slip');
+
+        $this->actingAs($rizky)->get('/absensi')->assertOk()
+            ->assertSee('Absensi, Leave &amp; Lembur', false)->assertSee('Demam uji')->assertSee('08:30 – 17:00')->assertSee('Sakit Uji');
+        $this->actingAs($rizky)->get('/absensi?filter=leave')->assertOk()->assertSee('Demam uji')->assertDontSee('08:30 – 17:00');
+
+        // menu Cuti & Lembur lama ditutup untuk role Karyawan; isinya ada di Absensi
+        $this->actingAs($rizky)->get('/cuti')->assertForbidden();
+        $this->actingAs($rizky)->get('/lembur')->assertForbidden();
+    }
+
     public function test_tanpa_beralih_fitur_lama_tidak_berubah(): void
     {
         $hr = $this->user('hr');

@@ -517,3 +517,14 @@ Belum berubah (di luar permintaan, menunggu keputusan bila perlu): menu Absensi/
 - Dasar: PPh21 TER adalah aturan nasional (PP 58/2023), bukan aturan perusahaan; angka tarif tetap dari tabel referensi nasional (sesuai PAYROLL_SPEC aturan 1). Item yang rumusnya identik ditampilkan "PPh21 TER otomatis" (termasuk master `contoh` dan `pkp` MTS di DB dev).
 - Batasan yang dijelaskan ke pemilik: metode TER hanya untuk masa Januari-November; masa Desember/resign (hitung setahun Pasal 17 dikurangi TER yang sudah dipotong) belum dibuat (PAYROLL_SPEC: fase 2; data `pay_tax_monthly_histories` sudah disimpan).
 - Tes: `MasterReferensiTest::test_pilihan_pph21_ter_otomatis_tanpa_mengetik_rumus`.
+
+## 32. Dashboard & Absensi staf mengikuti payroll baru (2026-11-12)
+
+Permintaan pemilik: login staf, dashboard dan Absensi/Cuti/Lembur belum mengikuti payroll baru; slip gaji jangan tampil di dashboard.
+
+- Bila `companies.payroll_baru` aktif, role Karyawan memakai tampilan baru (tampilan lama tetap untuk perusahaan yang belum beralih, snapshot karakterisasi tidak berubah):
+  - Dashboard (`dashboard/karyawan-payroll-baru.blade.php`): kehadiran, leave per tipe, jam lembur periode cut off dari `pay_attendances/pay_leaves/pay_overtimes`; **tanpa kartu slip gaji** (slip tetap di menu Slip Gaji).
+  - `/absensi` (`absensi/saya-payroll-baru.blade.php`): riwayat harian sendiri dari tabel `pay_*`, filter Hadir/Leave/Lembur, tautan ke `/pay/slip`.
+  - Ringkasan dihitung `App\Domain\Payroll\KehadiranKaryawan` (data apa adanya; tidak ada aturan alpha/potongan/uang makan, itu urusan master payroll). Konsep lama "alfa" dan "sisa cuti tahunan" tidak ditampilkan karena tidak ada di modul baru.
+- Hak menu: `AlihkanKePayrollBaru::hakKaryawan()` memberi role Karyawan lihat `absensi`, dan menutup `cuti` & `lembur` lama (isinya sudah di halaman Absensi). Diterapkan di dev untuk DEFAULT dan MTS (sebelumnya: DEFAULT Karyawan lihat absensi/cuti/lembur; MTS Karyawan tidak punya ketiganya). Backup setelah perubahan: `penggajian_karyawan-setelah-hak-karyawan-absensi-20261112-131404.sql`.
+- Belum: tampilan Manager (rekap tim di `/absensi`, input lembur di `/lembur`) dan HR (`/absensi`, `/import`, `/pajak`, `/master-payroll`, `/approval`) masih modul lama; dibahas bersama permintaan penataan menu.

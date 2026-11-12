@@ -43,7 +43,9 @@ class DashboardController extends Controller
             Role::ADMIN => view('dashboard.admin', $d + $this->admin()),
             Role::HR => view('dashboard.hr', $d + ($payrollBaru ? $this->hrPayrollBaru($this->hr($svc, $rentang)) : $this->hr($svc, $rentang))),
             Role::MANAGER => view('dashboard.manager', $d + $this->manager($user, $svc, $master, $rentang, $payrollBaru)),
-            default => view('dashboard.karyawan', $d + $this->karyawan($user, $svc, $master, $awal, $akhir, $payrollBaru)),
+            default => $payrollBaru
+                ? view('dashboard.karyawan-payroll-baru', $this->karyawanPayrollBaru($user) + $d)
+                : view('dashboard.karyawan', $d + $this->karyawan($user, $svc, $master, $awal, $akhir, $payrollBaru)),
         };
     }
 
@@ -240,6 +242,42 @@ class DashboardController extends Controller
                 ['Sisa Cuti Tahunan', $k->sisa_cuti . ' hari', 'Jatah 12 hari per tahun'],
                 ['Lembur ' . tgl($akhir, 'F'), rtrim(rtrim(number_format($rekap['jam_lembur'], 1, ',', '.'), '0'), ',') . ' jam', $rekap['jam_lembur'] ? ($payrollBaru ? 'Dihitung saat payroll' : rupiah($upahLembur) . ' · estimasi') : 'Belum ada lembur'],
                 ['Masa Kerja', intdiv($masa, 12) . ' th ' . ($masa % 12) . ' bln', $masa >= 12 ? 'Berhak THR 1× gaji pokok' : 'THR prorata ' . $masa . '/12'],
+            ],
+            'riwayat' => $riwayat,
+        ];
+    }
+
+    /**
+     * Dashboard karyawan bila perusahaan memakai payroll baru: kehadiran dari tabel pay_*, periode cut off,
+     * tanpa slip gaji (slip dilihat di menu Slip Gaji).
+     */
+    private function karyawanPayrollBaru(User $user): array
+    {
+        $k = $user->karyawan?->load('departemen');
+        if (! $k) {
+            return ['karyawan' => null];
+        }
+        $periode = now()->format('Y-m');
+        [$awal, $akhir] = \App\Domain\Payroll\KehadiranKaryawan::rentang($periode);
+        ['rekap' => $rekap] = \App\Domain\Payroll\KehadiranKaryawan::untuk($k->id, $awal, $akhir);
+        $masa = $k->hitungMasaKerja();
+        $jam = \App\Domain\Payroll\KehadiranKaryawan::angka($rekap['jam_lembur']);
+
+        $riwayat = \App\Domain\Payroll\Models\Leave::with('leaveType')->where('employee_id', $k->id)->latest('leave_date')->take(5)->get()
+            ->map(fn ($l) => (object) ['jenis' => $l->leaveType?->name ?? 'Leave', 'urut' => $l->leave_date, 'tanggal' => tgl($l->leave_date, 'j M Y'), 'ket' => $l->note])
+            ->concat(\App\Domain\Payroll\Models\Overtime::where('employee_id', $k->id)->latest('overtime_date')->take(5)->get()
+                ->map(fn ($o) => (object) ['jenis' => 'Lembur', 'urut' => $o->overtime_date, 'tanggal' => tgl($o->overtime_date, 'j M Y') . ' · ' . \App\Domain\Payroll\KehadiranKaryawan::angka((string) $o->duration_hours) . ' jam', 'ket' => $o->note]))
+            ->sortByDesc('urut')->take(5)->values();
+
+        return [
+            'karyawan' => $k,
+            'periode' => $periode, 'awal' => $awal, 'akhir' => $akhir,
+            'rekap' => $rekap,
+            'stat' => [
+                ['Kehadiran ' . nama_periode($periode), $rekap['hadir'] . ' hari', $rekap['terlambat'] . ' kali terlambat'],
+                ['Leave ' . nama_periode($periode), $rekap['leave'] . ' hari', $rekap['leave'] ? collect($rekap['leave_per_tipe'])->map(fn ($n, $t) => "$n $t")->implode(' · ') : 'Belum ada leave'],
+                ['Lembur ' . nama_periode($periode), $jam . ' jam', bccomp($rekap['jam_lembur'], '0', 2) > 0 ? 'Dihitung saat payroll' : 'Belum ada lembur'],
+                ['Masa Kerja', intdiv($masa, 12) . ' th ' . ($masa % 12) . ' bln', $k->tgl_masuk ? 'Sejak ' . tgl($k->tgl_masuk, 'j M Y') : '-'],
             ],
             'riwayat' => $riwayat,
         ];

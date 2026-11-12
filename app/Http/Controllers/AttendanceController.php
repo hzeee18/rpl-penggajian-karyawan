@@ -34,7 +34,30 @@ class AttendanceController extends Controller
             return $this->rekapTim($request, $svc);
         }
 
+        if (\App\Domain\Payroll\ModulPayroll::aktif()) {
+            return $this->riwayatSayaPayrollBaru($request);
+        }
+
         return $this->riwayatSaya($request, $svc);
+    }
+
+    /** Riwayat karyawan sendiri dari tabel modul payroll baru (periode cut off perusahaan). */
+    private function riwayatSayaPayrollBaru(Request $request)
+    {
+        $k = $request->user()->karyawan;
+        abort_unless($k, 404);
+        $periode = preg_match('/^\d{4}-\d{2}$/', (string) $request->input('periode')) ? $request->input('periode') : now()->format('Y-m');
+        [$awal, $akhir] = \App\Domain\Payroll\KehadiranKaryawan::rentang($periode);
+        ['rekap' => $rekap, 'baris' => $semua] = \App\Domain\Payroll\KehadiranKaryawan::untuk($k->id, $awal, $akhir);
+        $filter = $request->input('filter');
+        $baris = $semua->filter(fn ($r) => match ($filter) {
+            'hadir' => in_array($r->status, ['hadir', 'terlambat'], true),
+            'leave' => $r->status === 'leave',
+            'lembur' => bccomp($r->lembur, '0', 2) > 0,
+            default => true,
+        })->values();
+
+        return view('absensi.saya-payroll-baru', compact('periode', 'awal', 'akhir', 'rekap', 'baris') + ['jumlah' => $semua->count(), 'karyawan' => $k]);
     }
 
     /** Status satu karyawan di satu tanggal: cuti/izin/sakit menang atas absensi. */
