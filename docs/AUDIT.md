@@ -641,3 +641,12 @@ Masukan pemilik saat QA: approver payroll kosong dan tidak ada alur yang jelas b
 - Form **Tambah/Ubah user** (perusahaan payroll baru) memuat field **Approver payroll** (daftar user Manager aktif, kecuali user itu sendiri). Disimpan hanya bila role yang dipilih HR; role lain → `approver_user_id` NULL. Validasi sama dengan menu Approver: Manager aktif, bukan diri sendiri. `approver_user_id` bukan kolom fillable `User` (model lama tidak diubah), jadi disimpan eksplisit (`forceFill`). Tampilan mode lama tidak berubah (snapshot karakterisasi lulus).
 - Halaman **Generate Payroll**: HR tanpa approver aktif melihat peringatan dan cara mengisinya. HR dengan approver melihat siapa yang akan menyetujui.
 - Halaman **Approver** (§41) tetap ada: kolom "Approver saat ini", keterangan alur, peringatan bila belum ada Manager.
+
+## 43. README dan seed data QA terkini (2026-11-12)
+
+Permintaan pemilik: README untuk teman satu tim, dan seed yang sesuai data terkini di database. Jawaban pemilik: data karyawan di database QA adalah data dummy buatan sendiri (disalin apa adanya); payroll dan slip ikut.
+
+- `php artisan seed:ekspor-qa` (baca saja) menulis `database/seeders/data/qa_snapshot.json`: semua tabel kecuali tabel sistem (migrations, sessions, cache, jobs, dll.). Kolom generated dilewati, kolom terenkripsi (`karyawan.npwp`, `karyawan.bank_account_no`, `pay_run_employees.bank_account_no`) didekripsi, password tidak disalin.
+- `DataQaSeeder` (tidak dipanggil `DatabaseSeeder`): hanya untuk database baru (menolak bila sudah ada user/karyawan). Tabel snapshot dikosongkan (mis. perusahaan DEFAULT bawaan migrasi) lalu diisi dengan id yang sama, kolom terenkripsi dienkripsi ulang dengan `APP_KEY` setempat, semua password = `password`, PDF slip dibuat ulang. Foreign key dimatikan selama impor (SQLite: `defer_foreign_keys`).
+- Diuji: dipasang di `penggajian_test` (MySQL); jumlah baris semua tabel sama, NPWP/rekening terbaca, login berhasil, 3 PDF slip dibuat. Test `DataQaSeederTest` (SQLite & MySQL). Efek samping: PDF slip MTS di `storage/app/private/payslips/3/4/` dibuat ulang (storage dipakai bersama dev & test); isinya dari data yang sama.
+- `README.md` ditulis ulang untuk branch ini: kebutuhan, langkah instalasi (`migrate:fresh` lalu `db:seed --class=DataQaSeeder`, wajib `queue:work`), akun, isi data, password PDF slip, alur per role, cara memperbarui seed, test, dan masalah umum. README lama (aplikasi lama) tetap ada di branch `main`.

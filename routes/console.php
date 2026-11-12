@@ -75,3 +75,17 @@ Artisan::command('payroll:isi-data {kode : kode perusahaan yang sudah dibuat} {-
 
     return 0;
 })->purpose('Isi data contoh lengkap (tanpa rumus) untuk satu perusahaan baru yang masih kosong');
+
+Artisan::command('seed:ekspor-qa', function () {
+    // hanya membaca database; menulis file snapshot untuk DataQaSeeder (dibagikan ke anggota tim)
+    $isi = \Database\Seeders\DataQaSeeder::ekspor();
+    $file = database_path(\Database\Seeders\DataQaSeeder::FILE);
+    @mkdir(dirname($file), 0777, true);
+    file_put_contents($file, json_encode($isi, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)."\n");
+    $jumlah = collect($isi['tabel'])->map(fn ($b) => count($b))->filter();
+    $this->info('Snapshot ditulis: '.$file);
+    $this->line($jumlah->map(fn ($n, $t) => "  {$t}: {$n}")->implode("\n"));
+    $this->line('Pasang di database baru: php artisan migrate:fresh && php artisan db:seed --class=DataQaSeeder');
+
+    return 0;
+})->purpose('Salin data database saat ini ke database/seeders/data/qa_snapshot.json (untuk DataQaSeeder)');
