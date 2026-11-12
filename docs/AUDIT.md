@@ -501,3 +501,11 @@ Rancangan: saklar per perusahaan `companies.payroll_baru` (migration `2026_11_20
 - Tes: `ModulPayrollBaruTest` (5), `SuperAdminTest` disesuaikan, `MenuSidebarTest` (menu yang digantikan dikecualikan).
 
 Belum berubah (di luar permintaan, menunggu keputusan bila perlu): menu Absensi/Cuti/Lembur/Import Excel lama tetap ada berdampingan dengan Absensi/Leave/Lembur/Import CSV payroll baru (mesin rumus hanya membaca data `pay_*`); menu Approval lama tetap (cuti/lembur); Periode (master payroll lama) tetap karena dipakai filter/penguncian absensi lama; job harian `kontrak:aktifkan` tetap berjalan (tidak berdampak bila tidak ada kontrak lama baru).
+
+## 30. Template CSV import payroll per jenis (2026-11-12)
+
+- Permintaan pemilik: template unduhan untuk setiap tipe import di menu Import CSV (Payroll Baru).
+- Halaman Import CSV: kartu "Template CSV" dengan tombol unduh per jenis (Absensi, Leave, Lembur), keterangan tiap kolom (`JenisKehadiran::keteranganKolom()`), dan daftar kode tipe leave aktif perusahaan.
+- Isi template (`TemplateKehadiran`): header tetap + baris contoh memakai NIK karyawan aktif perusahaan sendiri (utamakan yang punya kontrak payroll aktif), kode tipe leave aktif, dan tanggal hari kerja terakhir; fallback contoh bawaan bila perusahaan belum punya karyawan. Tenant-scoped (NIK perusahaan lain tidak muncul).
+- Tes: `KehadiranImportTest::test_template_per_jenis_berisi_data_perusahaan_sendiri_dan_langsung_valid` (template diunggah apa adanya -> semua baris valid).
+- Catatan untuk pengguna: NIK berawalan nol (mis. `0001`) hilang nolnya bila CSV dibuka/disimpan dengan Excel; edit dengan Notepad/Google Sheets atau format kolom nik sebagai Text.

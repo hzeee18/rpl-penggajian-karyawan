@@ -8,6 +8,8 @@ use App\Domain\Payroll\Actions\SimpanImport;
 use App\Domain\Payroll\Actions\UnggahImport;
 use App\Domain\Payroll\Actions\ValidasiUlangImport;
 use App\Domain\Payroll\Import\JenisKehadiran;
+use App\Domain\Payroll\Import\TemplateKehadiran;
+use App\Domain\Payroll\Models\LeaveType;
 use App\Domain\Payroll\Models\ImportBatch;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -21,13 +23,15 @@ final class ImportPayrollController extends Controller
         return view('payroll-baru.import.index', [
             'batch' => ImportBatch::orderByDesc('id')->limit(30)->get(),
             'jenis' => JenisKehadiran::cases(),
+            'tipeLeave' => LeaveType::where('is_active', true)->orderBy('code')->get(['code', 'name']),
         ]);
     }
 
-    public function template(string $jenis)
+    /** Template CSV per jenis, berisi contoh dari data perusahaan sendiri (NIK, kode tipe leave). */
+    public function template(string $jenis, TemplateKehadiran $template)
     {
         $j = JenisKehadiran::dariSlug($jenis);
-        $isi = implode(',', $j->kolom())."\n".implode(',', $j->contoh())."\n";
+        $isi = $template->isi($j);
 
         return response()->streamDownload(fn () => print ($isi), "template-{$j->slug()}.csv", ['Content-Type' => 'text/csv']);
     }

@@ -21,6 +21,19 @@ enum JenisKehadiran: string
         };
     }
 
+    /** @return array<string, string> kolom => keterangan pengisian (ditampilkan di halaman Import CSV) */
+    public function keteranganKolom(): array
+    {
+        return match ($this) {
+            self::Absensi => ['nik' => 'NIK karyawan aktif', 'tanggal' => 'YYYY-MM-DD', 'jam_masuk' => 'HH:MM (boleh kosong)',
+                'jam_keluar' => 'HH:MM (boleh kosong)', 'jam_terlambat' => 'angka jam, mis. 0.5 (kosong = 0)'],
+            self::Leave => ['nik' => 'NIK karyawan aktif', 'kode_tipe' => 'kode di menu Tipe Leave', 'tanggal_mulai' => 'YYYY-MM-DD',
+                'tanggal_selesai' => 'YYYY-MM-DD (kosong = 1 hari; Sabtu/Minggu dilewati)', 'keterangan' => 'bebas (boleh kosong)'],
+            self::Lembur => ['nik' => 'NIK karyawan aktif', 'tanggal' => 'YYYY-MM-DD', 'durasi_jam' => 'angka jam > 0, mis. 2.5',
+                'keterangan' => 'bebas (boleh kosong)'],
+        };
+    }
+
     /** @return list<string> contoh baris template */
     public function contoh(): array
     {

@@ -179,4 +179,36 @@ final class KehadiranImportTest extends TestCase
     {
         return (int) DB::table('karyawan')->where('nik', $nik)->where('company_id', $this->defaultId())->value('id');
     }
+
+    public function test_template_per_jenis_berisi_data_perusahaan_sendiri_dan_langsung_valid(): void
+    {
+        \Illuminate\Support\Carbon::setTestNow('2026-11-16 09:00'); // Senin: hari kerja terakhir 16 & 13 Nov
+        $this->perusahaanLain('B'); // karyawan B0001 milik perusahaan lain tidak boleh muncul
+
+        $halaman = $this->actingAs($this->hr)->get('/pay/import')->assertOk();
+        foreach (['absensi', 'leave', 'lembur'] as $jenis) {
+            $halaman->assertSee(route('pay.import.template', $jenis));
+        }
+        $halaman->assertSee('Unduh template leave')->assertSee('sakit_bersurat');
+
+        $harapanHeader = ['absensi' => 'nik,tanggal,jam_masuk,jam_keluar,jam_terlambat', 'leave' => 'nik,kode_tipe,tanggal_mulai,tanggal_selesai,keterangan', 'lembur' => 'nik,tanggal,durasi_jam,keterangan'];
+        foreach ($harapanHeader as $jenis => $header) {
+            $res = $this->actingAs($this->hr)->get("/pay/import/template/{$jenis}")->assertOk()->assertDownload("template-{$jenis}.csv");
+            $csv = $res->streamedContent();
+            $baris = array_values(array_filter(explode("
+", $csv)));
+            $this->assertSame($header, $baris[0]);
+            $this->assertGreaterThanOrEqual(2, count($baris));
+            $this->assertStringNotContainsString('B0001', $csv, 'NIK perusahaan lain tidak bocor');
+            foreach (array_slice($baris, 1) as $b) {
+                $this->assertTrue(\App\Domain\Payroll\Models\Employee::where('nik', explode(',', $b)[0])->where('is_active', true)->exists(), 'NIK karyawan aktif perusahaan sendiri');
+            }
+
+            // template apa adanya langsung lolos validasi
+            $batch = $this->unggah($jenis, $csv);
+            $this->assertSame($batch->total_rows, $batch->valid_rows, "template {$jenis}: ".json_encode($this->hasil($batch)));
+        }
+        $this->assertStringContainsString('2026-11-16', $this->actingAs($this->hr)->get('/pay/import/template/absensi')->streamedContent());
+        $this->assertStringContainsString(',cuti,2026-11-13,', $this->actingAs($this->hr)->get('/pay/import/template/leave')->streamedContent());
+    }
 }
