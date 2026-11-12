@@ -119,24 +119,31 @@ final class MasterReferensiTest extends TestCase
 
     public function test_tabel_referensi_perusahaan_dan_nasional(): void
     {
-        $this->actingAs($this->hr)->post('/pay/referensi', ['code' => 'tarif_lembur', 'name' => 'Tarif lembur'])->assertSessionHasNoErrors();
+        // Tabel Referensi dikelola Super Admin dengan perusahaan terpilih (AUDIT.md §34); HR tidak punya menu ini
+        $this->actingAs($this->hr)->get('/pay/referensi')->assertForbidden();
+        $this->artisan('super-admin:buat', ['username' => 'super', '--password' => 'rahasia123'])->assertSuccessful();
+        $super = User::withoutGlobalScope(\App\Domain\Company\Tenancy\CompanyScope::class)->where('username', 'super')->firstOrFail();
+        $sa = fn () => $this->actingAs($super)->withSession([CurrentCompany::SESSION_KEY => (int) $this->hr->company_id]);
+
+        $sa()->post('/pay/referensi', ['code' => 'tarif_lembur', 'name' => 'Tarif lembur'])->assertSessionHasNoErrors();
         $versi = ReferenceTableVersion::latest('id')->firstOrFail();
-        $this->actingAs($this->hr)->post("/pay/referensi/versi/{$versi->id}/baris", ['key_value' => 'OPS', 'result_number' => '30000'])->assertSessionHasNoErrors();
-        $this->actingAs($this->hr)->post("/pay/referensi/versi/{$versi->id}/baris", ['range_from' => '10', 'range_to' => '5', 'result_number' => '1'])->assertSessionHasErrors('range_to');
-        $this->actingAs($this->hr)->post("/pay/referensi/versi/{$versi->id}/terbitkan", ['effective_from' => '2026-01-01'])->assertSessionHasNoErrors();
-        $this->actingAs($this->hr)->post("/pay/referensi/versi/{$versi->id}/baris", ['key_value' => 'X', 'result_number' => '1'])->assertSessionHasErrors('versi');
+        $sa()->post("/pay/referensi/versi/{$versi->id}/baris", ['key_value' => 'OPS', 'result_number' => '30000'])->assertSessionHasNoErrors();
+        $sa()->post("/pay/referensi/versi/{$versi->id}/baris", ['range_from' => '10', 'range_to' => '5', 'result_number' => '1'])->assertSessionHasErrors('range_to');
+        $sa()->post("/pay/referensi/versi/{$versi->id}/terbitkan", ['effective_from' => '2026-01-01'])->assertSessionHasNoErrors();
+        $sa()->post("/pay/referensi/versi/{$versi->id}/baris", ['key_value' => 'X', 'result_number' => '1'])->assertSessionHasErrors('versi');
         $this->assertSame((int) $this->hr->company_id, (int) ReferenceTable::where('code', 'tarif_lembur')->value('company_id'));
 
-        // HR tidak boleh membuat / mengubah tabel nasional
-        $this->actingAs($this->hr)->post('/pay/referensi', ['code' => 'ter_nasional', 'name' => 'TER', 'nasional' => 1])->assertForbidden();
+        // Admin perusahaan (punya menu ini) tidak boleh membuat / mengubah tabel nasional
+        $admin = User::where('username', 'admin')->firstOrFail();
+        $this->actingAs($admin)->post('/pay/referensi', ['code' => 'ter_nasional', 'name' => 'TER', 'nasional' => 1])->assertForbidden();
         $nasional = app(CurrentCompany::class)->lintasPerusahaan('uji: buat tabel nasional seperti Super Admin', function () {
             $t = ReferenceTable::create(['company_id' => null, 'code' => 'ter_uji', 'name' => 'TER (uji)']);
 
             return ReferenceTableVersion::create(['company_id' => null, 'reference_table_id' => $t->id, 'version_no' => 1, 'status' => 'draft']);
         });
-        $this->actingAs($this->hr)->get('/pay/referensi')->assertSee('ter_uji')->assertSee('Nasional');
-        $this->actingAs($this->hr)->post("/pay/referensi/versi/{$nasional->id}/baris", ['key_value' => 'A', 'result_number' => '0.01'])->assertForbidden();
-        $this->actingAs($this->hr)->post("/pay/referensi/versi/{$nasional->id}/salin")->assertForbidden();
+        $this->actingAs($admin)->get('/pay/referensi')->assertSee('ter_uji')->assertSee('Nasional');
+        $this->actingAs($admin)->post("/pay/referensi/versi/{$nasional->id}/baris", ['key_value' => 'A', 'result_number' => '0.01'])->assertForbidden();
+        $this->actingAs($admin)->post("/pay/referensi/versi/{$nasional->id}/salin")->assertForbidden();
 
         // tabel perusahaan lain tidak terlihat dan tidak bisa dibuka
         $b = $this->perusahaanLain();
@@ -145,7 +152,7 @@ final class MasterReferensiTest extends TestCase
 
             return ReferenceTableVersion::create(['reference_table_id' => $t->id, 'version_no' => 1, 'status' => 'draft']);
         });
-        $this->actingAs($this->hr)->get('/pay/referensi')->assertDontSee('rahasia_b');
-        $this->actingAs($this->hr)->get("/pay/referensi/versi/{$versiB->id}")->assertNotFound();
+        $this->actingAs($admin)->get('/pay/referensi')->assertDontSee('rahasia_b');
+        $this->actingAs($admin)->get("/pay/referensi/versi/{$versiB->id}")->assertNotFound();
     }
 }

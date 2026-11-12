@@ -74,7 +74,7 @@ final class SuperAdminTest extends TestCase
     {
         $super = $this->buatSuperAdmin();
 
-        $this->actingAs($super)->post('/perusahaan', ['code' => 'PTC', 'name' => 'PT Contoh'])->assertSessionHasNoErrors();
+        $this->actingAs($super)->post('/perusahaan', ['code' => 'PTC', 'name' => 'PT Contoh', 'admin_username' => 'admin.ptc', 'admin_password' => 'rahasia123', 'admin_password_confirmation' => 'rahasia123'])->assertSessionHasNoErrors();
 
         $baru = Company::where('code', 'PTC')->firstOrFail();
         $roles = DB::table('roles')->where('company_id', $baru->id)->orderBy('id')->pluck('nama')->all();
@@ -86,6 +86,39 @@ final class SuperAdminTest extends TestCase
         $this->assertSame(DB::table('approval_mapping')->where('company_id', $this->defaultId())->count(), DB::table('approval_mapping')->where('company_id', $baru->id)->count());
     }
 
+    public function test_super_admin_membuat_perusahaan_beserta_akun_admin_yang_bisa_langsung_login(): void
+    {
+        $super = $this->buatSuperAdmin();
+
+        // akun Admin wajib diisi saat membuat perusahaan
+        $this->actingAs($super)->post('/perusahaan', ['code' => 'PTA', 'name' => 'PT Admin'])->assertSessionHasErrors(['admin_username', 'admin_password']);
+        $this->assertFalse(Company::where('code', 'PTA')->exists(), 'perusahaan tidak dibuat tanpa akun Admin');
+        $this->actingAs($super)->post('/perusahaan', ['code' => 'PTA', 'name' => 'PT Admin', 'admin_username' => 'admin', 'admin_password' => 'rahasia123', 'admin_password_confirmation' => 'rahasia123'])
+            ->assertSessionHasErrors('admin_username'); // username unik global
+
+        $this->actingAs($super)->post('/perusahaan', ['code' => 'PTA', 'name' => 'PT Admin', 'admin_username' => 'admin.pta', 'admin_email' => 'admin@pta.test',
+            'admin_password' => 'rahasia123', 'admin_password_confirmation' => 'rahasia123'])->assertSessionHasNoErrors();
+        $pta = Company::where('code', 'PTA')->firstOrFail();
+        $akun = User::withoutGlobalScope(CompanyScope::class)->where('username', 'admin.pta')->firstOrFail();
+        $this->assertSame((int) $pta->id, (int) $akun->company_id);
+        $this->assertSame(Role::ADMIN, DB::table('roles')->where('id', $akun->role_id)->value('nama'));
+        $this->assertSame((int) $pta->id, (int) DB::table('roles')->where('id', $akun->role_id)->value('company_id'));
+
+        // Admin perusahaan login sendiri dan mengelola user perusahaannya
+        $this->post('/logout');
+        $this->post('/login', ['username' => 'admin.pta', 'password' => 'rahasia123'])->assertRedirect('/dashboard');
+        $this->get('/users')->assertOk()->assertSee('admin.pta')->assertDontSee('rizky');
+        $this->get('/pay/jabatan')->assertOk();
+        $this->post('/logout');
+
+        // Admin tambahan dari drawer "Admin Perusahaan" tanpa memilih perusahaan
+        $this->actingAs($super)->get("/perusahaan?admin={$pta->id}")->assertOk()->assertSee('Admin Perusahaan')->assertSee('admin.pta');
+        $this->actingAs($super)->post("/perusahaan/{$pta->id}/admin", ['admin_username' => 'admin2.pta', 'admin_password' => 'rahasia123', 'admin_password_confirmation' => 'rahasia123'])
+            ->assertRedirect(route('perusahaan.index', ['admin' => $pta->id]));
+        $this->assertSame((int) $pta->id, (int) User::withoutGlobalScope(CompanyScope::class)->where('username', 'admin2.pta')->value('company_id'));
+        $this->actingAs(User::withoutGlobalScope(CompanyScope::class)->where('username', 'admin')->firstOrFail())->post("/perusahaan/{$pta->id}/admin", ['admin_username' => 'x.pta'])->assertForbidden();
+    }
+
     public function test_perusahaan_baru_langsung_memakai_payroll_baru(): void
     {
         $super = $this->buatSuperAdmin();
@@ -93,7 +126,7 @@ final class SuperAdminTest extends TestCase
             ->where('roles.company_id', Company::where('code', $kode)->value('id'))->where('roles.nama', Role::HR)
             ->where('privileges.menu_id', DB::table('menus')->where('url', $url)->value('id'))->value('privileges.can_view');
 
-        $this->actingAs($super)->post('/perusahaan', ['code' => 'PTP', 'name' => 'PT Payroll'])->assertSessionHasNoErrors();
+        $this->actingAs($super)->post('/perusahaan', ['code' => 'PTP', 'name' => 'PT Payroll', 'admin_username' => 'admin.ptp', 'admin_password' => 'rahasia123', 'admin_password_confirmation' => 'rahasia123'])->assertSessionHasNoErrors();
 
         $this->assertTrue(Company::where('code', 'PTP')->firstOrFail()->payroll_baru);
         $this->assertTrue((bool) $hak('PTP', 'pay-run'));

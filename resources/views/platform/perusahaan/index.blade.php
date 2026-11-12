@@ -24,6 +24,7 @@
                         <td>{!! badge_status($p->is_active ? 'aktif' : 'nonaktif') !!}</td>
                         <td class="text-nowrap"><div class="d-inline-flex gap-2">
                             <a href="{{ route('perusahaan.index', ['ubah' => $p->id]) }}" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>
+                            <a href="{{ route('perusahaan.index', ['admin' => $p->id]) }}" class="btn btn-light btn-icon" title="Akun Admin perusahaan"><i data-lucide="user-cog"></i></a>
                             @if ($p->is_active && $aktif !== $p->id)
                                 <form method="post" action="{{ route('perusahaan.pilih', $p) }}">@csrf<button class="btn btn-outline-primary btn-sm">Pilih</button></form>
                             @endif
@@ -37,7 +38,7 @@
         </div>
     </div>
 
-    <x-panel :judul="$ubah->exists ? 'Ubah Perusahaan' : 'Tambah Perusahaan'" :sub="$ubah->exists ? $ubah->code . ' · ' . $ubah->name : 'Role dan hak akses bawaan disalin dari perusahaan DEFAULT'"
+    <x-panel :buka="request()->hasAny(['ubah', 'baru']) || ($errors->any() && ! $adminUntuk)" :judul="$ubah->exists ? 'Ubah Perusahaan' : 'Tambah Perusahaan'" :sub="$ubah->exists ? $ubah->code . ' · ' . $ubah->name : 'Role dan hak akses bawaan disalin dari perusahaan DEFAULT'"
              :action="$ubah->exists ? route('perusahaan.update', $ubah) : route('perusahaan.store')" :method="$ubah->exists ? 'put' : 'post'" enctype="multipart/form-data">
         @unless ($ubah->exists)
             <div class="mb-field"><label class="form-label">Kode perusahaan</label><input name="code" value="{{ old('code') }}" class="form-control" maxlength="32" required></div>
@@ -52,7 +53,25 @@
             <input type="hidden" name="is_active" value="0">
             <div class="form-check mb-field"><input type="checkbox" name="is_active" value="1" class="form-check-input" id="aktif" @checked(old('is_active', $ubah->is_active))><label class="form-check-label" for="aktif">Aktif</label></div>
         @endif
+        @unless ($ubah->exists)
+            <h6 class="text-muted mt-3 mb-2">Akun Admin perusahaan</h6>
+            <div class="form-text mb-2">Admin ini yang login untuk mengelola user, role, dan data perusahaan.</div>
+            @include('platform.perusahaan._akun-admin')
+        @endunless
         <div class="tombol"><a href="{{ route('perusahaan.index') }}" class="btn btn-light">Batal</a><button class="btn btn-primary">Simpan</button></div>
     </x-panel>
+
+    @if ($adminUntuk)
+        <x-panel id="drawer-admin" judul="Admin Perusahaan" :sub="$adminUntuk->code . ' · ' . $adminUntuk->name" :action="route('perusahaan.admin.store', $adminUntuk)" method="post" :buka="true">
+            @forelse ($adminPerusahaan as $a)
+                <div class="d-flex justify-content-between mb-2"><span class="fw-semibold">{{ $a->username }}</span><span class="small text-muted">{{ $a->email ?? '-' }} · {{ $a->is_active ? 'aktif' : 'nonaktif' }}</span></div>
+            @empty
+                <div class="small text-muted mb-2">Belum ada akun Admin. Tambahkan agar perusahaan bisa dikelola.</div>
+            @endforelse
+            <h6 class="text-muted mt-3 mb-2">Tambah akun Admin</h6>
+            @include('platform.perusahaan._akun-admin')
+            <div class="tombol"><a href="{{ route('perusahaan.index') }}" class="btn btn-light">Tutup</a><button class="btn btn-primary">Tambah Admin</button></div>
+        </x-panel>
+    @endif
 </div>
 @endsection

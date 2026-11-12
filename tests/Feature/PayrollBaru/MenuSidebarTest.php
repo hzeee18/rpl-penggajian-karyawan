@@ -64,7 +64,7 @@ final class MenuSidebarTest extends TestCase
         $html = $this->actingAs($hr)->get('/pay/kontrak')->assertOk()->getContent();
         $this->assertMatchesRegularExpression('#<a href="[^"]*/pay/kontrak" class="nav-item-link active"#', $html);
 
-        $hasil = $this->actingAs($hr)->getJson('/cari?q=Kontrak Payroll')->json();
+        $hasil = $this->actingAs($hr)->getJson('/cari?q=Kontrak')->json();
         $this->assertStringContainsString('/pay/kontrak', json_encode($hasil, JSON_UNESCAPED_SLASHES));
     }
 }

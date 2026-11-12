@@ -575,3 +575,13 @@ Permintaan pemilik: Admin membuka semua menu; Jabatan cukup satu (pakai payroll 
 - Form Data Karyawan (payroll baru): satu field **Jabatan** berupa pilihan master Jabatan (`position_id`, wajib); kolom teks `karyawan.jabatan` diisi otomatis dari nama jabatan. Field "Jabatan payroll" terpisah dihapus. Label sidebar lama "Absensi, Cuti & Lembur" tidak dipakai lagi di perusahaan payroll baru.
 - Diterapkan di dev. Backup sebelum perubahan: `penggajian_karyawan-sebelum-tata-menu-20261112-151224.sql`.
 - **Test belum dijalankan** untuk §34–§35 secara penuh (atas permintaan pemilik). Test yang memeriksa teks "Payroll Baru" di sidebar kemungkinan perlu disesuaikan.
+
+## 36. Super Admin membuat akun Admin perusahaan (2026-11-12)
+
+Pertanyaan pemilik: setelah Super Admin membuat perusahaan, bagaimana membuat Admin yang mengelola datanya? Sebelumnya harus: buat perusahaan → Pilih → Manajemen User → tambah user role Admin (tidak ada petunjuk).
+
+- Form **Tambah Perusahaan** kini memuat bagian "Akun Admin perusahaan" (username, email opsional, password + ulangi; wajib). Perusahaan, role/hak bawaan, aktivasi payroll baru, dan akun Admin dibuat dalam **satu transaksi**: tidak ada perusahaan tanpa pengelola.
+- Tombol **Admin** (ikon user-cog) di tiap baris perusahaan membuka drawer "Admin Perusahaan": daftar akun Admin perusahaan itu dan form tambah Admin, **tanpa perlu memilih perusahaan**. Route `POST /perusahaan/{id}/admin` (`super-admin` + `akses:perusahaan,update`).
+- `App\Domain\Company\Actions\BuatAdminPerusahaan`: membuat user dengan role Admin milik perusahaan itu (`runAs`), `karyawan_id` kosong. Username unik global; boleh titik (seperti `manager.hr`). Aturan username di Manajemen User lama tidak diubah.
+- Admin perusahaan login sendiri, lalu mengelola user/role/data perusahaannya (Admin membuka semua menu perusahaan, §35).
+- Catatan: `payroll:isi-data {kode}` menolak bila username `admin.{kode}` sudah dipakai. Bila Admin dibuat dengan username itu, pakai username lain atau isi data dummy sebelum membuat Admin.

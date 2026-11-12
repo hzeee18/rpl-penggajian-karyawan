@@ -62,12 +62,13 @@ final class MasterDataTest extends TestCase
         $roleHr = $this->hr->role_id;
         DB::table('privileges')->where('role_id', $roleHr)->whereIn('menu_id', DB::table('menus')->where('url', 'like', 'pay-%')->pluck('id'))->delete();
 
+        $tautan = '#<a href="[^"]*/pay/komponen" class="nav-item-link#';
         $this->actingAs($this->hr)->get('/pay/komponen')->assertForbidden();
-        $this->actingAs($this->hr)->get('/dashboard')->assertOk()->assertDontSee('Payroll Baru');
+        $this->assertDoesNotMatchRegularExpression($tautan, $this->actingAs($this->hr)->get('/dashboard')->assertOk()->getContent());
 
         $this->artisan('payroll:aktifkan', ['kode' => 'DEFAULT']);
         $this->actingAs($this->hr)->get('/pay/komponen')->assertOk();
-        $this->actingAs($this->hr)->get('/dashboard')->assertSee('Payroll Baru');
+        $this->assertMatchesRegularExpression($tautan, $this->actingAs($this->hr)->get('/dashboard')->getContent());
         $this->actingAs(User::where('username', 'rizky')->firstOrFail())->get('/pay/jabatan')->assertForbidden();
     }
 

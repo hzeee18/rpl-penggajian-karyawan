@@ -124,7 +124,8 @@ final class ModulPayrollBaruTest extends TestCase
         $jabatan = Position::create(['code' => 'PRG', 'name' => 'Programmer']);
         $k = Karyawan::where('nama', 'Rizky Maulana')->firstOrFail();
 
-        $this->actingAs($hr)->get("/karyawan/{$k->id}/edit")->assertOk()->assertSee('Data payroll')->assertSee('PRG · Programmer');
+        $this->actingAs($hr)->get("/karyawan/{$k->id}/edit")->assertOk()->assertSee('Data payroll')->assertSee('<option value="'.$jabatan->id.'"', false)->assertSee('Programmer')
+            ->assertDontSee('Jabatan payroll')->assertDontSee('name="jabatan"', false);
 
         $isi = collect($k->only(['nik', 'nama', 'jenis_kelamin', 'departemen_id', 'jabatan', 'pajak_id', 'status_kepegawaian', 'email', 'telepon', 'alamat', 'nama_bank', 'no_rekening', 'sisa_cuti']))
             ->put('tgl_masuk', $k->tgl_masuk->toDateString())->put('is_active', 1)->all();
@@ -133,6 +134,7 @@ final class ModulPayrollBaruTest extends TestCase
 
         $k->refresh();
         $this->assertSame([$jabatan->id, '2026-12-31', true, '12.345.678.9-012.345'], [$k->position_id, $k->resign_date->toDateString(), $k->has_npwp, $k->npwp]);
+        $this->assertSame('Programmer', $k->jabatan, 'teks jabatan mengikuti master Jabatan');
         $this->assertStringNotContainsString('12.345.678', (string) DB::table('karyawan')->where('id', $k->id)->value('npwp'), 'NPWP terenkripsi');
         $log = DB::table('audit_logs')->where('entity_type', Karyawan::class)->where('entity_id', $k->id)->latest('id')->first();
         $this->assertNotNull($log);

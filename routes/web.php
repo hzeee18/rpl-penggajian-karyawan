@@ -59,6 +59,7 @@ Route::middleware(['auth', 'aktif'])->group(function () {
         Route::put('/{perusahaan}', [Controllers\Platform\PerusahaanController::class, 'update'])->middleware('akses:perusahaan,update')->name('update');
         Route::post('/keluar', [Controllers\Platform\PerusahaanController::class, 'keluar'])->name('keluar');
         Route::post('/{perusahaan}/pilih', [Controllers\Platform\PerusahaanController::class, 'pilih'])->name('pilih');
+        Route::post('/{perusahaan}/admin', [Controllers\Platform\PerusahaanController::class, 'tambahAdmin'])->middleware('akses:perusahaan,update')->name('admin.store');
     });
 
     // ===== Master data (HR) =====
