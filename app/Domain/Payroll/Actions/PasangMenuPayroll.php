@@ -20,11 +20,11 @@ final class PasangMenuPayroll
     /** url => [nama, ikon, hak bawaan per role (v c u d a)] */
     public const MENU = [
         'pay-karyawan' => ['Karyawan Payroll', 'id-card', ['HR' => 'vu', 'Admin' => 'v']],
-        'pay-jabatan' => ['Jabatan', 'briefcase', ['HR' => 'vcud', 'Admin' => 'v']],
+        'pay-jabatan' => ['Jabatan', 'briefcase', ['Admin' => 'v']],
         'pay-libur' => ['Kalender Libur', 'calendar-days', ['HR' => 'vcud', 'Admin' => 'v']],
-        'pay-tipe-leave' => ['Tipe Leave', 'tags', ['HR' => 'vcud', 'Admin' => 'v']],
+        'pay-tipe-leave' => ['Tipe Leave', 'tags', ['Admin' => 'v']],
         'pay-komponen' => ['Katalog Komponen', 'list-checks', ['HR' => 'vcud', 'Admin' => 'v']],
-        'pay-cutoff' => ['Cut Off', 'calendar-range', ['HR' => 'vu', 'Admin' => 'v']],
+        'pay-cutoff' => ['Cut Off', 'calendar-range', ['Admin' => 'v']],
         // Fase 3
         'pay-kontrak' => ['Kontrak Payroll', 'file-signature', ['HR' => 'vcud', 'Admin' => 'v']],
         // Fase 4
@@ -33,7 +33,7 @@ final class PasangMenuPayroll
         'pay-lembur' => ['Lembur Payroll', 'clock', ['HR' => 'vcud', 'Admin' => 'v']],
         'pay-import' => ['Import CSV', 'upload', ['HR' => 'vcud']],
         // Fase 5
-        'pay-referensi' => ['Tabel Referensi', 'table-2', ['HR' => 'vcud', 'Admin' => 'v']],
+        'pay-referensi' => ['Tabel Referensi', 'table-2', ['Admin' => 'v']],
         'pay-master' => ['Master Payroll', 'sigma', ['HR' => 'vcud', 'Admin' => 'v']],
         // Fase 6
         'pay-run' => ['Generate Payroll', 'calculator', ['HR' => 'vcud', 'Admin' => 'v']],
@@ -61,7 +61,8 @@ final class PasangMenuPayroll
     public function handle(): void
     {
         $now = now();
-        $grup = DB::table('menus')->whereNull('url')->where('nama', self::GRUP)->value('id')
+        // grup "Payroll Baru" diganti nama menjadi "Payroll" oleh TataMenu (AUDIT.md §35)
+        $grup = DB::table('menus')->whereNull('url')->whereIn('nama', [self::GRUP, 'Payroll'])->orderBy('id')->value('id')
             ?? DB::table('menus')->insertGetId(['nama' => self::GRUP, 'url' => null, 'icon' => 'wallet-cards', 'urutan' => 90, 'created_at' => $now, 'updated_at' => $now]);
 
         $urutan = 0;

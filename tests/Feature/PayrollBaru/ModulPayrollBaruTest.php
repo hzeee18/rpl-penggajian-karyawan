@@ -65,6 +65,27 @@ final class ModulPayrollBaruTest extends TestCase
         $this->actingAs($rizky)->get('/lembur')->assertForbidden();
     }
 
+    public function test_menu_dan_dashboard_hr_sesuai_payroll_baru(): void
+    {
+        $this->beralih();
+        $hr = $this->user('hr');
+        $html = $this->actingAs($hr)->get('/dashboard')->assertOk()
+            ->assertSee('Kontrak Payroll Aktif')->assertSee('Input Leave & Lembur Terbaru', false)->assertSee('tanpa kontrak payroll')
+            ->assertSee(route('pay.import.index'))->assertDontSee(route('import.index', ['jenis' => 'absensi']))
+            ->getContent();
+
+        preg_match_all('#<a href="https?://[^/"]+/([^"]*)" class="nav-item-link#', $html, $m);
+        $this->assertEqualsCanonicalizing(
+            ['dashboard', 'karyawan', 'users', 'pay/komponen', 'pay/libur', 'pay/kontrak', 'pay/absensi', 'pay/leave', 'pay/lembur', 'pay/import', 'pay/master', 'pay/run', 'pay/slip'],
+            array_values(array_unique($m[1])),
+        );
+        // halaman lama dialihkan ke pengganti
+        $this->actingAs($hr)->get('/import')->assertRedirect(route('pay.import.index'));
+        $this->actingAs($hr)->get('/master-payroll')->assertRedirect(route('pay.cutoff.index'));
+        $this->actingAs($hr)->get('/pajak')->assertRedirect(route('pay.referensi.index'));
+        $this->actingAs($hr)->get('/absensi')->assertForbidden();
+    }
+
     public function test_tanpa_beralih_fitur_lama_tidak_berubah(): void
     {
         $hr = $this->user('hr');
@@ -139,8 +160,9 @@ final class ModulPayrollBaruTest extends TestCase
 
         $this->actingAs($rizky)->get('/profil')->assertOk()->assertSee('PKWT Uji 2026')->assertSee('7.250.000')->assertDontSee('Unduh Kontrak');
         $this->actingAs($this->user('hr'))->get("/karyawan/{$k->id}")->assertOk()->assertSee('PKWT Uji 2026')->assertSee('Kelola di Kontrak Payroll');
-        $this->actingAs($this->user('hr'))->from('/import')->post('/import/upload', ['jenis' => 'kontrak', 'file' => UploadedFile::fake()->create('kontrak.xlsx', 4)])
-            ->assertSessionHas('gagal', 'Kontrak sekarang dibuat di menu Kontrak Payroll.');
+        // Import Excel lama dialihkan ke Import CSV payroll (AUDIT.md §34)
+        $this->actingAs($this->user('hr'))->post('/import/upload', ['jenis' => 'kontrak', 'file' => UploadedFile::fake()->create('kontrak.xlsx', 4)])
+            ->assertRedirect(route('pay.import.index'));
     }
 
     public function test_dashboard_semua_role_memakai_data_baru(): void

@@ -31,28 +31,54 @@ final class MasterDataTest extends TestCase
         $this->hr = User::where('username', 'hr')->firstOrFail();
     }
 
+    /** Jabatan, Tipe Leave, Cut Off dikelola Super Admin dengan perusahaan terpilih (AUDIT.md §34). */
+    private function superAdmin(): static
+    {
+        $this->artisan('super-admin:buat', ['username' => 'super', '--password' => 'rahasia123'])->assertSuccessful();
+        $super = User::withoutGlobalScope(\App\Domain\Company\Tenancy\CompanyScope::class)->where('username', 'super')->firstOrFail();
+
+        return $this->actingAs($super)->withSession([\App\Domain\Company\Tenancy\CurrentCompany::SESSION_KEY => (int) $this->hr->company_id]);
+    }
+
+    public function test_master_tertentu_dikelola_super_admin_bukan_hr(): void
+    {
+        foreach (['/pay/jabatan', '/pay/tipe-leave', '/pay/cutoff', '/pay/referensi', '/departemen'] as $url) {
+            $this->actingAs($this->hr)->get($url)->assertForbidden();
+        }
+        foreach (['/pay/komponen', '/pay/libur', '/pay/kontrak', '/users'] as $url) {
+            $this->actingAs($this->hr)->get($url)->assertOk();
+        }
+        $this->superAdmin();
+        foreach (['/pay/jabatan', '/pay/tipe-leave', '/pay/cutoff', '/pay/referensi', '/departemen'] as $url) {
+            $this->get($url)->assertOk();
+        }
+        // tanpa perusahaan terpilih: diminta memilih dulu
+        $this->withSession([\App\Domain\Company\Tenancy\CurrentCompany::SESSION_KEY => null])->get('/pay/jabatan')
+            ->assertRedirect(route('perusahaan.index'))->assertSessionHas('gagal');
+    }
+
     public function test_menu_payroll_baru_tertutup_sampai_diaktifkan(): void
     {
         $roleHr = $this->hr->role_id;
         DB::table('privileges')->where('role_id', $roleHr)->whereIn('menu_id', DB::table('menus')->where('url', 'like', 'pay-%')->pluck('id'))->delete();
 
-        $this->actingAs($this->hr)->get('/pay/jabatan')->assertForbidden();
+        $this->actingAs($this->hr)->get('/pay/komponen')->assertForbidden();
         $this->actingAs($this->hr)->get('/dashboard')->assertOk()->assertDontSee('Payroll Baru');
 
         $this->artisan('payroll:aktifkan', ['kode' => 'DEFAULT']);
-        $this->actingAs($this->hr)->get('/pay/jabatan')->assertOk();
+        $this->actingAs($this->hr)->get('/pay/komponen')->assertOk();
         $this->actingAs($this->hr)->get('/dashboard')->assertSee('Payroll Baru');
         $this->actingAs(User::where('username', 'rizky')->firstOrFail())->get('/pay/jabatan')->assertForbidden();
     }
 
     public function test_jabatan_crud_unik_per_perusahaan_dan_hanya_dinonaktifkan(): void
     {
-        $this->actingAs($this->hr)->post('/pay/jabatan', ['code' => 'STF', 'name' => 'Staf', 'is_active' => 1])->assertSessionHasNoErrors();
-        $this->actingAs($this->hr)->from('/pay/jabatan')->post('/pay/jabatan', ['code' => 'STF', 'name' => 'Staf lagi'])->assertSessionHasErrors('code');
+        $this->superAdmin()->post('/pay/jabatan', ['code' => 'STF', 'name' => 'Staf', 'is_active' => 1])->assertSessionHasNoErrors();
+        $this->from('/pay/jabatan')->post('/pay/jabatan', ['code' => 'STF', 'name' => 'Staf lagi'])->assertSessionHasErrors('code');
         $jabatan = Position::where('code', 'STF')->firstOrFail();
 
-        $this->actingAs($this->hr)->put("/pay/jabatan/{$jabatan->id}", ['code' => 'STF', 'name' => 'Staf Senior', 'is_active' => 1])->assertSessionHasNoErrors();
-        $this->actingAs($this->hr)->delete("/pay/jabatan/{$jabatan->id}")->assertRedirect();
+        $this->put("/pay/jabatan/{$jabatan->id}", ['code' => 'STF', 'name' => 'Staf Senior', 'is_active' => 1])->assertSessionHasNoErrors();
+        $this->delete("/pay/jabatan/{$jabatan->id}")->assertRedirect();
 
         $this->assertDatabaseHas('pay_positions', ['id' => $jabatan->id, 'name' => 'Staf Senior', 'is_active' => false]);
         $this->assertSame(['created', 'updated', 'deactivated'], DB::table('audit_logs')->where('entity_type', Position::class)->orderBy('id')->pluck('action')->all());
@@ -88,22 +114,22 @@ final class MasterDataTest extends TestCase
         $this->actingAs($this->hr)->delete("/pay/libur/{$id}");
         $this->assertDatabaseMissing('pay_holidays', ['id' => $id]);
 
-        $this->actingAs($this->hr)->post('/pay/tipe-leave', ['code' => 'sakit_bersurat', 'name' => 'Sakit dengan surat dokter', 'is_active' => 1])->assertSessionHasNoErrors();
+        $this->superAdmin()->post('/pay/tipe-leave', ['code' => 'sakit_bersurat', 'name' => 'Sakit dengan surat dokter', 'is_active' => 1])->assertSessionHasNoErrors();
         $this->assertDatabaseHas('pay_leave_types', ['code' => 'sakit_bersurat', 'company_id' => $this->hr->company_id]);
     }
 
     public function test_cut_off_lintas_bulan_dan_kalender_bulanan(): void
     {
-        $this->actingAs($this->hr)->put('/pay/cutoff', ['start_day' => 26, 'end_day' => 25, 'start_in_previous_month' => 1])->assertSessionHasNoErrors();
+        $this->superAdmin()->put('/pay/cutoff', ['start_day' => 26, 'end_day' => 25, 'start_in_previous_month' => 1])->assertSessionHasNoErrors();
         [$mulai, $selesai] = PeriodConfig::firstOrFail()->rentang('2026-11');
         $this->assertSame(['2026-10-26', '2026-11-25'], [$mulai->toDateString(), $selesai->toDateString()]);
         $this->assertSame(['2026-02-26', '2026-03-25'], array_map(fn ($d) => $d->toDateString(), PeriodConfig::firstOrFail()->rentang('2026-03')));
 
-        $this->actingAs($this->hr)->put('/pay/cutoff', ['start_day' => 1, 'end_day' => 31])->assertSessionHasNoErrors();
+        $this->put('/pay/cutoff', ['start_day' => 1, 'end_day' => 31])->assertSessionHasNoErrors();
         $this->assertSame(['2026-02-01', '2026-02-28'], array_map(fn ($d) => $d->toDateString(), PeriodConfig::firstOrFail()->rentang('2026-02')));
         $this->assertSame(1, PeriodConfig::count(), 'satu konfigurasi per perusahaan');
 
-        $this->actingAs($this->hr)->from('/pay/cutoff')->put('/pay/cutoff', ['start_day' => 26, 'end_day' => 25])->assertSessionHasErrors('end_day');
+        $this->from('/pay/cutoff')->put('/pay/cutoff', ['start_day' => 26, 'end_day' => 25])->assertSessionHasErrors('end_day');
     }
 
     public function test_npwp_dan_rekening_terenkripsi_dan_tidak_masuk_log(): void

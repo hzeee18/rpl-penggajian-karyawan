@@ -122,12 +122,13 @@ class KaryawanController extends Controller
 
     private function validasi(Request $request, ?Karyawan $k = null): array
     {
+        $formPayroll = ModulPayroll::aktif() && $request->boolean('data_payroll');
         $data = $request->validate([
             'nik' => ['required', 'max:20', \App\Domain\Company\Tenancy\TenantRule::unique('karyawan')->ignore($k)],
             'nama' => 'required|max:100',
             'jenis_kelamin' => 'nullable|in:L,P',
             'departemen_id' => ['required', \App\Domain\Company\Tenancy\TenantRule::exists('departemen')],
-            'jabatan' => 'required|max:100',
+            'jabatan' => $formPayroll ? 'nullable|max:100' : 'required|max:100', // payroll baru: dari master Jabatan
             'tgl_masuk' => 'required|date',
             'pajak_id' => 'required|exists:pajak,id',
             'status_kepegawaian' => 'required|in:tetap,kontrak,harian',
@@ -141,9 +142,9 @@ class KaryawanController extends Controller
         $data['is_active'] = $request->boolean('is_active');
 
         // data payroll baru: hanya dari form lengkap (penanda data_payroll), bukan panel "Ubah Karyawan"
-        if (ModulPayroll::aktif() && $request->boolean('data_payroll')) {
+        if ($formPayroll) {
             $payroll = $request->validate([
-                'position_id' => ['nullable', \App\Domain\Company\Tenancy\TenantRule::exists('pay_positions')],
+                'position_id' => ['required', \App\Domain\Company\Tenancy\TenantRule::exists('pay_positions')],
                 'resign_date' => 'nullable|date',
                 'npwp' => ['nullable', 'regex:/^[0-9.\-]{15,20}$/'],
             ]);
@@ -152,6 +153,8 @@ class KaryawanController extends Controller
                 unset($payroll['npwp']); // kosong = tidak diubah (tersimpan terenkripsi)
             }
             $data += $payroll;
+            // Jabatan cukup satu (keputusan pemilik): teks jabatan lama mengikuti nama master Jabatan
+            $data['jabatan'] = Position::whereKey($payroll['position_id'])->value('name');
         }
 
         return $data;

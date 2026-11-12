@@ -26,7 +26,12 @@ final class PasangHakPlatform
     /** url menu => hak (v c u d a). Menu yang belum ada dilewati. */
     private const HAK_SUPER_ADMIN = [
         'dashboard' => 'v', 'perusahaan' => 'vcud', 'pajak' => 'vcud', 'users' => 'vcud', 'roles' => 'vcud', 'menus' => 'vcud',
+        // data master per perusahaan yang dikelola Super Admin (keputusan pemilik, AUDIT.md §34); perusahaan dipilih dulu
+        'departemen' => 'vcud', 'pay-jabatan' => 'vcud', 'pay-tipe-leave' => 'vcud', 'pay-cutoff' => 'vu', 'pay-referensi' => 'vcud',
     ];
+
+    /** Menu yang butuh perusahaan terpilih bila dibuka Super Admin (middleware perlu-perusahaan). */
+    public const MENU_MASTER_SUPER_ADMIN = ['departemen', 'pay-jabatan', 'pay-tipe-leave', 'pay-cutoff', 'pay-referensi'];
 
     public function handle(): int
     {

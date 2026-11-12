@@ -83,7 +83,7 @@ final class SlipTest extends TestCase
         }
     }
 
-    public function test_karyawan_hanya_melihat_slip_sendiri_dan_hr_melihat_semua(): void
+    public function test_karyawan_dan_hr_hanya_melihat_slip_sendiri(): void
     {
         $this->payrollDisetujui();
         $rizky = User::where('username', 'rizky')->firstOrFail();
@@ -96,7 +96,9 @@ final class SlipTest extends TestCase
         $this->actingAs($rizky)->get("/pay/slip/{$slipNadia->id}")->assertForbidden();
         $this->actingAs($rizky)->get("/pay/slip/{$slipNadia->id}/unduh")->assertForbidden();
 
-        $this->actingAs($this->hr)->get('/pay/slip')->assertOk()->assertSee('Nadia Putri')->assertSee('Rizky Maulana');
+        // HR juga hanya slip miliknya (AUDIT.md §34); rincian semua karyawan ada di Generate Payroll
+        $this->actingAs($this->hr)->get('/pay/slip')->assertOk()->assertDontSee('Nadia Putri')->assertDontSee('Rizky Maulana');
+        $this->actingAs($this->hr)->get("/pay/slip/{$slipNadia->id}")->assertForbidden();
     }
 
     public function test_manager_hanya_melihat_slip_sendiri_termasuk_manager_hr(): void
@@ -147,7 +149,8 @@ final class SlipTest extends TestCase
         $nadia = Payslip::whereHas('runEmployee', fn ($q) => $q->where('full_name', 'Nadia Putri'))->firstOrFail();
         $this->assertNull($nadia->file_path);
         $this->assertStringContainsString('rekening', (string) $nadia->note);
-        $this->actingAs($this->hr)->get("/pay/slip/{$nadia->id}/unduh")->assertNotFound();
+        // slip hanya bisa dibuka pemiliknya
+        $this->actingAs(User::where('karyawan_id', $nadia->employee_id)->firstOrFail())->get("/pay/slip/{$nadia->id}/unduh")->assertNotFound();
     }
 
     public function test_upload_tanda_tangan_perusahaan_oleh_super_admin(): void

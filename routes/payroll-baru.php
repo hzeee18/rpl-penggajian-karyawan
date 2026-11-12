@@ -16,7 +16,8 @@ Route::prefix('pay')->name('pay.')->group(function () {
         'komponen' => PayrollBaru\KomponenController::class,
     ];
     foreach ($master as $nama => $controller) {
-        Route::middleware("akses:pay-{$nama}")->prefix($nama)->name("{$nama}.")->group(function () use ($nama, $controller) {
+        // jabatan & tipe leave dikelola Super Admin (perlu perusahaan terpilih), AUDIT.md §34
+        Route::middleware(['perlu-perusahaan', "akses:pay-{$nama}"])->prefix($nama)->name("{$nama}.")->group(function () use ($nama, $controller) {
             Route::get('/', [$controller, 'index'])->name('index');
             Route::post('/', [$controller, 'store'])->middleware("akses:pay-{$nama},create")->name('store');
             Route::put('/{id}', [$controller, 'update'])->whereNumber('id')->middleware("akses:pay-{$nama},update")->name('update');
@@ -24,7 +25,7 @@ Route::prefix('pay')->name('pay.')->group(function () {
         });
     }
 
-    Route::middleware('akses:pay-cutoff')->prefix('cutoff')->name('cutoff.')->group(function () {
+    Route::middleware(['perlu-perusahaan', 'akses:pay-cutoff'])->prefix('cutoff')->name('cutoff.')->group(function () {
         Route::get('/', [PayrollBaru\CutoffController::class, 'index'])->name('index');
         Route::put('/', [PayrollBaru\CutoffController::class, 'update'])->middleware('akses:pay-cutoff,update')->name('update');
     });
@@ -58,7 +59,7 @@ Route::prefix('pay')->name('pay.')->group(function () {
     });
 
     // Fase 5: tabel referensi + master payroll berversi
-    Route::middleware('akses:pay-referensi')->prefix('referensi')->name('referensi.')->group(function () {
+    Route::middleware(['perlu-perusahaan', 'akses:pay-referensi'])->prefix('referensi')->name('referensi.')->group(function () {
         $c = PayrollBaru\ReferensiController::class;
         Route::get('/', [$c, 'index'])->name('index');
         Route::post('/', [$c, 'store'])->middleware('akses:pay-referensi,create')->name('store');

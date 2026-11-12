@@ -41,7 +41,9 @@ class DashboardController extends Controller
 
         return match ($user->role->nama) {
             Role::ADMIN => view('dashboard.admin', $d + $this->admin()),
-            Role::HR => view('dashboard.hr', $d + ($payrollBaru ? $this->hrPayrollBaru($this->hr($svc, $rentang)) : $this->hr($svc, $rentang))),
+            Role::HR => $payrollBaru
+                ? view('dashboard.hr-payroll-baru', $this->hrPayrollBaru() + $d)
+                : view('dashboard.hr', $d + $this->hr($svc, $rentang)),
             Role::MANAGER => $payrollBaru
                 ? view('dashboard.manager-payroll-baru', $this->managerPayrollBaru($user) + $d)
                 : view('dashboard.manager', $d + $this->manager($user, $svc, $master, $rentang, $payrollBaru)),
@@ -134,30 +136,73 @@ class DashboardController extends Controller
     }
 
     /**
-     * Dashboard HR untuk perusahaan dengan payroll baru: kartu kontrak & payroll dari modul baru,
-     * bagian lain (karyawan, kehadiran, cuti/lembur) tetap seperti dashboard lama.
+     * Dashboard HR untuk perusahaan dengan payroll baru: seluruhnya dari modul baru (pay_*), periode cut off.
+     * Tidak ada aturan perusahaan (alpha, potongan) di sini; itu dihitung master payroll.
      */
-    private function hrPayrollBaru(array $d): array
+    private function hrPayrollBaru(): array
     {
         $hariIni = now()->toDateString();
+        $periode = now()->format('Y-m');
+        [$awal, $akhir] = \App\Domain\Payroll\KehadiranKaryawan::rentang($periode);
+        $r = [$awal->toDateString(), $akhir->toDateString()];
+
+        $aktif = Karyawan::where('is_active', true)->count();
+        $hadirHariIni = \App\Domain\Payroll\Models\Attendance::where('attendance_date', $hariIni)->distinct()->count('employee_id');
+        $leaveHariIni = \App\Domain\Payroll\Models\Leave::where('leave_date', $hariIni)->distinct()->count('employee_id');
+        $lemburPeriode = \App\Domain\Payroll\Models\Overtime::whereBetween('overtime_date', $r)->get()
+            ->reduce(fn ($n, $o) => bcadd($n, (string) $o->duration_hours, 2), '0');
+
         $kontrakAktif = Contract::where('is_active', true)->count();
         $kontrakHabis = Contract::where('is_active', true)->whereNotNull('end_date')
             ->whereBetween('end_date', [$hariIni, now()->addDays(30)->toDateString()])->count();
+        $tanpaKontrak = Karyawan::where('is_active', true)->whereDoesntHave('kontrakPayrollAktif')->count();
         $run = PayrollRun::orderByDesc('period_end')->orderByDesc('id')->first();
         $status = [PayrollRun::DRAFT => 'Draft', PayrollRun::PENDING => 'Menunggu approval', PayrollRun::APPROVED => 'Disetujui, slip terbit', PayrollRun::REJECTED => 'Ditolak'];
 
-        $d['stat'][2] = ['Kontrak Payroll Aktif', $kontrakAktif, $kontrakHabis ? "{$kontrakHabis} habis dalam 30 hari" : 'Tidak ada yang segera habis'];
-        $d['stat'][3] = ['Payroll ' . ($run?->title ?? '-'), $run ? $status[$run->status] ?? $run->status : '-', $run ? tgl($run->period_start, 'j M') . ' – ' . tgl($run->period_end, 'j M Y') : 'Belum ada payroll'];
-        $d['payroll'] = null; // progres payroll lama tidak dipakai
-        // pengingat lama yang masih berlaku hanya alfa (absensi); kontrak & payroll diganti modul baru
-        $alfa = array_values(array_filter($d['pengingat'], fn ($p) => str_contains($p[0], 'alfa')));
-        $d['pengingat'] = array_values(array_filter([
-            $alfa[0] ?? null,
-            $kontrakHabis ? ["{$kontrakHabis} kontrak payroll habis dalam 30 hari", 'Perbarui di menu Kontrak Payroll'] : null,
-            $run && $run->status === PayrollRun::REJECTED ? ["Payroll {$run->title} ditolak", 'Buat payroll baru dari awal'] : null,
-        ]));
+        $terbaru = \App\Domain\Payroll\Models\Leave::with(['employee.departemen', 'leaveType'])->latest('id')->take(5)->get()
+            ->map(fn ($l) => (object) ['karyawan' => $l->employee, 'jenis' => $l->leaveType?->name ?? 'Leave', 'waktu' => $l->created_at,
+                'tanggal' => tgl($l->leave_date, 'j M'), 'sumber' => $l->import_batch_id ? 'Import CSV' : 'Input manual'])
+            ->concat(\App\Domain\Payroll\Models\Overtime::with('employee.departemen')->latest('id')->take(5)->get()
+                ->map(fn ($o) => (object) ['karyawan' => $o->employee, 'jenis' => 'Lembur ' . \App\Domain\Payroll\KehadiranKaryawan::angka((string) $o->duration_hours) . ' jam',
+                    'waktu' => $o->created_at, 'tanggal' => tgl($o->overtime_date, 'j M'), 'sumber' => $o->import_batch_id ? 'Import CSV' : 'Input manual']))
+            ->sortByDesc('waktu')->take(5)->values();
 
-        return $d;
+        $hadirPerKaryawan = \App\Domain\Payroll\Models\Attendance::whereBetween('attendance_date', $r)
+            ->selectRaw('employee_id, count(*) as n')->groupBy('employee_id')->pluck('n', 'employee_id');
+        $perDept = Departemen::orderBy('nama')->get()->map(function ($d) use ($hadirPerKaryawan) {
+            $ids = Karyawan::where('is_active', true)->where('departemen_id', $d->id)->pluck('id');
+
+            return (object) ['nama' => $d->nama, 'karyawan' => $ids->count(), 'hadir' => (int) $ids->sum(fn ($id) => $hadirPerKaryawan[$id] ?? 0)];
+        });
+        $maks = max((int) $perDept->max('hadir'), 1);
+
+        $tahap = match ($run?->status) {
+            PayrollRun::DRAFT, PayrollRun::REJECTED => 2,
+            PayrollRun::PENDING => 3,
+            PayrollRun::APPROVED => 5,
+            default => 1,
+        };
+
+        return [
+            'periode' => $periode, 'awal' => $awal, 'akhir' => $akhir,
+            'stat' => [
+                ['Total Karyawan', $aktif, Departemen::count() . ' departemen · ' . $tanpaKontrak . ' tanpa kontrak payroll'],
+                ['Hadir Hari Ini', $hadirHariIni, ($aktif ? round($hadirHariIni / $aktif * 100) : 0) . '% · ' . $leaveHariIni . ' leave · lembur periode ' . \App\Domain\Payroll\KehadiranKaryawan::angka($lemburPeriode) . ' jam'],
+                ['Kontrak Payroll Aktif', $kontrakAktif, $kontrakHabis ? "{$kontrakHabis} habis dalam 30 hari" : 'Tidak ada yang segera habis'],
+                ['Payroll ' . ($run?->title ?? '-'), $run ? $status[$run->status] ?? $run->status : '-', $run ? tgl($run->period_start, 'j M') . ' – ' . tgl($run->period_end, 'j M Y') : 'Belum ada payroll'],
+            ],
+            'run' => $run,
+            'tahap' => $tahap,
+            'terbaru' => $terbaru,
+            'perDept' => $perDept,
+            'maks' => $maks,
+            'pengingat' => array_values(array_filter([
+                $tanpaKontrak ? ["{$tanpaKontrak} karyawan aktif belum punya kontrak payroll", 'Tidak ikut dihitung saat generate payroll'] : null,
+                $kontrakHabis ? ["{$kontrakHabis} kontrak payroll habis dalam 30 hari", 'Perbarui di menu Kontrak Payroll'] : null,
+                $run && $run->status === PayrollRun::PENDING ? ["Payroll {$run->title} menunggu approval", 'Approver: ' . ($run->approver?->namaTampil() ?? '-')] : null,
+                $run && $run->status === PayrollRun::REJECTED ? ["Payroll {$run->title} ditolak", 'Buat payroll baru dari awal'] : null,
+            ])),
+        ];
     }
 
     private function manager(User $user, PayrollService $svc, MasterPayroll $master, array $rentang, bool $payrollBaru = false): array

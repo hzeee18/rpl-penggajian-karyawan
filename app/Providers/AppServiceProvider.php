@@ -43,8 +43,9 @@ class AppServiceProvider extends ServiceProvider
                 'Manager' => ['cuti', 'profil'],
                 default => [],
             };
+            $payrollBaru = \App\Domain\Payroll\ModulPayroll::aktif(); // nama menu dari tabel menus (AUDIT.md §35)
             $label = match ($role) {
-                'HR', 'Karyawan', 'Manager HR' => ['absensi' => 'Absensi, Cuti & Lembur'],
+                'HR', 'Karyawan', 'Manager HR' => $payrollBaru ? [] : ['absensi' => 'Absensi, Cuti & Lembur'],
                 'Manager' => ['karyawan' => 'Tim Saya', 'absensi' => 'Absensi Tim', 'lembur' => 'Lembur Tim'],
                 default => [],
             };

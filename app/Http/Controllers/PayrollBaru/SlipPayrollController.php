@@ -12,8 +12,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * Slip gaji payroll baru. Karyawan hanya melihat slip miliknya (payslips.employee_id = users.karyawan_id);
- * user dengan hak lihat Generate Payroll (HR) melihat slip seluruh karyawan perusahaannya.
+ * Slip gaji payroll baru. Setiap user (Karyawan, Manager, HR) hanya melihat slip miliknya
+ * (payslips.employee_id = users.karyawan_id), keputusan pemilik AUDIT.md §34. Rincian semua karyawan ada di Generate Payroll.
  */
 final class SlipPayrollController extends Controller
 {
@@ -54,9 +54,8 @@ final class SlipPayrollController extends Controller
         return $slip;
     }
 
-    /** HR (hak lihat Generate Payroll) melihat semua slip; Manager (termasuk Manager HR) hanya slip miliknya. */
     private function lihatSemua(User $user): bool
     {
-        return ! $user->isRole(\App\Models\Role::MANAGER) && $user->bisa('pay-run');
+        return false;
     }
 }

@@ -539,3 +539,39 @@ Permintaan pemilik (login Manager): Dashboard sesuai payroll baru; Approval cuku
 - `AlihkanKePayrollBaru::HAK_MENU_LAMA`: role Manager tidak lagi punya akses Absensi/Cuti/Lembur lama, yang datanya dari tabel lama. Menu Data Karyawan dan Profil **tetap** (bukan payroll); bisa ditutup bila pemilik menghendaki.
 - Diterapkan di dev untuk DEFAULT dan MTS. Backup sebelum perubahan: `penggajian_karyawan-sebelum-hak-manager-20261112-135019.sql`.
 - Catatan: Manager HR (`manager.hr`, `manager.mts`) tetap melihat menu HR karena aturan lama "Manager HR bertindak sebagai HR" (`User::bisa`). Tidak diubah di sini; masuk penataan menu HR.
+
+## 34. HR mengikuti payroll baru; data master tertentu dikelola Super Admin (2026-11-12)
+
+Permintaan pemilik (login HR): menu HR = Dashboard (payroll baru), Data Karyawan, Absensi/Leave/Lembur Payroll, Import CSV payroll, Master Payroll, Generate Payroll, Slip Gaji (milik sendiri), Manajemen User. Jawaban atas pertanyaan:
+
+- **Jabatan, Tipe Leave, Cut Off, Tabel Referensi, Departemen dikelola Super Admin**. Kontrak, Katalog Komponen, Kalender Libur tetap di HR.
+- **Import:** hanya Import CSV payroll; Import Excel lama ditutup dan dialihkan.
+
+Perubahan:
+
+- `AlihkanKePayrollBaru::HAK_PERAN` (menggantikan `hakKaryawan`/`HAK_MENU_LAMA`) memuat hak role Karyawan, Manager, HR setelah beralih. HR: `users` vcud baru; ditutup: absensi/cuti/lembur/import/pajak/master-payroll lama, departemen, pay-jabatan, pay-tipe-leave, pay-cutoff, pay-referensi. `PasangMenuPayroll::MENU` tidak lagi memberi HR hak bawaan atas empat menu pay-* itu.
+- `PasangHakPlatform::HAK_SUPER_ADMIN` + departemen, pay-jabatan, pay-tipe-leave, pay-cutoff (vu), pay-referensi. `AlihkanKePayrollBaru` memanggil `PasangHakPlatform` setelah menu payroll dibuat.
+- Middleware baru `perlu-perusahaan` (`PerluPerusahaan`): Super Admin tanpa perusahaan terpilih diarahkan ke menu Perusahaan dengan pesan, karena data master itu milik satu perusahaan.
+- `ModulPayroll::MENU_DIGANTIKAN` + `import` → `/pay/import`, `master-payroll` (Periode) → `/pay/cutoff`, `pajak` → `/pay/referensi`.
+- Dashboard HR (`dashboard/hr-payroll-baru.blade.php`) seluruhnya dari modul baru: karyawan tanpa kontrak payroll, hadir/leave hari ini, lembur periode, kontrak aktif/habis, progres run terakhir, input leave & lembur terbaru, hari hadir per departemen, pengingat. `hrPayrollBaru()` lama (yang mencampur data absensi lama) diganti.
+- `/pay/slip`: **semua role hanya slip miliknya** (termasuk HR). Rincian gaji semua karyawan dilihat HR di Generate Payroll.
+- Diterapkan di dev untuk DEFAULT dan MTS. Backup sebelum perubahan: `penggajian_karyawan-sebelum-hak-hr-20261112-150545.sql`.
+- Catatan: Manager HR mendapat menu HR lewat aturan lama `User::bisa`; role Admin masih punya hak lihat menu pay-* (bawaan sebelumnya), tidak diubah.
+
+## 35. Susunan menu, Admin semua menu, Jabatan satu (2026-11-12)
+
+Permintaan pemilik: Admin membuka semua menu; Jabatan cukup satu (pakai payroll baru); nama dan grup menu di database sesuai susunan Data HRIS / Payroll / Konfigurasi / Master Data. Pemilik minta langsung kode tanpa menjalankan test.
+
+- `App\Domain\Payroll\Actions\TataMenu` (idempoten, dipanggil `AlihkanKePayrollBaru`) mengatur `menus.parent_id/nama/urutan/icon`:
+  - Tanpa grup: Dashboard, Profil, Absensi Saya (`absensi`, riwayat karyawan sendiri), Slip Gaji (`pay-slip`).
+  - Data HRIS: Karyawan, Kontrak, Absensi, Leave, Lembur, Import CSV, Approver.
+  - Payroll: Master Payroll, Generate Payroll, Approval.
+  - Konfigurasi: Tabel Referensi, Cut Off, Katalog Komponen, Kalender Libur.
+  - Master Data: Jabatan, Departemen, Tipe Leave, Company (`perusahaan`, khusus Super Admin), Manajemen User, Role dan Privilege, Manajemen Menu (khusus Super Admin).
+  - Modul Lama: 12 menu lama yang digantikan (tidak dihapus, tanpa hak sehingga tidak tampil).
+  - Grup "Payroll Baru" dipakai ulang dan diganti nama "Payroll"; `PasangMenuPayroll` mengenali kedua nama.
+- **Belum ada di daftar pemilik, ditempatkan sementara (menunggu konfirmasi):** Import CSV → Data HRIS; Slip Gaji, Profil, Absensi Saya → tanpa grup; Manajemen Menu → Master Data; Pajak & Tarif TER lama → Modul Lama (Super Admin tetap punya hak, tampil di grup Modul Lama).
+- Admin: `AlihkanKePayrollBaru::hakAdmin()` memberi role Admin hak atas semua menu di grup di atas (kecuali menu platform dan Modul Lama): vcud; Dashboard/Slip v, Approval va, Cut Off vu.
+- Form Data Karyawan (payroll baru): satu field **Jabatan** berupa pilihan master Jabatan (`position_id`, wajib); kolom teks `karyawan.jabatan` diisi otomatis dari nama jabatan. Field "Jabatan payroll" terpisah dihapus. Label sidebar lama "Absensi, Cuti & Lembur" tidak dipakai lagi di perusahaan payroll baru.
+- Diterapkan di dev. Backup sebelum perubahan: `penggajian_karyawan-sebelum-tata-menu-20261112-151224.sql`.
+- **Test belum dijalankan** untuk §34–§35 secara penuh (atas permintaan pemilik). Test yang memeriksa teks "Payroll Baru" di sidebar kemungkinan perlu disesuaikan.

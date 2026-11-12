@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'aktif' => \App\Http\Middleware\AkunAktif::class,
             'super-admin' => \App\Domain\Company\Tenancy\HanyaSuperAdmin::class,
             'modul-lama' => \App\Http\Middleware\AlihkanModulLama::class,
+            'perlu-perusahaan' => \App\Http\Middleware\PerluPerusahaan::class,
         ]);
         $middleware->redirectGuestsTo('/login');
         $middleware->redirectUsersTo('/dashboard');

@@ -62,14 +62,14 @@ Route::middleware(['auth', 'aktif'])->group(function () {
     });
 
     // ===== Master data (HR) =====
-    crud('departemen', Master\DepartemenController::class);
+    Route::middleware('perlu-perusahaan')->group(fn () => crud('departemen', Master\DepartemenController::class));
     // modul-lama:{menu}: dialihkan ke modul payroll baru bila perusahaan sudah beralih (AUDIT.md §29)
     Route::middleware('modul-lama:komponen')->group(function () {
         Route::post('/komponen/pratinjau', [Master\KomponenController::class, 'pratinjau'])->middleware('akses:komponen')->name('komponen.pratinjau');
         crud('komponen', Master\KomponenController::class);
     });
 
-    Route::middleware('akses:pajak')->prefix('pajak')->name('pajak.')->group(function () {
+    Route::middleware(['modul-lama:pajak', 'akses:pajak'])->prefix('pajak')->name('pajak.')->group(function () {
         Route::get('/', [Master\PajakController::class, 'index'])->name('index');
         Route::post('/golongan', [Master\PajakController::class, 'simpanGolongan'])->middleware('akses:pajak,create')->name('golongan.store');
         Route::put('/golongan/{golongan}', [Master\PajakController::class, 'ubahGolongan'])->middleware('akses:pajak,update')->name('golongan.update');
@@ -81,7 +81,7 @@ Route::middleware(['auth', 'aktif'])->group(function () {
         Route::delete('/tarif/{tarif}', [Master\PajakController::class, 'hapusTarif'])->middleware('akses:pajak,delete')->name('tarif.destroy');
     });
 
-    Route::middleware('akses:master-payroll')->group(function () {
+    Route::middleware(['modul-lama:master-payroll', 'akses:master-payroll'])->group(function () {
         Route::get('/master-payroll', [Master\MasterPayrollController::class, 'index'])->name('master-payroll.index');
         Route::post('/master-payroll', [Master\MasterPayrollController::class, 'store'])->middleware('akses:master-payroll,create')->name('master-payroll.store');
         Route::put('/master-payroll/{master}', [Master\MasterPayrollController::class, 'update'])->middleware('akses:master-payroll,update')->name('master-payroll.update');
@@ -99,7 +99,7 @@ Route::middleware(['auth', 'aktif'])->group(function () {
     crud('lembur', Controllers\OvertimeController::class, param: 'overtime');
 
     // ===== Import Excel =====
-    Route::middleware('akses:import')->prefix('import')->name('import.')->group(function () {
+    Route::middleware(['modul-lama:import', 'akses:import'])->prefix('import')->name('import.')->group(function () {
         Route::get('/', [Controllers\ImportController::class, 'index'])->name('index');
         Route::get('/template/{jenis}', [Controllers\ImportController::class, 'template'])->name('template');
         Route::post('/upload', [Controllers\ImportController::class, 'upload'])->middleware('akses:import,create')->name('upload');

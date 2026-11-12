@@ -25,6 +25,9 @@ final class ModulPayroll
         'komponen' => 'pay.komponen.index',
         'pay-karyawan' => 'karyawan.index',
         'approval' => 'pay.approval.index',
+        'import' => 'pay.import.index',
+        'master-payroll' => 'pay.cutoff.index',
+        'pajak' => 'pay.referensi.index',
     ];
 
     /** Apakah perusahaan dalam konteks saat ini memakai modul payroll baru. */

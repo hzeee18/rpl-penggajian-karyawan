@@ -28,36 +28,65 @@ final class AlihkanKePayrollBaru
                 ->whereIn('role_id', DB::table('roles')->where('company_id', $companyId)->pluck('id'))
                 ->update(['can_view' => false, 'can_create' => false, 'can_update' => false, 'can_delete' => false, 'can_approve' => false, 'updated_at' => now()]);
 
-            $this->hakKaryawan($companyId);
+            $this->hakPeran($companyId);
+            app(TataMenu::class)->handle();
+            // hak Super Admin untuk menu master payroll (menu dibuat oleh berikanHak di atas)
+            app(\App\Domain\Company\Actions\PasangHakPlatform::class)->handle();
         });
     }
 
     /**
-     * Menu lama yang datanya dari tabel lama (absensi/cuti/lembur) untuk role non-HR, per keputusan pemilik:
-     * - Karyawan: riwayat sendiri dari payroll baru digabung di menu Absensi (lihat saja); Cuti & Lembur ditutup.
-     * - Manager: memakai Dashboard, Approval Payroll, dan Slip Gaji; Absensi/Cuti/Lembur lama ditutup.
-     * Role HR (dan Manager HR yang bertindak sebagai HR) tidak diubah di sini.
+     * Hak menu per role setelah beralih (keputusan pemilik, AUDIT.md §32-§34). url => hak (v c u d a), '' = ditutup.
+     * - Karyawan: riwayat sendiri dari payroll baru di menu Absensi (lihat saja); Cuti & Lembur lama ditutup.
+     * - Manager: Dashboard, Approval Payroll, Slip Gaji; Absensi/Cuti/Lembur lama ditutup.
+     * - HR: Data Karyawan, Absensi/Leave/Lembur/Import CSV payroll, Master Payroll, Generate Payroll, Slip Gaji
+     *   (milik sendiri), Kontrak, Katalog Komponen, Kalender Libur, Manajemen User. Menu lama dan data master
+     *   yang dikelola Super Admin (Departemen, Jabatan, Tipe Leave, Cut Off, Tabel Referensi) ditutup.
      */
-    public const HAK_MENU_LAMA = [
-        \App\Models\Role::KARYAWAN => ['absensi' => true, 'cuti' => false, 'lembur' => false],
-        \App\Models\Role::MANAGER => ['absensi' => false, 'cuti' => false, 'lembur' => false],
+    public const HAK_PERAN = [
+        \App\Models\Role::KARYAWAN => ['absensi' => 'v', 'cuti' => '', 'lembur' => ''],
+        \App\Models\Role::MANAGER => ['absensi' => '', 'cuti' => '', 'lembur' => ''],
+        \App\Models\Role::HR => [
+            'absensi' => '', 'cuti' => '', 'lembur' => '', 'import' => '', 'pajak' => '', 'master-payroll' => '', 'departemen' => '',
+            'pay-jabatan' => '', 'pay-tipe-leave' => '', 'pay-cutoff' => '', 'pay-referensi' => '',
+            'users' => 'vcud',
+        ],
     ];
 
-    public function hakKaryawan(int $companyId): void
+    /** Admin: semua menu perusahaan terbuka (keputusan pemilik, AUDIT.md §35). url => hak; selain ini 'vcud'. */
+    public const HAK_ADMIN_KHUSUS = ['dashboard' => 'v', 'pay-slip' => 'v', 'pay-approval' => 'va', 'pay-cutoff' => 'vu'];
+
+    /** @return array<string, string> url => hak untuk role Admin: semua menu di grup TataMenu kecuali Modul Lama & menu platform */
+    public static function hakAdmin(): array
     {
-        $menus = DB::table('menus')->whereIn('url', ['absensi', 'cuti', 'lembur'])->pluck('id', 'url');
-        foreach (self::HAK_MENU_LAMA as $nama => $hak) {
+        $urls = ['dashboard', 'pay-slip'];
+        foreach (TataMenu::GRUP as $grup => [, , $menu]) {
+            if ($grup !== 'Modul Lama') {
+                array_push($urls, ...array_keys($menu));
+            }
+        }
+        $urls = array_diff($urls, [...\App\Domain\Company\Actions\PasangHakPlatform::MENU_PLATFORM, 'menus']);
+
+        return collect($urls)->mapWithKeys(fn ($u) => [$u => self::HAK_ADMIN_KHUSUS[$u] ?? 'vcud'])->all();
+    }
+
+    public function hakPeran(int $companyId): void
+    {
+        $semua = self::HAK_PERAN + [\App\Models\Role::ADMIN => self::hakAdmin()];
+        $menus = DB::table('menus')->whereIn('url', collect($semua)->flatMap(fn ($h) => array_keys($h))->unique()->all())->pluck('id', 'url');
+        foreach ($semua as $nama => $daftar) {
             $role = DB::table('roles')->where('company_id', $companyId)->where('nama', $nama)->value('id');
             if ($role === null) {
                 continue;
             }
-            foreach ($hak as $url => $lihat) {
+            foreach ($daftar as $url => $hak) {
                 if (! isset($menus[$url])) {
                     continue;
                 }
                 DB::table('privileges')->updateOrInsert(['role_id' => $role, 'menu_id' => $menus[$url]], [
-                    'company_id' => $companyId, 'can_view' => $lihat,
-                    'can_create' => false, 'can_update' => false, 'can_delete' => false, 'can_approve' => false,
+                    'company_id' => $companyId,
+                    'can_view' => str_contains($hak, 'v'), 'can_create' => str_contains($hak, 'c'), 'can_update' => str_contains($hak, 'u'),
+                    'can_delete' => str_contains($hak, 'd'), 'can_approve' => str_contains($hak, 'a'),
                     'created_at' => now(), 'updated_at' => now(),
                 ]);
             }
