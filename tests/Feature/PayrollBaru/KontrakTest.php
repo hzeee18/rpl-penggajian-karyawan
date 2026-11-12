@@ -118,6 +118,50 @@ final class KontrakTest extends TestCase
         $this->actingAs($this->hr)->from('/pay/kontrak')->post("/pay/kontrak/{$lama->id}/perbarui", $this->form([]))->assertNotFound();
     }
 
+    public function test_ubah_kontrak_mengoreksi_di_tempat_tanpa_versi_baru(): void
+    {
+        $rizky = $this->karyawan('Rizky Maulana');
+        $this->actingAs($this->hr)->post('/pay/kontrak', $this->form(['gaji_pokok' => '5700000', 'uang_makan' => '600000'], ['employee_id' => $rizky->id]));
+        $kontrak = Contract::where('employee_id', $rizky->id)->firstOrFail();
+
+        $this->actingAs($this->hr)->get("/pay/kontrak?lihat={$kontrak->id}")->assertOk()->assertSee('?ubah='.$kontrak->id, false);
+        $this->actingAs($this->hr)->get("/pay/kontrak?ubah={$kontrak->id}")->assertOk()->assertSee('Ubah Kontrak')->assertSee('5700000.00');
+
+        // nominal gaji pokok dikoreksi, uang makan dilepas, BPJS ditambah
+        $this->actingAs($this->hr)->put("/pay/kontrak/{$kontrak->id}", $this->form(['gaji_pokok' => '5900000', 'bpjs_tk' => '200000'], ['contract_name' => 'PKWT ABCD (koreksi)']))
+            ->assertSessionHasNoErrors()->assertRedirect(route('pay.kontrak.index', ['lihat' => $kontrak->id]));
+
+        $this->assertSame(1, Contract::where('employee_id', $rizky->id)->count(), 'tidak membuat versi baru');
+        $kontrak->refresh();
+        $this->assertTrue($kontrak->is_active);
+        $this->assertSame('PKWT ABCD (koreksi)', $kontrak->contract_name);
+        $this->assertSame(['bpjs_tk' => '200000.00', 'gaji_pokok' => '5900000.00'], collect($this->nilaiKontrak($kontrak))->sortKeys()->all());
+        $log = DB::table('audit_logs')->where('entity_type', Contract::class)->where('action', 'updated')->firstOrFail();
+        $this->assertStringContainsString('5700000', (string) $log->old_values);
+        $this->assertStringContainsString('5900000', (string) $log->new_values);
+    }
+
+    public function test_kontrak_yang_dipakai_payroll_final_tidak_bisa_diubah_hanya_diperbarui(): void
+    {
+        $rizky = $this->karyawan('Rizky Maulana');
+        $this->actingAs($this->hr)->post('/pay/kontrak', $this->form(['gaji_pokok' => '5700000'], ['employee_id' => $rizky->id]));
+        $kontrak = Contract::where('employee_id', $rizky->id)->firstOrFail();
+        $run = \App\Domain\Payroll\Models\PayrollRun::forceCreate(['title' => 'Uji', 'period_start' => '2026-11-01', 'period_end' => '2026-11-30',
+            'status' => \App\Domain\Payroll\Models\PayrollRun::PENDING, 'created_by' => $this->hr->id]);
+        \App\Domain\Payroll\Models\RunEmployee::forceCreate(['run_id' => $run->id, 'employee_id' => $rizky->id, 'contract_id' => $kontrak->id,
+            'period_start' => '2026-11-01', 'period_end' => '2026-11-30', 'employee_no' => $rizky->nik, 'nik' => $rizky->nik, 'full_name' => $rizky->nama, 'ptkp_status' => 'TK/0']);
+
+        $this->assertTrue($kontrak->terkunci());
+        $this->actingAs($this->hr)->get("/pay/kontrak?lihat={$kontrak->id}")->assertOk()->assertDontSee('?ubah='.$kontrak->id, false)->assertSee('Gunakan Perbarui');
+        $this->actingAs($this->hr)->get("/pay/kontrak?ubah={$kontrak->id}")->assertRedirect(route('pay.kontrak.index', ['lihat' => $kontrak->id]));
+        $this->actingAs($this->hr)->from('/pay/kontrak')->put("/pay/kontrak/{$kontrak->id}", $this->form(['gaji_pokok' => '9000000']))->assertSessionHasErrors('contract');
+        $this->assertSame('5700000.00', $this->nilaiKontrak($kontrak->fresh())['gaji_pokok']);
+
+        // perbarui tetap bisa (versi baru)
+        $this->actingAs($this->hr)->post("/pay/kontrak/{$kontrak->id}/perbarui", $this->form(['gaji_pokok' => '9000000'], ['start_date' => '2026-12-01']))->assertSessionHasNoErrors();
+        $this->assertFalse($kontrak->fresh()->is_active);
+    }
+
     public function test_nonaktifkan_manual_dan_tanda_kedaluwarsa(): void
     {
         $rizky = $this->karyawan('Rizky Maulana');

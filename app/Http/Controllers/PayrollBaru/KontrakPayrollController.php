@@ -8,13 +8,17 @@ use App\Domain\Company\Tenancy\TenantRule;
 use App\Domain\Payroll\Actions\BuatKontrak;
 use App\Domain\Payroll\Actions\NonaktifkanKontrak;
 use App\Domain\Payroll\Actions\PerbaruiKontrak;
+use App\Domain\Payroll\Actions\UbahKontrak;
 use App\Domain\Payroll\Models\Component;
 use App\Domain\Payroll\Models\Contract;
 use App\Domain\Payroll\Models\Employee;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
-/** Kontrak payroll baru: buat, perbarui (versi baru), nonaktifkan. Tidak ada ubah di tempat. */
+/**
+ * Kontrak payroll baru: buat, ubah di tempat (koreksi, selama belum dipakai payroll final),
+ * perbarui (versi baru, kontrak lama dinonaktifkan), nonaktifkan.
+ */
 final class KontrakPayrollController extends Controller
 {
     public function index(Request $request)
@@ -28,6 +32,11 @@ final class KontrakPayrollController extends Controller
 
         $lihat = $request->integer('lihat') ? Contract::with(['employee', 'components.component', 'previous'])->find($request->integer('lihat')) : null;
         $perbarui = $request->integer('perbarui') ? Contract::with('components')->active()->find($request->integer('perbarui')) : null;
+        $ubah = $request->integer('ubah') ? Contract::with(['components', 'employee'])->active()->find($request->integer('ubah')) : null;
+        if ($ubah?->terkunci()) {
+            return redirect()->route('pay.kontrak.index', ['lihat' => $ubah->id])
+                ->with('gagal', 'Kontrak ini sudah dipakai payroll yang diajukan/disetujui. Gunakan Perbarui untuk membuat versi baru.');
+        }
         $riwayat = $lihat ? Contract::where('employee_id', $lihat->employee_id)->orderByDesc('start_date')->orderByDesc('id')->get() : collect();
 
         return view('payroll-baru.kontrak', [
@@ -36,6 +45,8 @@ final class KontrakPayrollController extends Controller
             'lihat' => $lihat,
             'riwayat' => $riwayat,
             'perbarui' => $perbarui,
+            'ubah' => $ubah,
+            'terkunci' => $lihat?->is_active ? $lihat->terkunci() : false,
             'baru' => $request->has('baru'),
             'karyawanTanpaKontrak' => Employee::where('is_active', true)->whereDoesntHave('activeContract')->orderBy('nama')->get(),
             'katalog' => Component::where('is_active', true)->where('is_contractable', true)->orderBy('type')->orderBy('code')->get(),
@@ -57,6 +68,15 @@ final class KontrakPayrollController extends Controller
         $baru = $perbarui->handle($lama, $this->dataKontrak($data), $this->nilaiKomponen($data));
 
         return redirect()->route('pay.kontrak.index', ['lihat' => $baru->id])->with('sukses', 'Kontrak diperbarui. Kontrak lama dinonaktifkan.');
+    }
+
+    public function ubah(Request $request, int $id, UbahKontrak $ubah)
+    {
+        $kontrak = Contract::active()->findOrFail($id);
+        $data = $request->validate($this->aturan());
+        $ubah->handle($kontrak, $this->dataKontrak($data), $this->nilaiKomponen($data));
+
+        return redirect()->route('pay.kontrak.index', ['lihat' => $kontrak->id])->with('sukses', 'Kontrak diubah.');
     }
 
     public function nonaktifkan(int $id, NonaktifkanKontrak $nonaktifkan)

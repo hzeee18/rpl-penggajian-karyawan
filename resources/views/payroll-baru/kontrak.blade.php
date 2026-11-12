@@ -3,7 +3,7 @@
 @section('breadcrumb', 'Payroll Baru / Kontrak')
 @section('content')
 @php $u = auth()->user(); @endphp
-<x-page-header judul="Kontrak Payroll" sub="Kontrak berversi: memperbarui kontrak membuat versi baru, kontrak lama dinonaktifkan. Satu karyawan hanya punya satu kontrak aktif.">
+<x-page-header judul="Kontrak Payroll" sub="Kelola data kontrak setiap karyawan.">
     @if ($u->bisa('pay-kontrak', 'create'))<a href="{{ route('pay.kontrak.index', ['baru' => 1]) }}" class="btn btn-primary"><i data-lucide="plus"></i> Kontrak Baru</a>@endif
 </x-page-header>
 
@@ -26,7 +26,7 @@
                         <td class="text-nowrap">{{ tgl($k->start_date) }} – {{ $k->end_date ? tgl($k->end_date) : 'tidak terbatas' }}</td>
                         <td class="text-end">{{ $k->components->count() }}</td>
                         <td>{!! badge_status($k->is_active ? 'aktif' : 'nonaktif') !!}@if ($k->isExpired()) <span class="badge badge-soft-warning">Kedaluwarsa</span>@endif</td>
-                        <td><a href="{{ request()->fullUrlWithQuery(['lihat' => $k->id, 'baru' => null, 'perbarui' => null]) }}" class="btn btn-light btn-icon" title="Lihat"><i data-lucide="eye"></i></a></td>
+                        <td><a href="{{ request()->fullUrlWithQuery(['lihat' => $k->id, 'baru' => null, 'perbarui' => null, 'ubah' => null]) }}" class="btn btn-light btn-icon" title="Lihat"><i data-lucide="eye"></i></a></td>
                     </tr>
                 @empty
                     <tr><td colspan="6"><x-empty ikon="file-signature" judul="Belum ada kontrak" /></td></tr>
@@ -37,24 +37,33 @@
         @if ($kontrak->lastPage() > 1) @include('partials.halaman', ['data' => $kontrak, 'label' => 'kontrak']) @endif
     </div>
 
-    @if ($baru || $perbarui)
-        @php $sumber = $perbarui ? $perbarui->components->pluck('amount', 'component_id') : collect(); @endphp
-        <x-panel :judul="$perbarui ? 'Perbarui Kontrak' : 'Kontrak Baru'" :sub="$perbarui ? $perbarui->contract_name . ' akan dinonaktifkan' : 'Nilai komponen disalin dari katalog, bisa diubah'" :buka="true"
-                 :action="$perbarui ? route('pay.kontrak.perbarui', $perbarui->id) : route('pay.kontrak.store')">
-            @unless ($perbarui)
+    @if ($baru || $perbarui || $ubah)
+        @php
+            $asal = $perbarui ?? $ubah; // kontrak yang nilainya ditampilkan di form
+            $sumber = $asal ? $asal->components->pluck('amount', 'component_id') : collect();
+            if ($ubah) {
+                [$judulForm, $subForm, $aksi] = ['Ubah Kontrak', $ubah->employee->nama . ' · koreksi kontrak ini, tidak membuat versi baru', route('pay.kontrak.ubah', $ubah->id)];
+            } elseif ($perbarui) {
+                [$judulForm, $subForm, $aksi] = ['Perbarui Kontrak', $perbarui->contract_name . ' akan dinonaktifkan', route('pay.kontrak.perbarui', $perbarui->id)];
+            } else {
+                [$judulForm, $subForm, $aksi] = ['Kontrak Baru', 'Nilai komponen disalin dari katalog, bisa diubah', route('pay.kontrak.store')];
+            }
+        @endphp
+        <x-panel :judul="$judulForm" :sub="$subForm" :buka="true" :action="$aksi" :method="$ubah ? 'put' : 'post'">
+            @unless ($asal)
                 <div class="mb-field"><label class="form-label">Karyawan</label>
                     <select name="employee_id" class="form-select" required><option value="">Pilih karyawan tanpa kontrak aktif</option>
                         @foreach ($karyawanTanpaKontrak as $e)<option value="{{ $e->id }}" @selected(old('employee_id') == $e->id)>{{ $e->nik }} · {{ $e->nama }}</option>@endforeach</select></div>
             @endunless
-            <div class="mb-field"><label class="form-label">Nama kontrak</label><input name="contract_name" value="{{ old('contract_name', $perbarui?->contract_name) }}" class="form-control" required placeholder="mis. PKWT 2027"></div>
+            <div class="mb-field"><label class="form-label">Nama kontrak</label><input name="contract_name" value="{{ old('contract_name', $asal?->contract_name) }}" class="form-control" required placeholder="mis. PKWT 2027"></div>
             <div class="row g-2 mb-field">
-                <div class="col"><label class="form-label">Mulai</label><input type="date" name="start_date" value="{{ old('start_date') }}" class="form-control" required></div>
-                <div class="col"><label class="form-label">Selesai</label><input type="date" name="end_date" value="{{ old('end_date') }}" class="form-control"></div>
+                <div class="col"><label class="form-label">Mulai</label><input type="date" name="start_date" value="{{ old('start_date', $ubah?->start_date?->toDateString()) }}" class="form-control" required></div>
+                <div class="col"><label class="form-label">Selesai</label><input type="date" name="end_date" value="{{ old('end_date', $ubah?->end_date?->toDateString()) }}" class="form-control"></div>
             </div>
-            <div class="mb-field"><label class="form-label">THP (informasi saja)</label><input name="info_thp" value="{{ old('info_thp', $perbarui?->info_thp) }}" class="form-control" inputmode="decimal"></div>
+            <div class="mb-field"><label class="form-label">THP (informasi saja)</label><input name="info_thp" value="{{ old('info_thp', $asal?->info_thp) }}" class="form-control" inputmode="decimal"></div>
             <label class="form-label">Komponen kontrak</label>
             @foreach ($katalog as $c)
-                @php $dipakai = $perbarui ? $sumber->has($c->id) : true; @endphp
+                @php $dipakai = $asal ? $sumber->has($c->id) : true; @endphp
                 <div class="d-flex align-items-center gap-2 mb-2">
                     <input type="checkbox" name="komponen[{{ $c->id }}][pakai]" value="1" class="form-check-input" @checked(old("komponen.{$c->id}.pakai", $dipakai))>
                     <span class="flex-grow-1">{{ $c->name }} <span class="text-muted small">· {{ $c->type === 'earning' ? 'penambah' : 'pengurang' }}</span></span>
@@ -81,8 +90,10 @@
                     @if ($u->bisa('pay-kontrak', 'delete'))
                         <form method="post" action="{{ route('pay.kontrak.nonaktifkan', $lihat->id) }}" data-confirm="Nonaktifkan kontrak {{ $lihat->contract_name }}?">@csrf<button class="btn btn-outline-danger">Nonaktifkan</button></form>
                     @endif
+                    @if ($u->bisa('pay-kontrak', 'update') && ! $terkunci)<a href="{{ route('pay.kontrak.index', ['ubah' => $lihat->id]) }}" class="btn btn-light">Ubah</a>@endif
                     @if ($u->bisa('pay-kontrak', 'create'))<a href="{{ route('pay.kontrak.index', ['perbarui' => $lihat->id]) }}" class="btn btn-primary">Perbarui</a>@endif
                 </div>
+                @if ($terkunci)<div class="small text-muted mt-2">Kontrak ini sudah dipakai payroll yang diajukan/disetujui, jadi tidak bisa diubah. Gunakan Perbarui untuk perubahan nominal.</div>@endif
             @endif
         </x-panel>
     @endif

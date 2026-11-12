@@ -59,6 +59,16 @@ final class Contract extends Model
     }
 
     /** Masih aktif tetapi tanggal akhirnya sudah lewat (dinonaktifkan manual oleh HR). */
+    /**
+     * Kontrak sudah dipakai payroll final (diajukan atau disetujui): tidak boleh diubah di tempat, hanya diperbarui
+     * (versi baru). Aturan PAYROLL_SPEC.md §3-§4; slip diambil dari snapshot run, jadi kontrak final dijaga tetap.
+     */
+    public function terkunci(): bool
+    {
+        return \App\Domain\Payroll\Models\RunEmployee::where('contract_id', $this->id)
+            ->whereHas('run', fn ($q) => $q->whereIn('status', [PayrollRun::PENDING, PayrollRun::APPROVED]))->exists();
+    }
+
     public function isExpired(?\DateTimeInterface $per = null): bool
     {
         return $this->is_active && $this->end_date !== null && $this->end_date->lt(($per ? Carbon::instance($per) : now())->startOfDay());

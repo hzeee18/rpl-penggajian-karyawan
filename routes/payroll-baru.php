@@ -33,6 +33,7 @@ Route::prefix('pay')->name('pay.')->group(function () {
     Route::middleware('akses:pay-kontrak')->prefix('kontrak')->name('kontrak.')->group(function () {
         Route::get('/', [PayrollBaru\KontrakPayrollController::class, 'index'])->name('index');
         Route::post('/', [PayrollBaru\KontrakPayrollController::class, 'store'])->middleware('akses:pay-kontrak,create')->name('store');
+        Route::put('/{id}', [PayrollBaru\KontrakPayrollController::class, 'ubah'])->whereNumber('id')->middleware('akses:pay-kontrak,update')->name('ubah');
         Route::post('/{id}/perbarui', [PayrollBaru\KontrakPayrollController::class, 'perbarui'])->whereNumber('id')->middleware('akses:pay-kontrak,create')->name('perbarui');
         Route::post('/{id}/nonaktifkan', [PayrollBaru\KontrakPayrollController::class, 'nonaktifkan'])->whereNumber('id')->middleware('akses:pay-kontrak,delete')->name('nonaktifkan');
     });

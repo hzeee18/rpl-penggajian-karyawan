@@ -625,3 +625,11 @@ Keputusan pemilik (mengganti sebagian §34): Super Admin hanya mengakses Dashboa
 - **Perlu diketahui pemilik:**
   - **Manajemen Menu** tidak diberikan ke Admin perusahaan. Tabel `menus` dipakai bersama semua perusahaan, jadi perubahan oleh satu Admin akan mengubah menu perusahaan lain. Susunan menu diatur kode (`TataMenu`), sehingga saat ini tidak ada role yang membuka menu ini.
   - **Tabel nasional TER/PTKP** (company_id NULL) hanya bisa diubah Super Admin, dan Super Admin kini tidak punya menu Tabel Referensi. Perubahan tarif nasional dilakukan lewat file `database/seeders/data/ter_pph21.csv` lalu `TerPph21Seeder`. Admin perusahaan tetap bisa melihat dan memakai tabel nasional, dan membuat tabel referensi milik perusahaannya sendiri.
+
+## 41. Ubah kontrak payroll di tempat, terpisah dari Perbarui (2026-11-12)
+
+Permintaan pemilik: `/pay/kontrak` bisa diedit (mis. koreksi nominal) tanpa membuat kontrak baru; Perbarui tetap menonaktifkan kontrak lama dan membuat kontrak baru.
+
+- `App\Domain\Payroll\Actions\UbahKontrak` + route `PUT /pay/kontrak/{id}` (`akses:pay-kontrak,update`): mengubah nama, tanggal, THP info, dan komponen/nominal kontrak **aktif** di tempat (komponen yang tidak dicentang dilepas, yang baru ditambahkan). Audit log `updated` dengan nilai lama/baru per kode komponen.
+- Sesuai `PAYROLL_SPEC.md` aturan 3–4: kontrak yang sudah dipakai payroll **diajukan/disetujui** (`Contract::terkunci()`: ada `pay_run_employees.contract_id` pada run `pending_approval`/`approved`) **tidak bisa diubah**. Tombol Ubah disembunyikan dan diganti keterangan, `?ubah=` dialihkan, PUT ditolak. Perubahan nominal lewat Perbarui. Run draft/ditolak tidak mengunci; pratinjau draft perlu diulang setelah kontrak diubah.
+- Panel Detail Kontrak: tombol **Ubah** (koreksi) dan **Perbarui** (versi baru).
