@@ -42,7 +42,9 @@ final class SuperAdminTest extends TestCase
         $this->buatSuperAdmin();
 
         $this->post('/login', ['username' => 'super', 'password' => 'rahasia123'])->assertRedirect('/dashboard');
-        $this->get('/dashboard')->assertRedirect(route('perusahaan.index'));
+        // dashboard platform: ringkasan lintas perusahaan, hanya angka (AUDIT.md §37)
+        $this->get('/dashboard')->assertOk()->assertSee('Dashboard Super Admin')->assertSee('Karyawan Dikelola')
+            ->assertSee('DEFAULT')->assertSee('grafikKaryawan')->assertDontSee('Rizky Maulana');
         $this->get('/perusahaan')->assertOk()->assertSee('DEFAULT');
 
         $this->get('/users')->assertOk()->assertDontSee('rizky');

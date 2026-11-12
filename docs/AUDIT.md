@@ -585,3 +585,14 @@ Pertanyaan pemilik: setelah Super Admin membuat perusahaan, bagaimana membuat Ad
 - `App\Domain\Company\Actions\BuatAdminPerusahaan`: membuat user dengan role Admin milik perusahaan itu (`runAs`), `karyawan_id` kosong. Username unik global; boleh titik (seperti `manager.hr`). Aturan username di Manajemen User lama tidak diubah.
 - Admin perusahaan login sendiri, lalu mengelola user/role/data perusahaannya (Admin membuka semua menu perusahaan, §35).
 - Catatan: `payroll:isi-data {kode}` menolak bila username `admin.{kode}` sudah dipakai. Bila Admin dibuat dengan username itu, pakai username lain atau isi data dummy sebelum membuat Admin.
+
+## 37. Dashboard Super Admin (2026-11-12)
+
+Permintaan pemilik: dashboard Super Admin berisi kartu dan grafik (jumlah perusahaan, user aktif, karyawan dikelola, karyawan per perusahaan, dll.), interaktif.
+
+- `/dashboard` untuk Super Admin tidak lagi dialihkan ke menu Perusahaan; menampilkan `dashboard/super-admin.blade.php`:
+  - Kartu: perusahaan terdaftar (aktif/nonaktif), user aktif, karyawan dikelola (+ yang punya kontrak payroll aktif), payroll menunggu approval (+ slip terbit bulan ini).
+  - Grafik (Chart.js 4.4.1 dari jsDelivr, dimuat hanya di halaman ini; tooltip saat hover): karyawan aktif per perusahaan (batang horizontal), slip gaji terbit 6 bulan terakhir (kolom). Satu seri, satu warna `--primary-600`, tanpa legenda.
+  - User aktif per role (bar), "Perlu Perhatian" (perusahaan aktif tanpa Admin, karyawan tanpa kontrak payroll, payroll menunggu approval).
+  - Tabel per perusahaan (cari tanpa reload): karyawan, kontrak payroll, user aktif, jumlah Admin, payroll terakhir, status, aksi Admin/Ubah/Pilih.
+- Data lintas perusahaan diambil dengan `DB::table` agregat per `company_id` (sama seperti halaman Perusahaan): hanya angka, tanpa data pribadi karyawan. Dashboard perusahaan lain tidak berubah.

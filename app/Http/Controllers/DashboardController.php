@@ -27,9 +27,9 @@ class DashboardController extends Controller
     public function index(Request $request, PayrollService $svc)
     {
         $user = $request->user();
-        // multi-tenant: Super Admin (akun platform) tidak punya dashboard perusahaan
+        // multi-tenant: Super Admin (akun platform) memakai dashboard platform lintas perusahaan (AUDIT.md §37)
         if (app(\App\Domain\Company\Tenancy\CurrentCompany::class)->isSuperAdmin()) {
-            return redirect()->route('perusahaan.index');
+            return view('dashboard.super-admin', $this->superAdmin());
         }
         Kontrak::sinkronAktif();
         $master = MasterPayroll::aktif();
@@ -378,6 +378,65 @@ class DashboardController extends Controller
             'lembur' => $lembur,
             'hariIniBar' => $hariIniBar,
             'jumlahTim' => max($tim->count(), 1),
+        ];
+    }
+
+    /**
+     * Dashboard Super Admin: ringkasan platform lintas perusahaan. Sengaja memakai DB::table dengan
+     * agregat per company_id (bukan model ber-scope): halaman platform, hanya angka ringkasan, tanpa data pribadi.
+     */
+    private function superAdmin(): array
+    {
+        $perTabel = fn (string $tabel, ?\Closure $filter = null) => \Illuminate\Support\Facades\DB::table($tabel)->whereNotNull('company_id')
+            ->when($filter, $filter)->groupBy('company_id')->selectRaw('company_id, count(*) as n')->pluck('n', 'company_id');
+
+        $karyawan = $perTabel('karyawan', fn ($q) => $q->where('is_active', true));
+        $user = $perTabel('users', fn ($q) => $q->where('is_active', true));
+        $kontrak = $perTabel('pay_contracts', fn ($q) => $q->where('is_active', true));
+        $admin = \Illuminate\Support\Facades\DB::table('users')->join('roles', 'roles.id', '=', 'users.role_id')
+            ->whereNotNull('users.company_id')->where('roles.nama', Role::ADMIN)->where('users.is_active', true)
+            ->groupBy('users.company_id')->selectRaw('users.company_id, count(*) as n')->pluck('n', 'company_id');
+        $runTerakhir = PayrollRun::withoutGlobalScope(\App\Domain\Company\Tenancy\CompanyScope::class)
+            ->orderByDesc('period_end')->orderByDesc('id')->get(['company_id', 'title', 'status', 'period_end'])->unique('company_id')->keyBy('company_id');
+        $menunggu = \Illuminate\Support\Facades\DB::table('pay_runs')->where('status', PayrollRun::PENDING)->count();
+
+        $perusahaan = \App\Domain\Company\Models\Company::orderBy('code')->get()->map(fn ($c) => (object) [
+            'id' => $c->id, 'code' => $c->code, 'name' => $c->name, 'aktif' => $c->is_active,
+            'karyawan' => (int) ($karyawan[$c->id] ?? 0), 'user' => (int) ($user[$c->id] ?? 0),
+            'kontrak' => (int) ($kontrak[$c->id] ?? 0), 'admin' => (int) ($admin[$c->id] ?? 0),
+            'run' => $runTerakhir[$c->id] ?? null,
+        ]);
+
+        // slip gaji terbit per bulan periode (6 bulan terakhir, semua perusahaan)
+        $bulan = collect(range(5, 0))->map(fn ($n) => now()->startOfMonth()->subMonthsNoOverflow($n));
+        $slip = \Illuminate\Support\Facades\DB::table('pay_payslips')->join('pay_run_employees', 'pay_run_employees.id', '=', 'pay_payslips.run_employee_id')
+            ->join('pay_runs', 'pay_runs.id', '=', 'pay_run_employees.run_id')
+            ->where('pay_runs.status', PayrollRun::APPROVED)
+            ->whereBetween('pay_runs.period_end', [$bulan->first()->toDateString(), now()->endOfMonth()->toDateString()])
+            ->get(['pay_runs.period_end'])->countBy(fn ($r) => substr((string) $r->period_end, 0, 7));
+
+        $perRole = \Illuminate\Support\Facades\DB::table('users')->join('roles', 'roles.id', '=', 'users.role_id')
+            ->whereNotNull('users.company_id')->where('users.is_active', true)
+            ->groupBy('roles.nama')->selectRaw('roles.nama, count(*) as n')->orderByDesc('n')->pluck('n', 'nama');
+
+        $tanpaAdmin = $perusahaan->where('aktif', true)->where('admin', 0);
+
+        return [
+            'stat' => [
+                ['Perusahaan Terdaftar', $perusahaan->count(), $perusahaan->where('aktif', true)->count() . ' aktif · ' . $perusahaan->where('aktif', false)->count() . ' nonaktif'],
+                ['User Aktif', $perusahaan->sum('user'), $perRole->count() . ' jenis role di semua perusahaan'],
+                ['Karyawan Dikelola', $perusahaan->sum('karyawan'), $perusahaan->sum('kontrak') . ' dengan kontrak payroll aktif'],
+                ['Payroll Menunggu Approval', $menunggu, 'Slip terbit bulan ini: ' . ($slip[now()->format('Y-m')] ?? 0)],
+            ],
+            'perusahaan' => $perusahaan,
+            'grafikKaryawan' => ['label' => $perusahaan->pluck('code')->all(), 'data' => $perusahaan->pluck('karyawan')->all()],
+            'grafikSlip' => ['label' => $bulan->map(fn ($b) => $b->translatedFormat('M Y'))->all(), 'data' => $bulan->map(fn ($b) => (int) ($slip[$b->format('Y-m')] ?? 0))->all()],
+            'perRole' => $perRole,
+            'perhatian' => array_values(array_filter([
+                $tanpaAdmin->isNotEmpty() ? [$tanpaAdmin->count() . ' perusahaan aktif tanpa akun Admin', $tanpaAdmin->pluck('code')->implode(', '), route('perusahaan.index', ['admin' => $tanpaAdmin->first()->id])] : null,
+                ($k = $perusahaan->filter(fn ($p) => $p->karyawan > $p->kontrak)->count()) ? ["{$k} perusahaan punya karyawan tanpa kontrak payroll", 'Karyawan itu tidak ikut dihitung payroll', null] : null,
+                $menunggu ? ["{$menunggu} payroll menunggu approval", 'Disetujui approver di masing-masing perusahaan', null] : null,
+            ])),
         ];
     }
 }
