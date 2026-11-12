@@ -509,3 +509,11 @@ Belum berubah (di luar permintaan, menunggu keputusan bila perlu): menu Absensi/
 - Isi template (`TemplateKehadiran`): header tetap + baris contoh memakai NIK karyawan aktif perusahaan sendiri (utamakan yang punya kontrak payroll aktif), kode tipe leave aktif, dan tanggal hari kerja terakhir; fallback contoh bawaan bila perusahaan belum punya karyawan. Tenant-scoped (NIK perusahaan lain tidak muncul).
 - Tes: `KehadiranImportTest::test_template_per_jenis_berisi_data_perusahaan_sendiri_dan_langsung_valid` (template diunggah apa adanya -> semua baris valid).
 - Catatan untuk pengguna: NIK berawalan nol (mis. `0001`) hilang nolnya bila CSV dibuka/disimpan dengan Excel; edit dengan Notepad/Google Sheets atau format kolom nik sebagai Text.
+
+## 31. Pilihan "PPh21 TER otomatis" di master payroll (2026-11-12)
+
+- Permintaan pemilik: rumus PPh21 TER tidak perlu diketik di setiap master; cukup dipilih.
+- Form komponen master: Cara hitung punya pilihan ketiga **PPh21 TER otomatis (tabel nasional)**. `KelolaMasterPayroll::simpanItem` mengubahnya menjadi `calc_type = formula`, `item_role = pph21`, rumus `Item::RUMUS_PPH21_TER` (`ROUND(gross_taxable * LOOKUP('ter_bulanan', LOOKUP_TEXT('kategori_ptkp', ptkp_status), gross_taxable))`). Tanpa migration, mesin rumus tidak berubah; rumus tetap tersimpan di versi master (bisa diaudit, versi lama tidak berubah).
+- Dasar: PPh21 TER adalah aturan nasional (PP 58/2023), bukan aturan perusahaan; angka tarif tetap dari tabel referensi nasional (sesuai PAYROLL_SPEC aturan 1). Item yang rumusnya identik ditampilkan "PPh21 TER otomatis" (termasuk master `contoh` dan `pkp` MTS di DB dev).
+- Batasan yang dijelaskan ke pemilik: metode TER hanya untuk masa Januari-November; masa Desember/resign (hitung setahun Pasal 17 dikurangi TER yang sudah dipotong) belum dibuat (PAYROLL_SPEC: fase 2; data `pay_tax_monthly_histories` sudah disimpan).
+- Tes: `MasterReferensiTest::test_pilihan_pph21_ter_otomatis_tanpa_mengetik_rumus`.

@@ -8,6 +8,7 @@ use App\Domain\Company\Tenancy\CurrentCompany;
 use App\Domain\Payroll\Actions\BuatKontrak;
 use App\Domain\Payroll\Models\Component;
 use App\Domain\Payroll\Models\Employee;
+use App\Domain\Payroll\Models\Item;
 use App\Domain\Payroll\Models\Master;
 use App\Domain\Payroll\Models\MasterVersion;
 use App\Domain\Payroll\Models\ReferenceTable;
@@ -84,6 +85,36 @@ final class MasterReferensiTest extends TestCase
         $this->actingAs($this->hr)->get("/pay/master/versi/{$v->id}?uji_karyawan={$rizky->id}&uji_periode=2026-11")
             ->assertOk()->assertSee('Take home pay')->assertSee('Rp 5.700.000');
         $this->assertSame(['created', 'published', 'copied'], DB::table('audit_logs')->whereIn('entity_type', [Master::class, MasterVersion::class])->orderBy('id')->pluck('action')->all());
+    }
+
+    public function test_pilihan_pph21_ter_otomatis_tanpa_mengetik_rumus(): void
+    {
+        // tabel TER nasional dari file UJI berisi angka FIKTIF (file resmi tidak disentuh)
+        $file = tempnam(sys_get_temp_dir(), 'ter').'.csv';
+        file_put_contents($file, "tabel,kunci,batas_bawah,batas_atas,hasil_angka,hasil_teks\nkategori_ptkp,TK/0,,,,A\nkategori_ptkp,K/0,,,,A\nter_bulanan,A,0,,0.01,\n");
+        (new \Database\Seeders\TerPph21Seeder)->pasang($file);
+        @unlink($file);
+        $pph = Component::create(['code' => 'pph21', 'name' => 'PPh21', 'type' => 'deduction', 'is_taxable' => false, 'is_contractable' => false, 'default_amount' => '0']);
+
+        $this->actingAs($this->hr)->post('/pay/master', ['code' => 'pajak', 'name' => 'Dengan PPh21'])->assertSessionHasNoErrors();
+        $v = $this->versi();
+        $isi = fn (array $data) => $this->actingAs($this->hr)->post("/pay/master/versi/{$v->id}/item", $data);
+        $isi(['component_id' => Component::where('code', 'gaji_pokok')->value('id'), 'code' => 'gaji_pokok', 'calc_type' => 'contract', 'item_role' => 'normal', 'sort_order' => 1])->assertSessionHasNoErrors();
+        // rumus & peran yang terkirim diabaikan: sistem mengisi rumus TER dan peran pph21
+        $isi(['component_id' => $pph->id, 'code' => 'pph21', 'calc_type' => 'pph21_ter', 'formula' => '', 'item_role' => 'normal', 'sort_order' => 99])->assertSessionHasNoErrors();
+
+        $item = $v->items()->where('code', 'pph21')->firstOrFail();
+        $this->assertSame(['formula', Item::RUMUS_PPH21_TER, 'pph21'], [$item->calc_type, $item->formula, $item->item_role]);
+        $this->actingAs($this->hr)->get("/pay/master/versi/{$v->id}")->assertOk()->assertSee('PPh21 TER otomatis');
+        $this->actingAs($this->hr)->get("/pay/master/versi/{$v->id}?form=item&ubah={$item->id}")->assertOk()
+            ->assertSee('<option value="pph21_ter" selected>', false);
+        $this->actingAs($this->hr)->post("/pay/master/versi/{$v->id}/terbitkan")->assertSessionHasNoErrors();
+
+        // hasil: 1% x bruto kena pajak (angka uji)
+        $rizky = Employee::where('nama', 'Rizky Maulana')->firstOrFail();
+        app(BuatKontrak::class)->handle(['employee_id' => $rizky->id, 'contract_name' => 'PKWT', 'start_date' => '2026-01-01'],
+            [Component::where('code', 'gaji_pokok')->value('id') => '5700000']);
+        $this->actingAs($this->hr)->get("/pay/master/versi/{$v->id}?uji_karyawan={$rizky->id}&uji_periode=2026-11")->assertOk()->assertSee('Rp 57.000');
     }
 
     public function test_tabel_referensi_perusahaan_dan_nasional(): void

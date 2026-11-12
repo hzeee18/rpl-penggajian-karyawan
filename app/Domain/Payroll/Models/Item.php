@@ -21,6 +21,21 @@ final class Item extends Model
 
     protected $fillable = ['master_version_id', 'component_id', 'code', 'name', 'type', 'is_taxable', 'calc_type', 'formula', 'item_role', 'sort_order'];
 
+    /**
+     * Pilihan cara hitung "PPh21 TER otomatis" di form master (AUDIT.md §31): metode TER bulanan
+     * PP 58/2023 (aturan NASIONAL, bukan aturan perusahaan). Angka tarif tetap dari tabel referensi
+     * nasional `ter_bulanan` & `kategori_ptkp` (diisi Super Admin). Disimpan sebagai rumus biasa di versi
+     * master, sehingga tercatat, bisa diaudit, dan versi lama tidak berubah bila pilihan ini kelak diubah.
+     */
+    public const CARA_PPH21_TER = 'pph21_ter';
+
+    public const RUMUS_PPH21_TER = "ROUND(gross_taxable * LOOKUP('ter_bulanan', LOOKUP_TEXT('kategori_ptkp', ptkp_status), gross_taxable))";
+
+    public function isPph21TerOtomatis(): bool
+    {
+        return $this->item_role === 'pph21' && $this->calc_type === 'formula' && $this->formula === self::RUMUS_PPH21_TER;
+    }
+
     protected function casts(): array
     {
         return ['is_taxable' => 'boolean', 'sort_order' => 'integer'];

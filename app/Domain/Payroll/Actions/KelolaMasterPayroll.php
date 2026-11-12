@@ -72,6 +72,10 @@ final class KelolaMasterPayroll
         if ($data['calc_type'] === 'contract') {
             $data['formula'] = null;
         }
+        if ($data['calc_type'] === Item::CARA_PPH21_TER) {
+            // pilihan siap pakai: rumus TER nasional, selalu dihitung terakhir sebagai pph21
+            $data = ['calc_type' => 'formula', 'formula' => Item::RUMUS_PPH21_TER, 'item_role' => 'pph21'] + $data;
+        }
         $this->cekSintaks($data['formula'] ?? null, 'formula');
 
         return $this->simpan($versi, Item::class, $data, $ubah);

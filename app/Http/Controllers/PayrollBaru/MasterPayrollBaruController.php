@@ -93,7 +93,7 @@ final class MasterPayrollBaruController extends Controller
                 'component_id' => ['required', TenantRule::exists('pay_components'),
                     Rule::unique('pay_items', 'component_id')->where('master_version_id', $versi->id)->ignore($ubahId)],
                 'code' => $this->aturanKode('pay_items', $versi, $ubahId),
-                'calc_type' => 'required|in:contract,formula',
+                'calc_type' => 'required|in:contract,formula,'.\App\Domain\Payroll\Models\Item::CARA_PPH21_TER,
                 'formula' => 'nullable|required_if:calc_type,formula|max:2000',
                 'item_role' => 'required|in:normal,pph21',
                 'sort_order' => 'required|integer',
