@@ -99,6 +99,36 @@ final class SlipTest extends TestCase
         $this->actingAs($this->hr)->get('/pay/slip')->assertOk()->assertSee('Nadia Putri')->assertSee('Rizky Maulana');
     }
 
+    public function test_manager_hanya_melihat_slip_sendiri_termasuk_manager_hr(): void
+    {
+        $this->payrollDisetujui();
+        $slipRizky = Payslip::where('employee_id', User::where('username', 'rizky')->value('karyawan_id'))->firstOrFail();
+
+        // Manager HR bertindak sebagai HR untuk menu lain, tetapi slip hanya miliknya sendiri
+        $this->actingAs($this->managerHr)->get('/pay/slip')->assertOk()->assertDontSee('Rizky Maulana')->assertDontSee('Nadia Putri');
+        $this->actingAs($this->managerHr)->get("/pay/slip/{$slipRizky->id}")->assertForbidden();
+        $this->actingAs(User::where('username', 'manager.it')->firstOrFail())->get("/pay/slip/{$slipRizky->id}")->assertForbidden();
+    }
+
+    public function test_dashboard_manager_dari_payroll_baru_dan_approval_lama_dialihkan(): void
+    {
+        $master = $this->siapkanPayroll();
+        $this->actingAs($this->hr)->post('/pay/run', ['title' => 'Payroll Menunggu Uji', 'periode' => '2026-11']);
+        $run = PayrollRun::latest('id')->firstOrFail();
+        $this->actingAs($this->hr)->post("/pay/run/{$run->id}/pratinjau", ['master_id' => $master->id, 'scope' => 'individual', 'pilihan' => Employee::where('nama', 'Rizky Maulana')->pluck('id')->all()]);
+        $this->actingAs($this->hr)->post("/pay/run/{$run->id}/generate")->assertSessionHasNoErrors();
+
+        $this->actingAs($this->managerHr)->get('/dashboard')->assertOk()
+            ->assertSee('Payroll Menunggu Persetujuan Anda')->assertSee('Payroll Menunggu Uji')
+            ->assertSee(route('pay.approval.show', $run->id))->assertDontSee(route('approval.index').'"', false);
+        $this->actingAs(User::where('username', 'manager.it')->firstOrFail())->get('/dashboard')->assertOk()
+            ->assertSee('Tidak ada payroll yang menunggu approval kamu.');
+
+        $this->actingAs($this->managerHr)->get('/approval')->assertRedirect(route('pay.approval.index'));
+        $sidebar = $this->actingAs(User::where('username', 'manager.it')->firstOrFail())->get('/pay/approval')->assertOk()->getContent();
+        $this->assertDoesNotMatchRegularExpression('#<a href="https?://[^/"]+/(approval|absensi|cuti|lembur)" class="nav-item-link#', $sidebar);
+    }
+
     public function test_slip_diambil_dari_snapshot_bukan_kontrak_terkini(): void
     {
         $this->payrollDisetujui();

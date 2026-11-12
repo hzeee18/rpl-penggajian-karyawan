@@ -150,7 +150,7 @@ final class ModulPayrollBaruTest extends TestCase
 
         $this->actingAs($this->user('hr'))->get('/dashboard')->assertOk()->assertSee('Kontrak Payroll Aktif')->assertDontSee('Kontrak Menunggu Approval')
             ->assertSee(route('pay.run.index'));
-        $this->actingAs($this->user('manager.it'))->get('/dashboard')->assertOk()->assertSee('Karyawan dengan kontrak payroll aktif');
+        $this->actingAs($this->user('manager.it'))->get('/dashboard')->assertOk()->assertSee('Lembur Tim Periode Ini')->assertSee('diinput HR, dihitung saat payroll');
         $this->actingAs($this->user('rizky'))->get('/dashboard')->assertOk();
         $this->actingAs($this->user('admin'))->get('/dashboard')->assertOk();
     }

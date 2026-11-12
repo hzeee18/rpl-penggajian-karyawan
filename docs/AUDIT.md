@@ -528,3 +528,14 @@ Permintaan pemilik: login staf, dashboard dan Absensi/Cuti/Lembur belum mengikut
   - Ringkasan dihitung `App\Domain\Payroll\KehadiranKaryawan` (data apa adanya; tidak ada aturan alpha/potongan/uang makan, itu urusan master payroll). Konsep lama "alfa" dan "sisa cuti tahunan" tidak ditampilkan karena tidak ada di modul baru.
 - Hak menu: `AlihkanKePayrollBaru::hakKaryawan()` memberi role Karyawan lihat `absensi`, dan menutup `cuti` & `lembur` lama (isinya sudah di halaman Absensi). Diterapkan di dev untuk DEFAULT dan MTS (sebelumnya: DEFAULT Karyawan lihat absensi/cuti/lembur; MTS Karyawan tidak punya ketiganya). Backup setelah perubahan: `penggajian_karyawan-setelah-hak-karyawan-absensi-20261112-131404.sql`.
 - Belum: tampilan Manager (rekap tim di `/absensi`, input lembur di `/lembur`) dan HR (`/absensi`, `/import`, `/pajak`, `/master-payroll`, `/approval`) masih modul lama; dibahas bersama permintaan penataan menu.
+
+## 33. Manager mengikuti payroll baru (2026-11-12)
+
+Permintaan pemilik (login Manager): Dashboard sesuai payroll baru; Approval cukup satu (Approval Payroll); Slip Gaji hanya slip milik manager yang login.
+
+- Dashboard Manager (`dashboard/manager-payroll-baru.blade.php`, bila `payroll_baru` aktif): payroll (`pay_runs`) berstatus menunggu dengan `approver_user_id` = user ini, kehadiran tim hari ini dan periode cut off, serta lembur tim dari tabel `pay_*`. Tidak ada nominal gaji.
+- `/approval` lama masuk `ModulPayroll::MENU_DIGANTIKAN` dan dialihkan ke `/pay/approval`; hak menu `approval` dicabut untuk semua role di perusahaan yang beralih.
+- `/pay/slip`: role Manager, termasuk Manager HR yang untuk menu lain bertindak sebagai HR, hanya melihat slip miliknya. Sebelumnya Manager HR melihat semua slip lewat hak `pay-run` milik HR.
+- `AlihkanKePayrollBaru::HAK_MENU_LAMA`: role Manager tidak lagi punya akses Absensi/Cuti/Lembur lama, yang datanya dari tabel lama. Menu Data Karyawan dan Profil **tetap** (bukan payroll); bisa ditutup bila pemilik menghendaki.
+- Diterapkan di dev untuk DEFAULT dan MTS. Backup sebelum perubahan: `penggajian_karyawan-sebelum-hak-manager-20261112-135019.sql`.
+- Catatan: Manager HR (`manager.hr`, `manager.mts`) tetap melihat menu HR karena aturan lama "Manager HR bertindak sebagai HR" (`User::bisa`). Tidak diubah di sini; masuk penataan menu HR.

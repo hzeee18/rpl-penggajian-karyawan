@@ -54,8 +54,9 @@ final class SlipPayrollController extends Controller
         return $slip;
     }
 
+    /** HR (hak lihat Generate Payroll) melihat semua slip; Manager (termasuk Manager HR) hanya slip miliknya. */
     private function lihatSemua(User $user): bool
     {
-        return $user->bisa('pay-run');
+        return ! $user->isRole(\App\Models\Role::MANAGER) && $user->bisa('pay-run');
     }
 }

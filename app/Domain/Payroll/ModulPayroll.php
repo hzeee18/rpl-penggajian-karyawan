@@ -24,6 +24,7 @@ final class ModulPayroll
         'slip' => 'pay.slip.index',
         'komponen' => 'pay.komponen.index',
         'pay-karyawan' => 'karyawan.index',
+        'approval' => 'pay.approval.index',
     ];
 
     /** Apakah perusahaan dalam konteks saat ini memakai modul payroll baru. */

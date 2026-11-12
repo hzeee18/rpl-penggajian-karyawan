@@ -42,7 +42,9 @@ class DashboardController extends Controller
         return match ($user->role->nama) {
             Role::ADMIN => view('dashboard.admin', $d + $this->admin()),
             Role::HR => view('dashboard.hr', $d + ($payrollBaru ? $this->hrPayrollBaru($this->hr($svc, $rentang)) : $this->hr($svc, $rentang))),
-            Role::MANAGER => view('dashboard.manager', $d + $this->manager($user, $svc, $master, $rentang, $payrollBaru)),
+            Role::MANAGER => $payrollBaru
+                ? view('dashboard.manager-payroll-baru', $this->managerPayrollBaru($user) + $d)
+                : view('dashboard.manager', $d + $this->manager($user, $svc, $master, $rentang, $payrollBaru)),
             default => $payrollBaru
                 ? view('dashboard.karyawan-payroll-baru', $this->karyawanPayrollBaru($user) + $d)
                 : view('dashboard.karyawan', $d + $this->karyawan($user, $svc, $master, $awal, $akhir, $payrollBaru)),
@@ -280,6 +282,57 @@ class DashboardController extends Controller
                 ['Masa Kerja', intdiv($masa, 12) . ' th ' . ($masa % 12) . ' bln', $k->tgl_masuk ? 'Sejak ' . tgl($k->tgl_masuk, 'j M Y') : '-'],
             ],
             'riwayat' => $riwayat,
+        ];
+    }
+
+    /**
+     * Dashboard manager bila perusahaan memakai payroll baru: approval payroll (pay_runs) yang menunggu user ini,
+     * kehadiran & lembur tim dari tabel pay_* periode cut off. Tanpa nominal gaji.
+     */
+    private function managerPayrollBaru(User $user): array
+    {
+        $ids = $user->karyawanIds(); // null = semua karyawan (Manager HR)
+        $tim = Karyawan::where('is_active', true)->when($ids !== null, fn ($q) => $q->whereIn('id', $ids))
+            ->when($user->karyawan_id, fn ($q, $id) => $q->where('id', '!=', $id))->pluck('id');
+        $dept = Departemen::dikelola($user->karyawan_id)->first();
+        $periode = now()->format('Y-m');
+        [$awal, $akhir] = \App\Domain\Payroll\KehadiranKaryawan::rentang($periode);
+        $r = [$awal->toDateString(), $akhir->toDateString()];
+        $hariIni = now()->toDateString();
+
+        $menunggu = \App\Domain\Payroll\Models\PayrollRun::with('creator.karyawan')->where('approver_user_id', $user->id)
+            ->where('status', \App\Domain\Payroll\Models\PayrollRun::PENDING)->orderByDesc('id')->get();
+
+        $lembur = \App\Domain\Payroll\Models\Overtime::with('employee')->whereIn('employee_id', $tim)->whereBetween('overtime_date', $r)->get()
+            ->groupBy('employee_id')->map(fn ($rows) => (object) [
+                'karyawan' => $rows->first()->employee,
+                'jam' => $rows->reduce(fn ($n, $o) => bcadd($n, (string) $o->duration_hours, 2), '0'),
+                'hari' => $rows->count(),
+            ])->sortByDesc(fn ($x) => (float) $x->jam)->values();
+        $jamLembur = $lembur->reduce(fn ($n, $x) => bcadd($n, $x->jam, 2), '0');
+
+        $hadirPeriode = \App\Domain\Payroll\Models\Attendance::whereIn('employee_id', $tim)->whereBetween('attendance_date', $r)->count();
+        $leavePeriode = \App\Domain\Payroll\Models\Leave::whereIn('employee_id', $tim)->whereBetween('leave_date', $r)->count();
+        $hadirHariIni = \App\Domain\Payroll\Models\Attendance::whereIn('employee_id', $tim)->where('attendance_date', $hariIni)->distinct()->count('employee_id');
+        $leaveHariIni = \App\Domain\Payroll\Models\Leave::with('leaveType')->whereIn('employee_id', $tim)->where('leave_date', $hariIni)->get()
+            ->countBy(fn ($l) => $l->leaveType?->name ?? 'Leave');
+        $hariIniBar = collect([['Hadir', $hadirHariIni, '#16a34a']])
+            ->concat($leaveHariIni->map(fn ($n, $t) => [$t, $n, '#0284c7'])->values())
+            ->push(['Belum ada catatan', max($tim->count() - $hadirHariIni - $leaveHariIni->sum(), 0), '#94a3b8'])->all();
+
+        return [
+            'dept' => $dept,
+            'awal' => $awal, 'akhir' => $akhir,
+            'stat' => [
+                ['Menunggu Persetujuan', $menunggu->count(), $menunggu->count() ? 'Payroll menunggu approval kamu' : 'Tidak ada payroll menunggu'],
+                ['Anggota Tim', $tim->count(), $hadirHariIni . ' hadir · ' . $leaveHariIni->sum() . ' leave hari ini'],
+                ['Lembur Periode Ini', \App\Domain\Payroll\KehadiranKaryawan::angka($jamLembur) . ' jam', $lembur->count() . ' orang lembur'],
+                ['Kehadiran Tim', $hadirPeriode . ' hari hadir', $leavePeriode . ' hari leave · ' . tgl($awal, 'j M') . ' – ' . tgl($akhir, 'j M')],
+            ],
+            'menunggu' => $menunggu->take(5),
+            'lembur' => $lembur,
+            'hariIniBar' => $hariIniBar,
+            'jumlahTim' => max($tim->count(), 1),
         ];
     }
 }

@@ -127,7 +127,7 @@ Route::middleware(['auth', 'aktif'])->group(function () {
     });
 
     // ===== Approval (Manager) =====
-    Route::middleware('akses:approval')->prefix('approval')->name('approval.')->group(function () {
+    Route::middleware(['modul-lama:approval', 'akses:approval'])->prefix('approval')->name('approval.')->group(function () {
         Route::get('/', [Controllers\ApprovalController::class, 'index'])->name('index');
         Route::get('/{approval}', [Controllers\ApprovalController::class, 'show'])->name('show');
         Route::post('/{approval}/setujui', [Controllers\ApprovalController::class, 'setujui'])->middleware('akses:approval,approve')->name('setujui');
