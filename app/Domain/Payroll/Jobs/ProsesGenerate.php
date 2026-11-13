@@ -75,7 +75,13 @@ final class ProsesGenerate implements ShouldQueue
                 }
 
                 if (! $run->employees()->exists()) {
-                    throw new \RuntimeException('Tidak ada karyawan yang bisa digenerate.');
+                    // bukan error sistem: simpan alasan per karyawan agar HR tahu kenapa, run tetap draft
+                    $run->forceFill([
+                        'skipped_employees' => array_values($skip), 'job_status' => 'failed', 'job_finished_at' => now(),
+                        'job_error' => 'Tidak ada karyawan yang bisa digenerate. Lihat daftar karyawan dilewati di bawah.',
+                    ])->save();
+
+                    return;
                 }
 
                 DB::transaction(function () use ($run, $skip, $versiReferensi, $audit) {
