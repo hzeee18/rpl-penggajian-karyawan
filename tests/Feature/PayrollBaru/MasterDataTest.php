@@ -125,6 +125,19 @@ final class MasterDataTest extends TestCase
         $this->from('/pay/cutoff')->put('/pay/cutoff', ['start_day' => 26, 'end_day' => 25])->assertSessionHasErrors('end_day');
     }
 
+    public function test_cut_off_yang_menyisakan_tanggal_kosong_ditolak(): void
+    {
+        $this->admin()->put('/pay/cutoff', ['start_day' => 1, 'end_day' => 31])->assertSessionHasNoErrors();
+        // 1 s/d 30 di bulan yang sama: tanggal 31 (Des, Jan, Mar, ...) tidak masuk periode mana pun
+        $this->from('/pay/cutoff')->put('/pay/cutoff', ['start_day' => 1, 'end_day' => 30])->assertSessionHasErrors('end_day');
+        // 5 s/d 31: tanggal 1-4 tidak terhitung
+        $this->from('/pay/cutoff')->put('/pay/cutoff', ['start_day' => 5, 'end_day' => 31])->assertSessionHasErrors('start_day');
+        // lintas bulan harus menyambung: 26 s/d 25 boleh, 26 s/d 20 (21-25 hilang) dan 20 s/d 25 (tumpang tindih) ditolak
+        $this->from('/pay/cutoff')->put('/pay/cutoff', ['start_day' => 26, 'end_day' => 20, 'start_in_previous_month' => 1])->assertSessionHasErrors('start_day');
+        $this->from('/pay/cutoff')->put('/pay/cutoff', ['start_day' => 20, 'end_day' => 25, 'start_in_previous_month' => 1])->assertSessionHasErrors('start_day');
+        $this->assertSame([1, 31], [(int) PeriodConfig::firstOrFail()->start_day, (int) PeriodConfig::firstOrFail()->end_day]);
+    }
+
     public function test_npwp_dan_rekening_terenkripsi_dan_tidak_masuk_log(): void
     {
         $rizky = Karyawan::where('nama', 'Rizky Maulana')->firstOrFail();

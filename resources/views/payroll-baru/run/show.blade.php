@@ -20,6 +20,9 @@
 
 @if ($errors->any())<div class="alert alert-danger">{{ implode(' ', $errors->all()) }}</div>@endif
 @if ($run->sedangDiproses())<div class="alert alert-info">Sedang diproses ({{ $run->job_type === 'generate' ? 'generate' : 'preview' }})… halaman memuat ulang otomatis.</div>@endif
+@if ($run->job_status === 'queued' && $run->updated_at?->lt(now()->subSeconds(30)))
+    <div class="alert alert-warning">Proses ini masih <b>antre</b> sejak {{ $run->updated_at->diffForHumans() }}. Biasanya karena worker antrean belum jalan: jalankan <code>composer run dev</code> (server + antrean) atau <code>php artisan queue:work</code> di terminal, lalu tunggu halaman memuat ulang.</div>
+@endif
 @if ($run->job_status === 'failed')<div class="alert alert-danger">Proses gagal: {{ $run->job_error }}</div>@endif
 @if ($run->status === 'pending_approval')<div class="alert alert-warning">Menunggu persetujuan {{ $run->approver?->namaTampil() ?? 'approver' }}. Data tidak bisa diubah.</div>@endif
 @if ($run->status === 'rejected')<div class="alert alert-danger">Ditolak: {{ $run->reject_reason }}. Buat payroll baru untuk periode ini.</div>@endif

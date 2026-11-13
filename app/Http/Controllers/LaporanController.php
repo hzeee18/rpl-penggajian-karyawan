@@ -104,6 +104,10 @@ class LaporanController extends Controller
     {
         $d = $this->data($request);
         abort_unless($d['payroll'], 404);
+        // dompdf butuh > 128 MB untuk tabel ratusan karyawan (fatal "Allowed memory size exhausted")
+        if ((int) ini_get('memory_limit') !== -1 && (int) ini_get('memory_limit') < 512) {
+            ini_set('memory_limit', '512M');
+        }
 
         return Pdf::loadView('laporan.pdf', $d)->setPaper('a4', 'landscape')
             ->download('laporan-payroll-' . $d['payroll']->periode . '.pdf');

@@ -192,6 +192,44 @@ final class AlurPayrollTest extends TestCase
         $this->assertSame('tidak punya kontrak aktif', collect($run2->skipped_employees)->firstWhere('employee_id', $joko)['alasan'] ?? null);
     }
 
+    public function test_approver_mengikuti_user_yang_generate_bukan_pembuat_run(): void
+    {
+        // pembuat run belum punya approver; HR lain (punya approver) yang menekan Generate
+        $run = $this->runBaru([$this->id('Rizky Maulana')]);
+        $this->hr->forceFill(['approver_user_id' => null])->save();
+        $hr2 = $this->hr->replicate()->fill(['username' => 'hr.dua']);
+        $hr2->forceFill(['karyawan_id' => null, 'approver_user_id' => $this->managerHr->id])->save();
+
+        $this->actingAs($hr2)->post("/pay/run/{$run->id}/generate")->assertSessionHasNoErrors();
+
+        $run->refresh();
+        $this->assertSame([PayrollRun::PENDING, $this->managerHr->id], [$run->status, (int) $run->approver_user_id],
+            'approver diambil dari user yang generate (yang dicek saat tombol ditekan), bukan dari pembuat run');
+        $this->actingAs($this->managerHr)->post("/pay/approval/{$run->id}/setujui")->assertSessionHasNoErrors();
+        $this->assertSame(PayrollRun::APPROVED, $run->fresh()->status);
+    }
+
+    public function test_cakupan_karyawan_tidak_bisa_menarik_karyawan_perusahaan_lain(): void
+    {
+        $b = $this->perusahaanLain();
+        $rizky = $this->id('Rizky Maulana');
+
+        // perorangan: id karyawan perusahaan B diselipkan ke pilihan -> diabaikan
+        $run = $this->runBaru([$rizky, (int) $b['karyawan']->id]);
+        $this->assertSame([$rizky], $run->employees()->pluck('employee_id')->map(fn ($v) => (int) $v)->all());
+
+        // per departemen: departemen milik B -> tidak ada karyawan yang ikut
+        $this->actingAs($this->hr)->post("/pay/run/{$run->id}/pratinjau", ['master_id' => $this->master->id, 'scope' => 'department', 'pilihan' => [(int) $b['departemen']->id]]);
+        $this->assertSame(0, $run->fresh()->employees()->count());
+        $this->assertFalse(RunEmployee::withoutGlobalScopes()->where('employee_id', $b['karyawan']->id)->exists());
+
+        // semua: hanya karyawan perusahaan sendiri
+        $this->actingAs($this->hr)->post("/pay/run/{$run->id}/pratinjau", ['master_id' => $this->master->id, 'scope' => 'all', 'pilihan' => []]);
+        $ids = $run->fresh()->employees()->pluck('employee_id')->all();
+        $this->assertNotEmpty($ids);
+        $this->assertNotContains((int) $b['karyawan']->id, array_map('intval', $ids));
+    }
+
     public function test_run_perusahaan_lain_tidak_bisa_dibuka(): void
     {
         $b = $this->perusahaanLain();

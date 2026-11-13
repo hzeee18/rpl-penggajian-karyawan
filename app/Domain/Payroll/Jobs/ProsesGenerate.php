@@ -95,7 +95,7 @@ final class ProsesGenerate implements ShouldQueue
 
                     $run->forceFill([
                         'status' => PayrollRun::PENDING, 'generated_at' => now(), 'skipped_employees' => array_values($skip),
-                        'approver_user_id' => $run->creator?->approver_user_id, 'job_status' => 'idle', 'job_finished_at' => now(),
+                        'approver_user_id' => $this->approverId($run), 'job_status' => 'idle', 'job_finished_at' => now(),
                     ])->save();
                     $audit->log('generated', $run, new: ['karyawan' => $run->employees()->count(), 'skip' => count($skip), 'oleh' => $this->userId]);
                 });
@@ -106,5 +106,17 @@ final class ProsesGenerate implements ShouldQueue
                 throw $e;
             }
         });
+    }
+
+    /**
+     * Approver = approver milik user yang menekan Generate (itu yang divalidasi di AlurPayroll::generate),
+     * jatuh ke approver pembuat run hanya bila user tidak diketahui. Sebelumnya selalu dari pembuat run,
+     * sehingga run bisa "menunggu persetujuan" tanpa approver dan tidak pernah bisa disetujui.
+     */
+    private function approverId(PayrollRun $run): ?int
+    {
+        $id = $this->userId === null ? null : \App\Models\User::whereKey($this->userId)->value('approver_user_id');
+
+        return $id ?? $run->creator?->approver_user_id;
     }
 }

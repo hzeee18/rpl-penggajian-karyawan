@@ -10,6 +10,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use Tests\TestCase;
 
 /**
@@ -19,6 +20,9 @@ final class DataQaSeederTest extends TestCase
 {
     use RefreshDatabase;
 
+    // Proses terpisah: koneksi SQLite :memory: dipakai ulang antar-test, dan data seeder dari test lain
+    // ($seed = true) tertinggal di luar transaksi. DataQaSeeder hanya mau jalan di database kosong.
+    #[RunInSeparateProcess]
     public function test_snapshot_terpasang_utuh_di_database_baru(): void
     {
         $file = database_path(DataQaSeeder::FILE);

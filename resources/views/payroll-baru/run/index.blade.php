@@ -30,11 +30,21 @@
 
     @if (request()->has('baru'))
         <x-panel judul="Payroll Baru" sub="Periode mengikuti konfigurasi cut off" :buka="true" :action="route('pay.run.store')">
-            <div class="mb-field"><label class="form-label">Judul</label><input name="title" value="{{ old('title', 'Payroll ' . now()->translatedFormat('F Y')) }}" class="form-control" required></div>
-            <div class="mb-field"><label class="form-label">Periode</label><input type="month" name="periode" value="{{ old('periode', now()->format('Y-m')) }}" class="form-control" required>
+            <div class="mb-field"><label class="form-label">Judul</label><input name="title" id="judulRun" value="{{ old('title', 'Payroll ' . now()->translatedFormat('F Y')) }}" class="form-control" required></div>
+            <div class="mb-field"><label class="form-label">Periode</label><input type="month" name="periode" id="periodeRun" value="{{ old('periode', now()->format('Y-m')) }}" class="form-control" required>
                 @error('periode')<div class="text-danger small">{{ $message }}</div>@enderror</div>
             <div class="tombol"><a href="{{ route('pay.run.index') }}" class="btn btn-light">Batal</a><button class="btn btn-primary">Buat</button></div>
         </x-panel>
+        <script>
+            // judul bawaan ikut bulan periode yang dipilih (sebelumnya selalu bulan berjalan, mis. "Payroll November 2026" untuk periode Desember)
+            (() => {
+                const j = document.getElementById('judulRun'), p = document.getElementById('periodeRun'); if (!j || !p) return;
+                const nama = v => { const [y, m] = v.split('-'); return v ? 'Payroll ' + new Date(y, m - 1, 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }) : ''; };
+                let otomatis = j.value === nama(p.value);
+                j.addEventListener('input', () => { otomatis = false; });
+                p.addEventListener('change', () => { if (otomatis && p.value) j.value = nama(p.value); });
+            })();
+        </script>
     @endif
 </div>
 @endsection

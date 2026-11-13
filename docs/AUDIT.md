@@ -664,3 +664,24 @@ Permintaan pemilik: PPh21 Desember (Pasal 17 setahun dikurangi PPh21 yang sudah 
 - Batasan: karyawan pindahan (bruto/PPh pemberi kerja sebelumnya) belum didukung (ditunda pemilik); tambahan tarif tanpa NPWP tidak dihitung; `tax_months` dihitung dari riwayat di perusahaan ini; payroll kedua di bulan Desember yang sama tidak membaca payroll Desember pertama (riwayat bulan berjalan tidak ikut).
 - Temuan (tidak diperbaiki): `AlurPayroll::setujui` tidak mengisi `ter_category` dan `ter_rate` di `pay_tax_monthly_histories`.
 - Temuan lingkungan: PHP default Laragon (8.5) tanpa `pdo_sqlite`; test SQLite dijalankan dengan PHP 8.4 Laragon. `DataQaSeederTest` gagal bila dijalankan dalam suite penuh (lulus sendiri), sudah terjadi sebelum perubahan ini.
+
+## 45. Pengecekan generate payroll (2026-11-12)
+
+Laporan pemilik: "kayaknya ada bug kalau generate payroll". Hasil penelusuran di database dev dan test:
+
+- **Run macet "antre"** (run Desember di dev): bukan bug kode. Pratinjau/generate memakai queue `database`, tetapi yang dijalankan hanya `php artisan serve`, jadi job tidak pernah diproses. Satu kali `queue:work --once` menyelesaikan pratinjau (3 karyawan, tanpa error). Ditambah peringatan di halaman run bila status `queued` lebih dari 30 detik, berisi perintah `composer run dev` / `php artisan queue:work`.
+- **Bug: approver payroll bisa kosong.** `AlurPayroll::generate` memeriksa approver milik user yang menekan Generate, tetapi `ProsesGenerate` menyimpan approver milik **pembuat** run. Bila HR lain yang generate dan pembuat run tidak punya approver, run menjadi "menunggu persetujuan" tanpa approver dan tidak pernah bisa disetujui. Diperbaiki: approver diambil dari user yang generate (fallback ke pembuat run). Test `AlurPayrollTest::test_approver_mengikuti_user_yang_generate_bukan_pembuat_run`.
+- **Bug kecil: judul bawaan run** selalu "Payroll {bulan berjalan}" walau periode yang dipilih bulan lain (run Desember berjudul "Payroll November 2026"). Judul bawaan sekarang ikut bulan periode selama belum diketik manual.
+- **Bug modul lama: Cetak PDF Laporan Payroll** kehabisan memori (128 MB) untuk ±120 karyawan (fatal dompdf, juga terlihat di log dev 2026-11-08) dan membuat `php artisan test` berhenti di `HalamanPerRoleTest@hr`. `LaporanController::pdf` menaikkan `memory_limit` ke 512M khusus aksi ini.
+- **Test tidak stabil:** `DataQaSeederTest` gagal bila jalan setelah test yang memakai `$seed = true` (koneksi SQLite `:memory:` dipakai ulang, data seeder tertinggal di luar transaksi). Test ini sekarang `#[RunInSeparateProcess]`.
+- **Catatan (belum diubah, keputusan pemilik):** cut off perusahaan dev `start_day 1`, `end_day 30`, bulan yang sama. Akibatnya tanggal 31 (Des, Jan, Mar, dst.) tidak masuk periode mana pun, jadi absensi/lembur tanggal itu tidak terhitung. Pertimbangkan validasi atau peringatan di menu Cut Off.
+
+Hasil: `php artisan test` 190/190 lulus (sebelumnya berhenti di tengah).
+
+## 46. Cut off tanpa celah dan audit scope (2026-11-12)
+
+- **Cut off:** konfigurasi yang membuat tanggal tidak masuk periode mana pun (atau masuk dua periode) sekarang ditolak di menu Cut Off. Satu bulan: mulai harus 1 dan selesai 31 (= akhir bulan, otomatis 28/29/30 di bulan pendek). Lintas bulan: mulai = selesai + 1 (mis. 26 s/d 25). Test `MasterDataTest::test_cut_off_yang_menyisakan_tanggal_kosong_ditolak`. Data dev perusahaan MTS diubah dari 1–30 ke 1–31; run draft Desember diperbarui ke 1–31 Des, judul "Payroll Desember 2026", lalu preview diulang (3 karyawan).
+- **Audit scope perusahaan:** semua `DB::table`, `join`, `selectRaw`, `withoutGlobalScope` di `app/` dicek ulang. `CompanyScope` memakai kolom berkualifikasi (aman untuk `join`); query mentah di job payroll hanya ke `pay_run_reference_versions` berdasarkan run yang sudah lolos scope; `DB::table` di dashboard Super Admin memang lintas perusahaan (agregat); `AlihkanKePayrollBaru` membatasi privilege ke role perusahaan itu; job membawa `company_id` (`runAs`); PDF slip di `payslips/{company_id}/...`. Tidak ada celah baru.
+- **Audit cakupan karyawan di run:** `PemilihKaryawan` memakai model ber-scope, jadi id karyawan/departemen perusahaan lain yang diselipkan ke pilihan diabaikan; ubah sel mencari karyawan lewat `$run->employees()`. Ditambah test `AlurPayrollTest::test_cakupan_karyawan_tidak_bisa_menarik_karyawan_perusahaan_lain` (perorangan, per departemen, semua).
+
+Hasil: `php artisan test` 192/192 lulus.
