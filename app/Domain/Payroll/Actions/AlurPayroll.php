@@ -116,7 +116,7 @@ final class AlurPayroll
                 $pph = $re->items->first(fn ($i) => in_array($i->code, $kodePph, true));
                 TaxMonthlyHistory::updateOrCreate(['employee_id' => $re->employee_id, 'run_id' => $run->id], [
                     'tax_year' => (int) $run->period_end->format('Y'), 'tax_month' => (int) $run->period_end->format('n'),
-                    'gross_taxable' => $re->gross_taxable, 'pph21' => $pph?->final_amount ?? '0.00',
+                    'gross_taxable' => $re->gross_taxable, 'tax_deduction' => $re->tax_deduction, 'pph21' => $pph?->final_amount ?? '0.00',
                 ]);
             }
             $this->audit->log('approved', $run, new: ['status' => PayrollRun::APPROVED]);

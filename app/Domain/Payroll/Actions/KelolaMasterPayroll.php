@@ -67,14 +67,18 @@ final class KelolaMasterPayroll
     {
         $this->pastikanDraft($versi);
         $komponen = Component::findOrFail($data['component_id']);
-        // nama/jenis/kena pajak DISALIN dari katalog saat item dibuat (versi lama tidak berubah bila katalog diubah)
-        $data += ['name' => $komponen->name, 'type' => $komponen->type, 'is_taxable' => $komponen->is_taxable];
+        // nama/jenis/kena pajak/pengurang pajak DISALIN dari katalog saat item dibuat (versi lama tidak berubah bila katalog diubah)
+        $data += ['name' => $komponen->name, 'type' => $komponen->type, 'is_taxable' => $komponen->is_taxable, 'is_tax_deductible' => $komponen->is_tax_deductible];
         if ($data['calc_type'] === 'contract') {
             $data['formula'] = null;
         }
         if ($data['calc_type'] === Item::CARA_PPH21_TER) {
             // pilihan siap pakai: rumus TER nasional, selalu dihitung terakhir sebagai pph21
             $data = ['calc_type' => 'formula', 'formula' => Item::RUMUS_PPH21_TER, 'item_role' => 'pph21'] + $data;
+        }
+        if ($data['calc_type'] === Item::CARA_PPH21_DESEMBER) {
+            // pilihan siap pakai: PPh21 masa Desember / resign (Pasal 17 setahun - PPh21 yang sudah dipotong), tabel nasional
+            $data = ['calc_type' => 'formula', 'formula' => Item::RUMUS_PPH21_DESEMBER, 'item_role' => 'pph21'] + $data;
         }
         $this->cekSintaks($data['formula'] ?? null, 'formula');
 

@@ -41,7 +41,7 @@ final class HitungRunKaryawan
                 'bank_account_no' => $employee->bank_account_no, // snapshot tetap terenkripsi (cast encrypted)
                 'variables_snapshot' => $hasil->variabel,
                 'total_earnings' => $hasil->totalPenambah, 'total_deductions' => $hasil->totalPengurang,
-                'gross_taxable' => $hasil->brutoKenaPajak, 'take_home_pay' => $hasil->thp,
+                'gross_taxable' => $hasil->brutoKenaPajak, 'tax_deduction' => $hasil->pengurangPajak, 'take_home_pay' => $hasil->thp,
             ])->save();
 
             $kode = array_column($hasil->item, 'code');

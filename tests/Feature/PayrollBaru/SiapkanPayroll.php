@@ -30,7 +30,8 @@ trait SiapkanPayroll
         $c = [];
         foreach ([['gaji_pokok', 'earning', true, true], ['uang_makan', 'earning', true, true], ['lembur', 'earning', true, false],
             ['bpjs_tk', 'deduction', false, true], ['pph21', 'deduction', false, false]] as [$code, $type, $tax, $kontrak]) {
-            $c[$code] = Component::create(['code' => $code, 'name' => ucwords(str_replace('_', ' ', $code)), 'type' => $type, 'is_taxable' => $tax, 'is_contractable' => $kontrak, 'default_amount' => '0']);
+            $c[$code] = Component::create(['code' => $code, 'name' => ucwords(str_replace('_', ' ', $code)), 'type' => $type, 'is_taxable' => $tax,
+                'is_tax_deductible' => $code === 'bpjs_tk', 'is_contractable' => $kontrak, 'default_amount' => '0']);
         }
         LeaveType::create(['code' => 'cuti', 'name' => 'Cuti']);
 

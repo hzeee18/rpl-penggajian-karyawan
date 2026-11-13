@@ -14,10 +14,10 @@ final class TaxMonthlyHistory extends Model
 
     protected $table = 'pay_tax_monthly_histories';
 
-    protected $fillable = ['employee_id', 'run_id', 'tax_year', 'tax_month', 'ter_category', 'ter_rate', 'gross_taxable', 'pph21'];
+    protected $fillable = ['employee_id', 'run_id', 'tax_year', 'tax_month', 'ter_category', 'ter_rate', 'gross_taxable', 'tax_deduction', 'pph21'];
 
     protected function casts(): array
     {
-        return ['gross_taxable' => 'decimal:2', 'pph21' => 'decimal:2', 'ter_rate' => 'decimal:6'];
+        return ['gross_taxable' => 'decimal:2', 'tax_deduction' => 'decimal:2', 'pph21' => 'decimal:2', 'ter_rate' => 'decimal:6'];
     }
 }

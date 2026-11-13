@@ -117,6 +117,7 @@ final class AlurPayrollTest extends TestCase
         $this->assertSame(PayrollRun::APPROVED, $run->fresh()->status);
         $this->assertSame(2, TaxMonthlyHistory::where('run_id', $run->id)->count());
         $this->assertSame([2026, 11], [TaxMonthlyHistory::first()->tax_year, TaxMonthlyHistory::first()->tax_month]);
+        $this->assertSame('250000.00', TaxMonthlyHistory::where('employee_id', $rizky)->value('tax_deduction'), 'iuran pengurang pajak (bpjs_tk) tercatat');
         $this->assertSame(['generated', 'approved'], DB::table('audit_logs')->where('entity_type', PayrollRun::class)->orderBy('id')->pluck('action')->all());
     }
 

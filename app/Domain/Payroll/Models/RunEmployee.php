@@ -23,7 +23,7 @@ final class RunEmployee extends Model
     protected $fillable = [
         'run_id', 'employee_id', 'contract_id', 'period_start', 'period_end', 'is_blocking',
         'employee_no', 'nik', 'full_name', 'department_name', 'position_name', 'ptkp_status', 'bank_name', 'bank_account_no',
-        'variables_snapshot', 'total_earnings', 'total_deductions', 'gross_taxable', 'take_home_pay',
+        'variables_snapshot', 'total_earnings', 'total_deductions', 'gross_taxable', 'tax_deduction', 'take_home_pay',
     ];
 
     protected $hidden = ['bank_account_no'];
@@ -33,7 +33,7 @@ final class RunEmployee extends Model
         return [
             'period_start' => Tanggal::class, 'period_end' => Tanggal::class, 'is_blocking' => 'boolean',
             'bank_account_no' => 'encrypted', 'variables_snapshot' => 'array',
-            'total_earnings' => 'decimal:2', 'total_deductions' => 'decimal:2', 'gross_taxable' => 'decimal:2', 'take_home_pay' => 'decimal:2',
+            'total_earnings' => 'decimal:2', 'total_deductions' => 'decimal:2', 'gross_taxable' => 'decimal:2', 'tax_deduction' => 'decimal:2', 'take_home_pay' => 'decimal:2',
         ];
     }
 

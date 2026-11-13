@@ -107,7 +107,8 @@ final class MasterReferensiTest extends TestCase
         $this->assertSame(['formula', Item::RUMUS_PPH21_TER, 'pph21'], [$item->calc_type, $item->formula, $item->item_role]);
         $this->actingAs($this->hr)->get("/pay/master/versi/{$v->id}")->assertOk()->assertSee('PPh21 TER otomatis');
         $this->actingAs($this->hr)->get("/pay/master/versi/{$v->id}?form=item&ubah={$item->id}")->assertOk()
-            ->assertSee('<option value="pph21_ter" selected>', false);
+            ->assertSee('<option value="pph21_ter" selected>', false)
+            ->assertSee('<option value="pph21_desember" >PPh21 Desember/resign otomatis', false);
         $this->actingAs($this->hr)->post("/pay/master/versi/{$v->id}/terbitkan")->assertSessionHasNoErrors();
 
         // hasil: 1% x bruto kena pajak (angka uji)

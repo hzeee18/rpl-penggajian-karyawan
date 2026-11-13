@@ -30,7 +30,7 @@
                     <thead><tr>@foreach ($kolom as $label)<th>{{ $label }}</th>@endforeach @if ($draft)<th></th>@endif</tr></thead>
                     <tbody>
                     @forelse ($daftar as $r)
-                        <tr>@foreach ($kolom as $k => $label)<td class="{{ in_array($k, ['formula', 'filter_expression', 'value_expression']) ? 'font-monospace small' : '' }}">{{ $k === 'type' ? ($r->type === 'earning' ? 'penambah' : 'pengurang') : ($k === 'calc_type' && $r instanceof \App\Domain\Payroll\Models\Item && $r->isPph21TerOtomatis() ? 'PPh21 TER otomatis' : $r->{$k}) }}</td>@endforeach
+                        <tr>@foreach ($kolom as $k => $label)<td class="{{ in_array($k, ['formula', 'filter_expression', 'value_expression']) ? 'font-monospace small' : '' }}">{{ $k === 'type' ? ($r->type === 'earning' ? 'penambah' : 'pengurang') : ($k === 'calc_type' && $r instanceof \App\Domain\Payroll\Models\Item && $r->caraOtomatis() !== null ? ($r->caraOtomatis() === \App\Domain\Payroll\Models\Item::CARA_PPH21_TER ? 'PPh21 TER otomatis' : 'PPh21 Desember/resign otomatis') : $r->{$k}) }}</td>@endforeach
                             @if ($draft)<td class="text-nowrap"><a href="{{ route('pay.master.versi', ['id' => $versi->id, 'form' => $jenis, 'ubah' => $r->id]) }}" class="btn btn-light btn-icon btn-sm"><i data-lucide="pencil"></i></a>
                                 <form method="post" action="{{ route('pay.master.isi.destroy', [$versi->id, $jenis, $r->id]) }}" class="d-inline">@csrf @method('delete')<button class="btn btn-outline-danger btn-icon btn-sm"><i data-lucide="trash-2"></i></button></form></td>@endif</tr>
                     @empty
@@ -81,14 +81,15 @@
                     <div class="mb-2"><label class="form-label small">Nilai per baris (base, kosong = 1)</label><input name="value_expression" value="{{ old('value_expression', $u2?->value_expression) }}" class="form-control font-monospace" placeholder="row.hours"></div>
                     <div class="mb-2"><label class="form-label small">Rumus (derived)</label><input name="formula" value="{{ old('formula', $u2?->formula) }}" class="form-control font-monospace"></div>
                 @else
-                    @php $cara = old('calc_type', $u2?->isPph21TerOtomatis() ? \App\Domain\Payroll\Models\Item::CARA_PPH21_TER : $u2?->calc_type); @endphp
+                    @php $cara = old('calc_type', $u2?->caraOtomatis() ?? $u2?->calc_type); @endphp
                     <div class="mb-2"><label class="form-label small">Cara hitung</label><select name="calc_type" class="form-select">
                         <option value="contract" @selected($cara === 'contract')>Nilai kontrak</option>
                         <option value="formula" @selected($cara === 'formula')>Rumus</option>
                         <option value="{{ \App\Domain\Payroll\Models\Item::CARA_PPH21_TER }}" @selected($cara === \App\Domain\Payroll\Models\Item::CARA_PPH21_TER)>PPh21 TER otomatis (tabel nasional)</option>
+                        <option value="{{ \App\Domain\Payroll\Models\Item::CARA_PPH21_DESEMBER }}" @selected($cara === \App\Domain\Payroll\Models\Item::CARA_PPH21_DESEMBER)>PPh21 Desember/resign otomatis (Pasal 17 setahun, tabel nasional)</option>
                     </select>
-                        <div class="form-text">PPh21 TER otomatis: rumus dan peran pph21 diisi sistem, kolom Rumus/Peran diabaikan.</div></div>
-                    <div class="mb-2"><label class="form-label small">Rumus</label><input name="formula" value="{{ old('formula', $u2?->isPph21TerOtomatis() ? '' : $u2?->formula) }}" class="form-control font-monospace" placeholder="CONTRACT('uang_makan') / pembagi * (hadir + cuti)"></div>
+                        <div class="form-text">PPh21 TER / Desember otomatis: rumus dan peran pph21 diisi sistem, kolom Rumus/Peran diabaikan. Desember/resign: pajak Pasal 17 setahun dikurangi PPh21 yang sudah dipotong (payroll yang sudah disetujui).</div></div>
+                    <div class="mb-2"><label class="form-label small">Rumus</label><input name="formula" value="{{ old('formula', $u2?->caraOtomatis() !== null ? '' : $u2?->formula) }}" class="form-control font-monospace" placeholder="CONTRACT('uang_makan') / pembagi * (hadir + cuti)"></div>
                     <div class="mb-2"><label class="form-label small">Peran</label><select name="item_role" class="form-select"><option value="normal">normal</option><option value="pph21" @selected(old('item_role', $u2?->item_role) === 'pph21')>pph21 (dihitung paling akhir)</option></select></div>
                 @endif
                 @if ($form !== 'param')<div class="mb-2"><label class="form-label small">Urutan</label><input type="number" name="sort_order" value="{{ old('sort_order', $u2?->sort_order ?? 10) }}" class="form-control" required></div>@endif

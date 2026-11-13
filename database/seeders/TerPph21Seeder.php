@@ -34,33 +34,43 @@ final class TerPph21Seeder extends Seeder
     /** Pasang tabel nasional dari $file (null = file resmi). Kembalikan true bila tabel tersedia. */
     public function pasang(?string $file = null): bool
     {
-        if (ReferenceTable::whereNull('company_id')->whereIn('code', array_keys(self::TABEL))->count() === count(self::TABEL)) {
+        return self::pasangCsv($file ?? database_path(self::FILE), self::FILE, self::TABEL, 'seeder: tabel referensi nasional TER/PTKP');
+    }
+
+    /**
+     * Pasang tabel referensi NASIONAL dari file CSV (format: tabel,kunci,batas_bawah,batas_atas,hasil_angka,hasil_teks).
+     * Idempoten: tabel yang sudah ada dilewati. Kembalikan true bila semua tabel tersedia, false bila file belum ada.
+     *
+     * @param  string  $sumber  nama file untuk keterangan tabel & pesan error
+     * @param  array<string, string>  $tabel  kode => nama
+     */
+    public static function pasangCsv(string $file, string $sumber, array $tabel, string $alasan): bool
+    {
+        if (ReferenceTable::whereNull('company_id')->whereIn('code', array_keys($tabel))->count() === count($tabel)) {
             return true;
         }
-        $file ??= database_path(self::FILE);
         if (! is_file($file)) {
             return false;
         }
 
-        // format: tabel,kunci,batas_bawah,batas_atas,hasil_angka,hasil_teks
         $baris = array_map('str_getcsv', array_filter(array_map('trim', file($file) ?: [])));
         $header = array_map('strtolower', array_shift($baris) ?? []);
         if ($header !== ['tabel', 'kunci', 'batas_bawah', 'batas_atas', 'hasil_angka', 'hasil_teks']) {
-            throw new RuntimeException('Header '.self::FILE.' harus: tabel,kunci,batas_bawah,batas_atas,hasil_angka,hasil_teks');
+            throw new RuntimeException('Header '.$sumber.' harus: tabel,kunci,batas_bawah,batas_atas,hasil_angka,hasil_teks');
         }
 
         // lintas perusahaan: tabel nasional (company_id NULL) dipakai semua perusahaan
-        app(CurrentCompany::class)->lintasPerusahaan('seeder: tabel referensi nasional TER/PTKP', function () use ($baris) {
-            foreach (self::TABEL as $kode => $nama) {
+        app(CurrentCompany::class)->lintasPerusahaan($alasan, function () use ($baris, $tabel, $sumber) {
+            foreach ($tabel as $kode => $nama) {
                 if (ReferenceTable::whereNull('company_id')->where('code', $kode)->exists()) {
                     continue;
                 }
                 $isi = array_values(array_filter($baris, fn ($b) => ($b[0] ?? '') === $kode));
                 if ($isi === []) {
-                    throw new RuntimeException("Tidak ada baris tabel {$kode} di ".self::FILE);
+                    throw new RuntimeException("Tidak ada baris tabel {$kode} di ".$sumber);
                 }
-                $tabel = ReferenceTable::create(['company_id' => null, 'code' => $kode, 'name' => $nama, 'description' => 'Sumber: '.self::FILE]);
-                $versi = ReferenceTableVersion::create(['company_id' => null, 'reference_table_id' => $tabel->id, 'version_no' => 1, 'status' => 'published', 'published_at' => now()]);
+                $ref = ReferenceTable::create(['company_id' => null, 'code' => $kode, 'name' => $nama, 'description' => 'Sumber: '.$sumber]);
+                $versi = ReferenceTableVersion::create(['company_id' => null, 'reference_table_id' => $ref->id, 'version_no' => 1, 'status' => 'published', 'published_at' => now()]);
                 foreach ($isi as $i => [, $kunci, $dari, $sampai, $angka, $teks]) {
                     $versi->rows()->create(['company_id' => null, 'key_value' => $kunci ?: null, 'range_from' => $dari !== '' ? $dari : null,
                         'range_to' => $sampai !== '' ? $sampai : null, 'result_number' => $angka !== '' ? $angka : null, 'result_text' => $teks !== '' ? $teks : null, 'sort_order' => $i]);

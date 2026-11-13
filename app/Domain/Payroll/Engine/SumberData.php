@@ -10,6 +10,7 @@ use App\Domain\Payroll\Models\Employee;
 use App\Domain\Payroll\Models\Holiday;
 use App\Domain\Payroll\Models\Leave;
 use App\Domain\Payroll\Models\Overtime;
+use App\Domain\Payroll\Models\TaxMonthlyHistory;
 use Carbon\CarbonImmutable;
 
 /**
@@ -26,6 +27,7 @@ final class SumberData
         'holidays' => ['date' => 'tanggal libur', 'weekday' => '1-7'],
         'employees' => ['join_date' => 'tanggal masuk', 'resign_date' => 'tanggal resign', 'ptkp' => 'status PTKP', 'has_npwp' => 'punya NPWP', 'department_code' => 'kode departemen', 'position_code' => 'kode jabatan'],
         'contracts' => ['start_date' => 'mulai kontrak', 'end_date' => 'akhir kontrak', 'name' => 'nama kontrak'],
+        'tax_histories' => ['tax_month' => 'bulan pajak (1-12)', 'gross_taxable' => 'bruto kena pajak bulan itu', 'tax_deduction' => 'iuran pengurang pajak bulan itu', 'pph21' => 'PPh21 dipotong bulan itu'],
     ];
 
     /** @var array<string, true>|null */
@@ -72,6 +74,11 @@ final class SumberData
                 'start_date' => $this->contract->start_date->toDateString(), 'end_date' => $this->contract->end_date?->toDateString() ?? '',
                 'name' => $this->contract->contract_name,
             ]],
+            // riwayat pajak payroll yang sudah disetujui, tahun pajak periode ini, bulan SEBELUM bulan akhir periode
+            // (bahan PPh21 masa Desember / resign: akumulasi bruto dan PPh21 yang sudah dipotong)
+            'tax_histories' => TaxMonthlyHistory::where('employee_id', $emp)->where('tax_year', (int) $this->selesai->format('Y'))
+                ->where('tax_month', '<', (int) $this->selesai->format('n'))->orderBy('tax_month')->orderBy('id')->get()
+                ->map(fn ($h) => ['tax_month' => (int) $h->tax_month, 'gross_taxable' => (string) $h->gross_taxable, 'tax_deduction' => (string) $h->tax_deduction, 'pph21' => (string) $h->pph21])->all(),
             default => throw new RumusException("Sumber data tidak dikenal: {$sumber}"),
         };
     }

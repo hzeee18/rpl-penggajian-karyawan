@@ -27,8 +27,15 @@ final class Kalkulator
         'workdays' => 'hari kerja Senin-Jumat periode dikurangi libur',
     ];
 
-    /** Hanya tersedia di rumus item pph21. */
-    public const BAWAAN_PPH21 = ['gross_taxable' => 'jumlah nilai akhir komponen penambah kena pajak'];
+    /** Hanya tersedia di rumus item pph21. ytd_* = bulan sebelumnya di tahun pajak yang sama (payroll yang sudah disetujui). */
+    public const BAWAAN_PPH21 = [
+        'gross_taxable' => 'jumlah nilai akhir komponen penambah kena pajak',
+        'tax_deduction' => 'jumlah nilai akhir komponen pengurang pajak (iuran JHT/JP/pensiun karyawan)',
+        'ytd_gross_taxable' => 'bruto kena pajak bulan-bulan sebelumnya tahun ini',
+        'ytd_tax_deduction' => 'iuran pengurang pajak bulan-bulan sebelumnya tahun ini',
+        'ytd_pph21' => 'PPh21 yang sudah dipotong bulan-bulan sebelumnya tahun ini',
+        'tax_months' => 'jumlah bulan pajak tahun ini (bulan sebelumnya yang tercatat + bulan ini)',
+    ];
 
     public function __construct(private readonly MasterVersion $versi)
     {
@@ -75,10 +82,14 @@ final class Kalkulator
         $items = $this->versi->items->sortBy(fn ($i) => [$i->item_role === 'pph21' ? 1 : 0, $i->sort_order, $i->id])->values();
         $hasilItem = [];
         $bruto = '0';
+        $iuran = '0';
         foreach ($items as $item) {
             if ($item->item_role === 'pph21') {
-                $k->set('gross_taxable', Nilai::angka($bruto));
-                $snapshot['gross_taxable'] = $bruto;
+                $pajak = ['gross_taxable' => $bruto, 'tax_deduction' => $iuran] + $this->riwayatPajak($sumber);
+                foreach ($pajak as $nama => $nilai) {
+                    $k->set($nama, Nilai::angka($nilai));
+                    $snapshot[$nama] = $nilai;
+                }
             }
             try {
                 $hitung = $item->calc_type === 'contract' ? $k->kontrak($item->component->code) : $e->angka((string) $item->formula);
@@ -92,6 +103,9 @@ final class Kalkulator
 
             if ($item->type === 'earning' && $item->is_taxable) {
                 $bruto = Desimal::tambah($bruto, $akhir);
+            }
+            if ($item->type === 'deduction' && $item->is_tax_deductible && $item->item_role !== 'pph21') {
+                $iuran = Desimal::tambah($iuran, $akhir);
             }
             $hasilItem[] = [
                 'item_id' => (int) $item->id, 'component_id' => (int) $item->component_id, 'code' => $item->code, 'name' => $item->name,
@@ -108,8 +122,23 @@ final class Kalkulator
 
         return new HasilHitung(
             $snapshot, $hasilItem, Desimal::uang($penambah), Desimal::uang($pengurang), Desimal::uang($bruto),
-            Desimal::uang(Desimal::kurang($penambah, $pengurang)), $k->versiDipakai(),
+            Desimal::uang(Desimal::kurang($penambah, $pengurang)), $k->versiDipakai(), Desimal::uang($iuran),
         );
+    }
+
+    /** @return array{ytd_gross_taxable: string, ytd_tax_deduction: string, ytd_pph21: string, tax_months: string} */
+    private function riwayatPajak(SumberData $sumber): array
+    {
+        $hasil = ['ytd_gross_taxable' => '0', 'ytd_tax_deduction' => '0', 'ytd_pph21' => '0'];
+        $bulan = [];
+        foreach ($sumber->baris('tax_histories') as $b) {
+            $hasil['ytd_gross_taxable'] = Desimal::tambah($hasil['ytd_gross_taxable'], $b['gross_taxable']);
+            $hasil['ytd_tax_deduction'] = Desimal::tambah($hasil['ytd_tax_deduction'], $b['tax_deduction']);
+            $hasil['ytd_pph21'] = Desimal::tambah($hasil['ytd_pph21'], $b['pph21']);
+            $bulan[$b['tax_month']] = true;
+        }
+
+        return $hasil + ['tax_months' => (string) (count($bulan) + 1)];
     }
 
     private function base(Variable $v, SumberData $sumber, KonteksKaryawan $k, Evaluator $e): Nilai

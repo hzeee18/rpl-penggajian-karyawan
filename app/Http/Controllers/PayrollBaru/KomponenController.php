@@ -22,6 +22,7 @@ final class KomponenController extends MasterSederhanaController
                 ['name' => 'type', 'label' => 'Jenis', 'type' => 'select', 'opsi' => ['earning' => 'Penambah', 'deduction' => 'Pengurang']],
                 ['name' => 'default_amount', 'label' => 'Nilai bawaan (Rp)', 'type' => 'number'],
                 ['name' => 'is_taxable', 'label' => 'Kena pajak (masuk bruto PPh21)', 'type' => 'checkbox'],
+                ['name' => 'is_tax_deductible', 'label' => 'Pengurang pajak (iuran JHT/JP/pensiun yang dibayar karyawan)', 'type' => 'checkbox'],
                 ['name' => 'is_contractable', 'label' => 'Bisa dimasukkan ke kontrak', 'type' => 'checkbox'],
                 ['name' => 'is_active', 'label' => 'Aktif', 'type' => 'checkbox'],
             ],
@@ -36,6 +37,7 @@ final class KomponenController extends MasterSederhanaController
             'type' => 'required|in:earning,deduction',
             'default_amount' => 'required|decimal:0,2|min:0|max:9999999999999.99',
             'is_taxable' => 'nullable|boolean',
+            'is_tax_deductible' => 'nullable|boolean',
             'is_contractable' => 'nullable|boolean',
             'is_active' => 'nullable|boolean',
         ];

@@ -68,6 +68,7 @@ Artisan::command('payroll:isi-data {kode : kode perusahaan yang sudah dibuat} {-
         return 1;
     }
     (new \Database\Seeders\TerPph21Seeder)->pasang(); // tabel TER nasional (bila file tersedia), idempoten
+    (new \Database\Seeders\Pph21TahunanSeeder)->pasang(); // tabel PPh21 Desember/resign nasional (bila file tersedia), idempoten
     \Database\Seeders\DataPerusahaanSeeder::$kode = $kode;
     \Database\Seeders\DataPerusahaanSeeder::$jumlah = (int) $this->option('karyawan');
     $this->call('db:seed', ['--class' => \Database\Seeders\DataPerusahaanSeeder::class, '--force' => true]);
