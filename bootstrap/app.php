@@ -16,9 +16,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(prepend: [\App\Domain\Company\Tenancy\TenantRequestContext::class]);
         $middleware->alias([
             'akses' => \App\Http\Middleware\CekAkses::class,
+            'penyetuju-payroll' => \App\Http\Middleware\AksesApprovalPayroll::class,
             'aktif' => \App\Http\Middleware\AkunAktif::class,
             'super-admin' => \App\Domain\Company\Tenancy\HanyaSuperAdmin::class,
-            'modul-lama' => \App\Http\Middleware\AlihkanModulLama::class,
             'perlu-perusahaan' => \App\Http\Middleware\PerluPerusahaan::class,
         ]);
         $middleware->redirectGuestsTo('/login');

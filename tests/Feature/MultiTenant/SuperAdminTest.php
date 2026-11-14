@@ -60,7 +60,7 @@ final class SuperAdminTest extends TestCase
         $html = $this->actingAs($super)->get('/perusahaan')->assertOk()->assertDontSee('>Pilih</button>', false)->getContent();
         preg_match_all('#<a href="https?://[^/"]+/([^"]*)" class="nav-item-link#', $html, $m);
         $this->assertEqualsCanonicalizing(['dashboard', 'perusahaan'], array_values(array_unique($m[1])));
-        foreach (['/users', '/roles', '/menus', '/karyawan', '/departemen', '/pay/jabatan', '/pay/referensi', '/pajak'] as $url) {
+        foreach (['/users', '/roles', '/menus', '/karyawan', '/departemen', '/pay/jabatan', '/pay/referensi'] as $url) {
             $this->actingAs($super)->withSession([\App\Domain\Company\Tenancy\CurrentCompany::SESSION_KEY => (int) $default->id])->get($url)->assertForbidden();
         }
     }
@@ -154,10 +154,7 @@ final class SuperAdminTest extends TestCase
         $hr = User::where('username', 'hr')->firstOrFail();
         $admin = User::where('username', 'admin')->firstOrFail();
 
-        $this->assertFalse($super->bisa('pajak'), 'Super Admin hanya Dashboard & Perusahaan (AUDIT.md §40)');
-        $this->assertTrue($hr->bisa('pajak'));
-        $this->assertFalse($hr->bisa('pajak', 'update'), 'tabel TER nasional hanya diubah Super Admin');
-        $this->actingAs($hr)->put('/pajak/tarif/'.DB::table('tarif_ter')->value('id'), [])->assertForbidden();
+        $this->assertFalse($super->bisa('pay-referensi'), 'Super Admin hanya Dashboard & Perusahaan (AUDIT.md §40)');
 
         $this->actingAs($admin)->get('/perusahaan')->assertForbidden();
     }
@@ -204,5 +201,54 @@ final class SuperAdminTest extends TestCase
 
         $this->assertTrue((bool) DB::table('users')->where('id', $super->id)->value('is_locked'));
         $this->assertSame($sebelum, DB::table('notifikasi')->count());
+    }
+
+    /** AUDIT.md §76: soft delete = nonaktifkan (akun tidak bisa login); hard delete = hapus permanen semua data, ketik kode. */
+    public function test_nonaktifkan_dan_hapus_permanen_perusahaan(): void
+    {
+        $super = $this->buatSuperAdmin();
+        ['company' => $isi, 'users' => $users, 'karyawan' => $karyawan] = $this->perusahaanLain('ISI');
+        $this->actingAs($super)->get('/perusahaan')->assertOk()->assertSee('Nonaktifkan (data tetap tersimpan)')->assertSee('Hapus permanen beserta semua data');
+        $this->actingAs($super)->get("/perusahaan?hapus={$isi->id}")->assertOk()->assertSee('Ketik <b>ISI</b> untuk konfirmasi', false);
+
+        // soft delete
+        $this->actingAs($super)->post("/perusahaan/{$isi->id}/status", ['aktif' => 0])->assertRedirect();
+        $this->assertFalse($isi->fresh()->is_active);
+        auth()->logout();
+        $this->post('/login', ['username' => 'hr.isi', 'password' => 'password'])->assertSessionHasErrors('username');
+        $this->assertGuest();
+        $this->actingAs($users['HR'])->get('/dashboard')->assertRedirect(route('login')); // sesi berjalan ikut dikeluarkan
+        $this->actingAs($super)->post("/perusahaan/{$isi->id}/status", ['aktif' => 1]);
+        $this->assertTrue($isi->fresh()->is_active);
+
+        // hard delete: kode salah ditolak, kode benar menghapus semua data perusahaan itu saja
+        $this->actingAs($super)->delete("/perusahaan/{$isi->id}", ['konfirmasi_kode' => 'SALAH'])->assertSessionHasErrors('konfirmasi_kode');
+        $this->assertNotNull(Company::find($isi->id));
+        $lainSebelum = DB::table('karyawan')->where('company_id', '!=', $isi->id)->count();
+        $this->actingAs($super)->delete("/perusahaan/{$isi->id}", ['konfirmasi_kode' => 'ISI'])->assertRedirect(route('perusahaan.index'));
+        $this->assertNull(Company::find($isi->id));
+        foreach (['users', 'roles', 'privileges', 'karyawan', 'departemen'] as $t) {
+            $this->assertSame(0, DB::table($t)->where('company_id', $isi->id)->count(), $t);
+        }
+        $this->assertSame($lainSebelum, DB::table('karyawan')->count(), 'data perusahaan lain utuh');
+
+        $default = Company::where('code', Company::DEFAULT_CODE)->firstOrFail();
+        $this->actingAs($super)->delete("/perusahaan/{$default->id}", ['konfirmasi_kode' => 'DEFAULT'])->assertStatus(422);
+    }
+
+    /** AUDIT.md §78: DEFAULT dikosongkan jadi templat murni: role tetap (disalin ke perusahaan baru), tidak tampil di daftar. */
+    public function test_default_dikosongkan_jadi_templat_dan_disembunyikan(): void
+    {
+        $super = $this->buatSuperAdmin();
+        $default = Company::where('code', Company::DEFAULT_CODE)->firstOrFail();
+        app(\App\Domain\Company\Actions\HapusPerusahaan::class)->kosongkanTemplat();
+        $this->assertSame(0, DB::table('karyawan')->where('company_id', $default->id)->count());
+        $this->assertSame(0, DB::table('users')->where('company_id', $default->id)->count());
+        $this->assertGreaterThan(0, DB::table('roles')->where('company_id', $default->id)->count());
+        $this->actingAs($super)->get('/perusahaan')->assertOk()->assertDontSee('Perusahaan Default');
+        $this->actingAs($super)->post('/perusahaan', ['code' => 'BRU', 'name' => 'PT Baru', 'admin_username' => 'admin.bru', 'admin_password' => 'rahasia123', 'admin_password_confirmation' => 'rahasia123'])->assertSessionHasNoErrors();
+        $baru = Company::where('code', 'BRU')->firstOrFail();
+        $this->assertEqualsCanonicalizing(DB::table('roles')->where('company_id', $default->id)->pluck('nama')->all(), DB::table('roles')->where('company_id', $baru->id)->pluck('nama')->all());
+        $this->actingAs($super)->get('/perusahaan')->assertOk()->assertSee('PT Baru');
     }
 }

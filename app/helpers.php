@@ -32,7 +32,7 @@ if (! function_exists('badge_status')) {
             'draft' => 'neutral', 'menunggu' => 'warning', 'disetujui' => 'success', 'final' => 'success',
             'ditolak' => 'danger', 'aktif' => 'success', 'nonaktif' => 'neutral', 'hadir' => 'success',
             'terlambat' => 'warning', 'alfa' => 'danger', 'cuti' => 'info', 'izin' => 'primary', 'sakit' => 'warning',
-            'terbit' => 'success', 'terkunci' => 'danger', 'dilewati' => 'neutral', 'penambah' => 'success', 'pengurang' => 'danger',
+            'terbit' => 'success', 'terkunci' => 'danger', 'dilewati' => 'neutral', 'penambah' => 'success', 'pengurang' => 'danger', 'pendapatan' => 'success', 'potongan' => 'danger',
         ][$status] ?? 'neutral';
 
         return '<span class="badge badge-soft-' . $warna . '">' . e(ucfirst((string) $status)) . '</span>';

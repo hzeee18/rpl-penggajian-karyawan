@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-/** Master payroll ("Payroll Usual", "Payroll THR", ...). Isi rumus ada di versinya. */
+/** Master payroll ("Payroll Default", "Payroll THR", ...). Isi rumus ada di versinya. */
 final class Master extends Model
 {
     use BelongsToCompany;

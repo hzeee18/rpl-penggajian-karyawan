@@ -10,15 +10,15 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css" rel="stylesheet">
-    <link href="{{ asset('css/app.css') }}?v=24" rel="stylesheet">
+    <link href="{{ asset('css/app.css') }}?v=40" rel="stylesheet">
     <meta name="turbo-cache-control" content="no-preview">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/id.js"></script>
-    <script src="{{ asset('js/form.js') }}?v=9"></script>
-    <script src="{{ asset('js/app.js') }}?v=6"></script>
+    <script src="{{ asset('js/form.js') }}?v=14"></script>
+    <script src="{{ asset('js/app.js') }}?v=9"></script>
     <script src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.12/dist/turbo.es2017-umd.js"></script>
     @stack('head')
 </head>
@@ -74,7 +74,7 @@
                 <div class="judul">@yield('title', 'Dashboard')</div>
             </div>
 
-            <form class="topbar-search d-none d-md-block" action="{{ $u->bisa('karyawan') ? route('karyawan.index') : ($u->bisa('slip') ? route('slip.index') : route('dashboard')) }}" data-cari="{{ route('cari') }}" role="search">
+            <form class="topbar-search d-none d-md-block" action="{{ $u->bisa('karyawan') ? route('karyawan.index') : ($u->bisa('pay-slip') ? route('pay.slip.index') : route('dashboard')) }}" data-cari="{{ route('cari') }}" role="search">
                 <i data-lucide="search"></i>
                 <input name="q" class="form-control" placeholder="{{ $u->bisa('karyawan') ? 'Cari karyawan, slip gaji, atau menu...' : ($u->bisa('slip') ? 'Cari slip gaji atau menu...' : 'Cari menu...') }}" value="{{ request('q') }}" autocomplete="off" aria-autocomplete="list">
                 <div class="cari-hasil" hidden></div>

@@ -51,7 +51,11 @@ class AppServiceProvider extends ServiceProvider
             };
             $induk = ['cuti' => 'absensi'] + (in_array('lembur', $sembunyi) ? ['lembur' => 'absensi'] : []);
 
-            $boleh = fn ($m) => $user->bisa($m->url) && ! in_array($m->url, $sembunyi);
+            // menu modul lama yang halamannya sudah dihapus (AUDIT.md §68) tidak pernah tampil, walau hak lamanya masih ada
+            $sembunyi = [...$sembunyi, ...array_keys(\App\Domain\Payroll\ModulPayroll::MENU_DIGANTIKAN), 'cuti', 'lembur'];
+            // penyetuju payroll terpilih (Approver Payroll) selalu melihat menu Approval walau role-nya tanpa hak menu (AUDIT.md §77)
+            $penyetuju = $user->company_id !== null && \App\Domain\Payroll\Run\PenyetujuPayroll::boleh($user);
+            $boleh = fn ($m) => ($user->bisa($m->url) || ($m->url === 'pay-approval' && $penyetuju)) && ! in_array($m->url, $sembunyi);
             $rapikan = function ($m) use ($label) {
                 $m->nama = $label[$m->url] ?? $m->nama;
 

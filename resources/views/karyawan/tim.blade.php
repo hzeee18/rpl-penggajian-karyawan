@@ -11,7 +11,7 @@
         <x-cari placeholder="Cari anggota tim..." />
         <div class="table-responsive">
             <table class="table table-hover">
-                <thead><tr><th>NIK</th><th>Kontrak</th><th>Karyawan</th><th class="text-center">Sisa cuti</th><th>Aksi</th></tr></thead>
+                <thead><tr><th>NIK</th><th>Kontrak</th><th>Karyawan</th><th class="text-center">Sisa cuti</th><th class="text-center">Aksi</th></tr></thead>
                 <tbody>
                 @forelse ($karyawan as $k)
                     @php $kt = $k->kontrakAktif; $menunggu = $k->kontrak->firstWhere('status_approval', 'menunggu'); @endphp
@@ -30,7 +30,7 @@
                         </td>
                         <td>{!! orang($k->nama, $k->jabatan) !!}</td>
                         <td class="text-center">{{ $k->sisa_cuti }}</td>
-                        <td><a href="{{ route('karyawan.index', ['lihat' => $k->id] + request()->only('q', 'page')) }}" class="btn btn-light btn-icon" title="Lihat"><i data-lucide="eye"></i></a></td>
+                        <td class="text-center"><a href="{{ route('karyawan.index', ['lihat' => $k->id] + request()->only('q', 'page')) }}" class="btn btn-light btn-icon" title="Lihat"><i data-lucide="eye"></i></a></td>
                     </tr>
                 @empty
                     <tr><td colspan="5"><x-empty ikon="users" judul="Belum ada anggota tim" /></td></tr>

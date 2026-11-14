@@ -49,7 +49,7 @@ Artisan::command('payroll:aktifkan {kode : kode perusahaan}', function (string $
 
         return 1;
     }
-    app(\App\Domain\Payroll\Actions\AlihkanKePayrollBaru::class)->handle((int) $id);
+    app(\App\Domain\Payroll\Actions\AktifkanModulPayroll::class)->handle((int) $id);
     $this->info("Perusahaan {$kode} memakai modul payroll baru: menu payroll baru aktif, menu Kontrak/Proses Payroll/Riwayat/Slip/Komponen lama dialihkan.");
 
     return 0;

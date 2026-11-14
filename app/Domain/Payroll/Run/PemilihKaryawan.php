@@ -11,13 +11,13 @@ use App\Domain\Payroll\Models\RunEmployee;
 use Illuminate\Support\Collection;
 
 /**
- * Karyawan yang ikut run: hanya karyawan aktif dengan kontrak aktif (is_active = 1) dalam lingkup
+ * Karyawan yang ikut run: karyawan aktif yang punya kontrak berlaku di tanggal periode (KontrakPeriode, AUDIT.md §51) dalam lingkup
  * (semua / departemen / perorangan). Karyawan yang sudah punya payroll aktif (is_blocking) di periode
  * yang beririsan di-skip dan dicatat alasannya.
  */
 final class PemilihKaryawan
 {
-    /** @return array{ikut: Collection<int, array{employee: Employee, contract: Contract}>, skip: list<array{employee_id: int, nik: string, nama: string, alasan: string}>} */
+    /** @return array{ikut: Collection<int, array{employee: Employee, contract: KontrakPeriode}>, skip: list<array{employee_id: int, nik: string, nama: string, alasan: string}>} */
     public function pilih(PayrollRun $run): array
     {
         $pilihan = array_map('intval', $run->employee_selection ?? []);
@@ -26,7 +26,8 @@ final class PemilihKaryawan
             ->when($run->employee_scope === 'individual', fn ($q) => $q->whereIn('id', $pilihan))
             ->orderBy('nik')->get();
 
-        $kontrak = Contract::active()->whereIn('employee_id', $karyawan->pluck('id'))->get()->keyBy('employee_id');
+        $mulai = $run->period_start->toImmutable();
+        $selesai = $run->period_end->toImmutable();
         $sudahAda = RunEmployee::where('is_blocking', true)->where('run_id', '!=', $run->id)
             ->whereIn('employee_id', $karyawan->pluck('id'))
             ->where('period_start', '<=', $run->period_end->toDateString())->where('period_end', '>=', $run->period_start->toDateString())
@@ -35,14 +36,16 @@ final class PemilihKaryawan
         $ikut = collect();
         $skip = [];
         foreach ($karyawan as $e) {
+            $kontrak = $e->is_active ? KontrakPeriode::untuk($e, $mulai, $selesai) : null;
             $alasan = match (true) {
                 ! $e->is_active => 'karyawan nonaktif',
-                ! $kontrak->has($e->id) => 'tidak punya kontrak aktif',
+                $e->resign_date !== null && $e->resign_date->lt($run->period_start) => 'sudah resign sebelum periode ('.$e->resign_date->format('d/m/Y').')',
+                $kontrak->kosong() => 'tidak punya kontrak yang berlaku di periode ini',
                 $sudahAda->has($e->id) => 'sudah punya payroll aktif di periode ini',
                 default => null,
             };
             if ($alasan === null) {
-                $ikut->push(['employee' => $e, 'contract' => $kontrak[$e->id]]);
+                $ikut->push(['employee' => $e, 'contract' => $kontrak]);
             } elseif ($run->employee_scope === 'individual' || $alasan !== 'karyawan nonaktif') {
                 $skip[] = ['employee_id' => (int) $e->id, 'nik' => (string) $e->nik, 'nama' => (string) $e->nama, 'alasan' => $alasan];
             }
@@ -51,7 +54,7 @@ final class PemilihKaryawan
         return ['ikut' => $ikut, 'skip' => $skip];
     }
 
-    /** Kontrak aktif yang tanggal akhirnya sudah lewat sebelum akhir periode (peringatan sebelum preview). */
+    /** Kontrak aktif yang berakhir sebelum akhir periode: sisa hari periode tidak dibayar (peringatan sebelum preview). */
     public function kontrakKedaluwarsa(PayrollRun $run): Collection
     {
         return Contract::active()->with('employee')->whereNotNull('end_date')

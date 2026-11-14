@@ -6,13 +6,15 @@ namespace App\Domain\Payroll\Jobs;
 
 use App\Domain\Audit\AuditLogger;
 use App\Domain\Company\Tenancy\CurrentCompany;
+use App\Domain\Payroll\Actions\AlurPayroll;
 use App\Domain\Payroll\Engine\RumusException;
-use App\Domain\Payroll\Models\Contract;
+use App\Domain\Payroll\Events\PayrollDisetujui;
 use App\Domain\Payroll\Models\PayrollRun;
 use App\Domain\Payroll\Models\ReferenceTableVersion;
 use App\Domain\Payroll\Models\RunEmployee;
 use App\Domain\Payroll\Run\HitungRunKaryawan;
 use App\Domain\Payroll\Run\PemilihKaryawan;
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\QueryException;
@@ -46,17 +48,20 @@ final class ProsesGenerate implements ShouldQueue
                 return;
             }
             $run->forceFill(['job_status' => 'running', 'job_started_at' => now(), 'job_error' => null])->save();
+            $mulai = $run->job_started_at;
 
             try {
                 $skip = $run->skipped_employees ?? [];
-                $masihBebas = $pemilih->pilih($run)['ikut']->pluck('employee.id')->flip();
+                $pilihan = $pemilih->pilih($run);
+                $masihBebas = $pilihan['ikut']->keyBy(fn ($p) => (int) $p['employee']->id);
+                $alasanSkip = collect($pilihan['skip'])->pluck('alasan', 'employee_id');
                 $versiReferensi = [];
 
                 foreach ($run->employees()->with('employee')->get() as $re) {
                     $alasan = null;
-                    $kontrak = Contract::active()->where('employee_id', $re->employee_id)->first();
-                    if (! $masihBebas->has($re->employee_id) || $kontrak === null) {
-                        $alasan = $kontrak === null ? 'tidak punya kontrak aktif' : 'sudah punya payroll aktif di periode ini';
+                    $kontrak = $masihBebas->get((int) $re->employee_id)['contract'] ?? null; // kontrak berlaku di periode (AUDIT.md §51)
+                    if ($kontrak === null) {
+                        $alasan = $alasanSkip[(int) $re->employee_id] ?? 'tidak punya kontrak yang berlaku di periode ini';
                     } else {
                         try {
                             $versiReferensi = $hitung->handle($run, $re->employee, $kontrak) + $versiReferensi;
@@ -74,7 +79,7 @@ final class ProsesGenerate implements ShouldQueue
                     }
                 }
 
-                if (! $run->employees()->exists()) {
+                if (! $run->employees()->exists() && PayrollRun::prosesMasihBerlaku((int) $run->id, $mulai)) {
                     // bukan error sistem: simpan alasan per karyawan agar HR tahu kenapa, run tetap draft
                     $run->forceFill([
                         'skipped_employees' => array_values($skip), 'job_status' => 'failed', 'job_finished_at' => now(),
@@ -84,7 +89,17 @@ final class ProsesGenerate implements ShouldQueue
                     return;
                 }
 
-                DB::transaction(function () use ($run, $skip, $versiReferensi, $audit) {
+                $tanpaApproval = ! AlurPayroll::butuhApproval((int) $run->company_id);
+                $batal = false;
+                DB::transaction(function () use ($run, $skip, $versiReferensi, $audit, $tanpaApproval, $mulai, &$batal) {
+                    PayrollRun::lockForUpdate()->whereKey($run->id)->first(['id']);
+                    if (! PayrollRun::prosesMasihBerlaku((int) $run->id, $mulai)) {
+                        // dibatalkan HR saat masih berjalan: lepas blocking yang sempat dipasang, jangan ubah status
+                        RunEmployee::where('run_id', $run->id)->update(['is_blocking' => false]);
+                        $batal = true;
+
+                        return;
+                    }
                     DB::table('pay_run_reference_versions')->where('run_id', $run->id)->delete();
                     foreach ($versiReferensi as $tabel => $versi) {
                         DB::table('pay_run_reference_versions')->insert(['run_id' => $run->id, 'reference_table_id' => $tabel, 'reference_version_id' => $versi]);
@@ -95,28 +110,28 @@ final class ProsesGenerate implements ShouldQueue
 
                     $run->forceFill([
                         'status' => PayrollRun::PENDING, 'generated_at' => now(), 'skipped_employees' => array_values($skip),
-                        'approver_user_id' => $this->approverId($run), 'job_status' => 'idle', 'job_finished_at' => now(),
+                        'approver_user_id' => null, 'job_status' => 'idle', 'job_finished_at' => now(),
                     ])->save();
                     $audit->log('generated', $run, new: ['karyawan' => $run->employees()->count(), 'skip' => count($skip), 'oleh' => $this->userId]);
+                    if ($tanpaApproval) {
+                        // setelan perusahaan: tanpa approval Manager, payroll langsung final
+                        app(AlurPayroll::class)->finalkan($run, ['status' => PayrollRun::APPROVED, 'otomatis' => 'perusahaan tidak memakai approval', 'oleh' => $this->userId]);
+                    }
                 });
+                if ($tanpaApproval && ! $batal) {
+                    event(new PayrollDisetujui((int) $run->id, (int) $run->company_id));
+                }
             } catch (Throwable $e) {
+                if (! PayrollRun::prosesMasihBerlaku((int) $run->id, $mulai)) {
+                    RunEmployee::where('run_id', $run->id)->update(['is_blocking' => false]);
+
+                    return;
+                }
                 // gagal: kembalikan penanda blocking agar karyawan tidak terkunci oleh run yang gagal
                 RunEmployee::where('run_id', $run->id)->update(['is_blocking' => false]);
                 $run->forceFill(['job_status' => 'failed', 'job_error' => mb_substr($e->getMessage(), 0, 2000), 'job_finished_at' => now()])->save();
                 throw $e;
             }
         });
-    }
-
-    /**
-     * Approver = approver milik user yang menekan Generate (itu yang divalidasi di AlurPayroll::generate),
-     * jatuh ke approver pembuat run hanya bila user tidak diketahui. Sebelumnya selalu dari pembuat run,
-     * sehingga run bisa "menunggu persetujuan" tanpa approver dan tidak pernah bisa disetujui.
-     */
-    private function approverId(PayrollRun $run): ?int
-    {
-        $id = $this->userId === null ? null : \App\Models\User::whereKey($this->userId)->value('approver_user_id');
-
-        return $id ?? $run->creator?->approver_user_id;
     }
 }

@@ -37,6 +37,9 @@ class AuthController extends Controller
         if ($user && ! $user->is_active) {
             return back()->withInput()->withErrors(['username' => 'Akun tidak aktif. Hubungi Admin.']);
         }
+        if ($user && $user->company_id !== null && ! \Illuminate\Support\Facades\DB::table('companies')->where('id', $user->company_id)->value('is_active')) {
+            return back()->withInput()->withErrors(['username' => 'Perusahaan Anda sedang nonaktif. Hubungi pengelola aplikasi.']);
+        }
 
         if (! $user || ! Hash::check($data['password'], $user->password)) {
             if ($user) {

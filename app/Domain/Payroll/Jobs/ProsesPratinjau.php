@@ -42,6 +42,7 @@ final class ProsesPratinjau implements ShouldQueue
                 return;
             }
             $run->forceFill(['job_status' => 'running', 'job_started_at' => now(), 'job_error' => null])->save();
+            $mulai = $run->job_started_at;
 
             try {
                 ['ikut' => $ikut, 'skip' => $skip] = $pemilih->pilih($run);
@@ -64,8 +65,14 @@ final class ProsesPratinjau implements ShouldQueue
                     DB::table('pay_run_reference_versions')->insert(['run_id' => $run->id, 'reference_table_id' => $tabel, 'reference_version_id' => $versi]);
                 }
 
+                if (! PayrollRun::prosesMasihBerlaku((int) $run->id, $mulai)) {
+                    return; // dibatalkan HR saat masih berjalan: jangan timpa status
+                }
                 $run->forceFill(['skipped_employees' => $skip, 'job_status' => 'idle', 'job_finished_at' => now()])->save();
             } catch (Throwable $e) {
+                if (! PayrollRun::prosesMasihBerlaku((int) $run->id, $mulai)) {
+                    return;
+                }
                 $run->forceFill(['job_status' => 'failed', 'job_error' => mb_substr($e->getMessage(), 0, 2000), 'job_finished_at' => now()])->save();
                 throw $e;
             }

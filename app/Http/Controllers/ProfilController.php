@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Kontrak;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
 class ProfilController extends Controller
@@ -16,23 +14,9 @@ class ProfilController extends Controller
 
     public function index(Request $request)
     {
-        $karyawan = $request->user()->karyawan?->load(['departemen.manager', 'pajak', 'kontrakAktif.komponen.component', 'kontrak.approvals.approver.karyawan']);
-        $payrollBaru = \App\Domain\Payroll\ModulPayroll::aktif();
-        if ($payrollBaru) {
-            $karyawan?->load(['position', 'kontrakPayroll.components.component']); // kontrak modul baru (AUDIT.md §29)
-        }
+        $karyawan = $request->user()->karyawan?->load(['departemen.manager', 'pajak', 'position', 'kontrakPayroll.components.component']);
+        $payrollBaru = true;
 
         return view('profil.index', compact('karyawan', 'payrollBaru'));
-    }
-
-    /** Unduh kontrak kerja (PDF). Karyawan hanya kontraknya sendiri; HR semua. */
-    public function kontrakPdf(Request $request, Kontrak $kontrak)
-    {
-        $user = $request->user();
-        abort_unless($user->actsAsHr() || $kontrak->karyawan_id === $user->karyawan_id, 403);
-        $kontrak->load('karyawan.departemen', 'komponen.component', 'approvals.approver.karyawan');
-
-        return Pdf::loadView('profil.kontrak-pdf', compact('kontrak'))->setPaper('a4')
-            ->download('kontrak-' . str_replace('/', '-', $kontrak->kode) . '.pdf');
     }
 }

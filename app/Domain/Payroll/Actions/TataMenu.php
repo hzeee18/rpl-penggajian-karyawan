@@ -20,10 +20,10 @@ final class TataMenu
             'pay-lembur' => 'Lembur', 'pay-import' => 'Import CSV', 'pay-approver' => 'Approver',
         ]],
         'Payroll' => ['wallet-cards', 30, [
-            'pay-master' => 'Master Payroll', 'pay-run' => 'Generate Payroll', 'pay-approval' => 'Approval',
+            'pay-libur' => 'Kalender Payroll', 'pay-master' => 'Master Payroll', 'pay-run' => 'Generate Payroll', 'pay-approval' => 'Approval',
         ]],
         'Konfigurasi' => ['settings', 40, [
-            'pay-referensi' => 'Tabel Referensi', 'pay-cutoff' => 'Cut Off', 'pay-komponen' => 'Katalog Komponen', 'pay-libur' => 'Kalender Libur',
+            'pay-referensi' => 'Tabel Referensi', 'pay-cutoff' => 'Cut Off', 'pay-komponen' => 'Katalog Komponen',
         ]],
         'Master Data' => ['database', 50, [
             'pay-jabatan' => 'Jabatan', 'departemen' => 'Departemen', 'pay-tipe-leave' => 'Tipe Leave', 'perusahaan' => 'Company',
@@ -40,7 +40,7 @@ final class TataMenu
     /** Menu tanpa grup (tampil paling atas): url => nama. `absensi` = riwayat kehadiran milik karyawan sendiri. */
     public const UTAMA = ['dashboard' => 'Dashboard', 'profil' => 'Profil', 'absensi' => 'Absensi Saya', 'pay-slip' => 'Slip Gaji'];
 
-    /** Nama grup lama yang dipakai ulang (tidak membuat grup ganda). */
+    /** Nama grup di database lama yang dipakai ulang (tidak membuat grup ganda). */
     private const NAMA_LAMA = ['Payroll' => 'Payroll Baru'];
 
     public function handle(): void

@@ -50,7 +50,7 @@ final class ValidatorKehadiran
 
         $rekaman = match ($jenis) {
             JenisKehadiran::Absensi => $this->absensi($p, $error),
-            JenisKehadiran::Leave => $this->leave($p, $error),
+            JenisKehadiran::Leave => $this->leave($p, $error, $employee?->hariKerja() ?? \App\Domain\Payroll\Models\WorkPattern::hariUntuk(null, null)),
             JenisKehadiran::Lembur => $this->lembur($p, $error),
         };
 
@@ -78,8 +78,11 @@ final class ValidatorKehadiran
         ]];
     }
 
-    /** @param list<string> $error */
-    private function leave(array $p, array &$error): array
+    /**
+     * @param  list<string>  $error
+     * @param  list<int>  $hariKerja  pola hari kerja karyawan (AUDIT.md §55): hari di luar pola diabaikan
+     */
+    private function leave(array $p, array &$error, array $hariKerja): array
     {
         $tipe = ($p['kode_tipe'] ?? '') === '' ? null : LeaveType::where('code', $p['kode_tipe'])->where('is_active', true)->first();
         if ($tipe === null) {
@@ -103,12 +106,12 @@ final class ValidatorKehadiran
 
         $rekaman = [];
         foreach (CarbonPeriod::create($mulai, $selesai) as $hari) {
-            if (! $hari->isWeekend()) { // Sabtu/Minggu diabaikan
+            if (in_array((int) $hari->isoWeekday(), $hariKerja, true)) { // hari istirahat menurut pola diabaikan
                 $rekaman[] = ['leave_type_id' => (int) $tipe->id, 'leave_date' => $hari->toDateString(), 'note' => $this->teks($p['keterangan'] ?? null)];
             }
         }
         if ($rekaman === []) {
-            $error[] = 'rentang leave hanya berisi Sabtu/Minggu';
+            $error[] = 'rentang leave hanya berisi hari istirahat karyawan (di luar pola hari kerja)';
         }
 
         return $rekaman;

@@ -22,7 +22,7 @@ use RuntimeException;
  * - Karyawan, 2 departemen, kontrak aktif dengan nilai komponen berbeda, absensi/leave/lembur 2 periode
  *   (termasuk alpha, terlambat, lembur akhir pekan, tipe leave baru).
  * - Cut off: DEMOA lintas bulan (26-25), DEMOB kalender bulanan.
- * - Master "Payroll Usual" berbeda di tiap perusahaan (aturan lembur & keterlambatan berbeda: aturan di database).
+ * - Master "Payroll Default" berbeda di tiap perusahaan (aturan lembur & keterlambatan berbeda: aturan di database).
  * - TER/PTKP: dibaca dari database/seeders/data/ter_pph21.csv. Bila file belum ada, dilewati (komponen PPh21
  *   tidak dipasang) dan diberi peringatan. Angka TER TIDAK dikarang di sini.
  * Semua data fiktif (nama, nomor karyawan, rekening).
@@ -57,13 +57,13 @@ final class PayrollDemoSeeder extends Seeder
     }
 
     /** Tabel nasional ter_bulanan & kategori_ptkp dari CSV resmi (diisi pemilik). Kembalikan true bila tersedia. */
-    private function terNasional(): bool
+    public function terNasional(): bool
     {
         return (new TerPph21Seeder)->pasang(self::$fileTerUji);
     }
 
     /** @param array{start_day: int, end_day: int, start_in_previous_month: bool} $cutoff */
-    private function perusahaan(string $kode, string $nama, string $awalan, int $jumlah, array $cutoff, bool $ter, string $varian): void
+    public function perusahaan(string $kode, string $nama, string $awalan, int $jumlah, array $cutoff, bool $ter, string $varian): void
     {
         $company = app(BuatPerusahaan::class)->handle(['code' => $kode, 'name' => $nama, 'address' => "Jl. Contoh No. 1, Kota Demo ({$kode})",
             'signer_name' => "Direktur {$kode}", 'signer_title' => 'Direktur']);
@@ -79,7 +79,7 @@ final class PayrollDemoSeeder extends Seeder
     private function master(string $varian, array $c, bool $ter): void
     {
         $kelola = app(KelolaMasterPayroll::class);
-        $master = $kelola->buatMaster(['code' => 'usual', 'name' => 'Payroll Usual', 'description' => $varian === 'a' ? 'Uang makan per hari hadir+cuti, lembur Rp25.000/jam' : 'Lembur 1,5x/2x upah jam, potongan terlambat']);
+        $master = $kelola->buatMaster(['code' => 'default', 'name' => 'Payroll Default', 'description' => $varian === 'a' ? 'Uang makan per hari hadir+cuti, lembur Rp25.000/jam' : 'Lembur 1,5x/2x upah jam, potongan terlambat']);
         $v = $master->versions()->firstOrFail();
         $urut = 0;
         $var = function (array $d) use ($kelola, $v, &$urut): void {
@@ -103,8 +103,7 @@ final class PayrollDemoSeeder extends Seeder
             $item('uang_makan', 'formula', "CONTRACT('uang_makan') / pembagi_uang_makan * (hadir + cuti)", 2);
             $item('lembur', 'formula', 'tarif_lembur * jam_lembur', 3);
             $item('potongan_alpha', 'formula', 'gaji_pokok / workdays * alpha', 4);
-            $item('bpjs_tk', 'contract', null, 5);
-            $item('bpjs_kes', 'contract', null, 6);
+            FlowUjiSeeder::pasangBpjs($kelola, $v, $item, ['bpjs_tk', 'bpjs_kes'], 5);
         } else {
             $kelola->simpanParam($v, ['code' => 'pembagi_upah_jam', 'name' => 'Pembagi upah per jam', 'value' => '173']);
             $kelola->simpanParam($v, ['code' => 'tarif_terlambat', 'name' => 'Potongan per jam terlambat', 'value' => '20000']);
@@ -114,7 +113,7 @@ final class PayrollDemoSeeder extends Seeder
             $item('tunjangan_transport', 'contract', null, 2);
             $item('lembur', 'formula', 'gaji_pokok / pembagi_upah_jam * (jam_lembur_kerja * 1.5 + jam_lembur_libur * 2)', 3);
             $item('potongan_terlambat', 'formula', 'tarif_terlambat * jam_telat', 4);
-            $item('bpjs_tk', 'contract', null, 5);
+            FlowUjiSeeder::pasangBpjs($kelola, $v, $item, ['bpjs_tk'], 5);
         }
         if ($ter) {
             $item('pph21', 'formula', "ROUND(gross_taxable * LOOKUP('ter_bulanan', LOOKUP_TEXT('kategori_ptkp', ptkp_status), gross_taxable))", 99, 'pph21');

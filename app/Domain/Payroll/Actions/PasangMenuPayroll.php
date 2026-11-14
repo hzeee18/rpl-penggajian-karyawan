@@ -15,13 +15,13 @@ use Illuminate\Support\Facades\DB;
  */
 final class PasangMenuPayroll
 {
-    public const GRUP = 'Payroll Baru';
+    public const GRUP = 'Payroll';
 
     /** url => [nama, ikon, hak bawaan per role (v c u d a)] */
     public const MENU = [
         'pay-karyawan' => ['Karyawan Payroll', 'id-card', ['HR' => 'vu', 'Admin' => 'v']],
         'pay-jabatan' => ['Jabatan', 'briefcase', ['Admin' => 'v']],
-        'pay-libur' => ['Kalender Libur', 'calendar-days', ['HR' => 'vcud', 'Admin' => 'v']],
+        'pay-libur' => ['Kalender Payroll', 'calendar-days', ['HR' => 'vcud', 'Admin' => 'v']],
         'pay-tipe-leave' => ['Tipe Leave', 'tags', ['Admin' => 'v']],
         'pay-komponen' => ['Katalog Komponen', 'list-checks', ['HR' => 'vcud', 'Admin' => 'v']],
         'pay-cutoff' => ['Cut Off', 'calendar-range', ['Admin' => 'v']],
@@ -61,8 +61,8 @@ final class PasangMenuPayroll
     public function handle(): void
     {
         $now = now();
-        // grup "Payroll Baru" diganti nama menjadi "Payroll" oleh TataMenu (AUDIT.md §35)
-        $grup = DB::table('menus')->whereNull('url')->whereIn('nama', [self::GRUP, 'Payroll'])->orderBy('id')->value('id')
+        // database lama bisa masih memakai nama grup "Payroll Baru"; TataMenu menamainya "Payroll" (AUDIT.md §35)
+        $grup = DB::table('menus')->whereNull('url')->whereIn('nama', [self::GRUP, 'Payroll Baru'])->orderBy('id')->value('id')
             ?? DB::table('menus')->insertGetId(['nama' => self::GRUP, 'url' => null, 'icon' => 'wallet-cards', 'urutan' => 90, 'created_at' => $now, 'updated_at' => $now]);
 
         $urutan = 0;

@@ -11,7 +11,8 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * Buat PDF slip dari snapshot run (bukan dari kontrak/master terkini) dengan password (dompdf/CPDF).
+ * Buat PDF slip dari snapshot run (bukan dari kontrak/master terkini), dengan password (dompdf/CPDF)
+ * bila setelan perusahaan slip_pakai_password aktif (AUDIT.md §50).
  * File disimpan per perusahaan: payslips/{company_id}/{run_id}/{nomor_karyawan}.pdf
  */
 final class BuatPdfSlip
@@ -19,15 +20,15 @@ final class BuatPdfSlip
     public function handle(Payslip $slip): Payslip
     {
         $re = RunEmployee::with(['run', 'items'])->findOrFail($slip->run_employee_id);
-        $password = PasswordSlip::untuk($re);
-        if ($password === null) {
+        $company = Company::findOrFail($re->company_id);
+        $password = $company->slip_pakai_password ? PasswordSlip::untuk($re) : null;
+        if ($company->slip_pakai_password && $password === null) {
             $slip->forceFill(['file_path' => null, 'generated_at' => null, 'note' => 'PDF belum terbit: nomor karyawan atau nomor rekening belum lengkap untuk password.'])->save();
 
             return $slip;
         }
 
-        $company = Company::findOrFail($re->company_id);
-        $pdf = Pdf::loadView('payroll-baru.slip.pdf', [
+        $pdf = Pdf::loadView('payroll.slip.pdf', [
             're' => $re, 'company' => $company,
             'penambah' => $re->items->where('type', 'earning')->values(),
             'pengurang' => $re->items->where('type', 'deduction')->values(),
@@ -38,7 +39,9 @@ final class BuatPdfSlip
         $dompdf = $pdf->getDomPDF();
         $dompdf->render();
         // pemilik (owner) password acak per file: hanya dipakai PDF reader untuk hak penuh, tidak disimpan
-        $dompdf->getCanvas()->get_cpdf()->setEncryption($password, bin2hex(random_bytes(16)), ['print']);
+        if ($password !== null) {
+            $dompdf->getCanvas()->get_cpdf()->setEncryption($password, bin2hex(random_bytes(16)), ['print']);
+        }
 
         $path = "payslips/{$re->company_id}/{$re->run_id}/".preg_replace('/[^A-Za-z0-9_-]/', '_', $re->employee_no).'.pdf';
         Storage::disk('local')->put($path, $dompdf->output());

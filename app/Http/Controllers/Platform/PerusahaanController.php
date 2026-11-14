@@ -8,7 +8,7 @@ use App\Domain\Company\Actions\BuatAdminPerusahaan;
 use App\Domain\Company\Actions\BuatPerusahaan;
 use App\Domain\Company\Models\Company;
 use App\Domain\Company\Tenancy\CurrentCompany;
-use App\Domain\Payroll\Actions\AlihkanKePayrollBaru;
+use App\Domain\Payroll\Actions\AktifkanModulPayroll;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -22,7 +22,9 @@ final class PerusahaanController extends Controller
 
     public function index(Request $request)
     {
-        $perusahaan = Company::orderBy('code')->get();
+        // DEFAULT yang hanya berisi templat role (tanpa karyawan) tidak ditampilkan sebagai perusahaan (AUDIT.md §78)
+        $perusahaan = Company::orderBy('code')->get()->reject(fn (Company $c) => $c->code === Company::DEFAULT_CODE
+            && ! DB::table('karyawan')->where('company_id', $c->id)->exists())->values();
 
         // lintas perusahaan: halaman platform Super Admin menampilkan jumlah data tiap perusahaan
         $jumlah = fn (string $tabel) => DB::table($tabel)->whereNotNull('company_id')->groupBy('company_id')
@@ -41,7 +43,7 @@ final class PerusahaanController extends Controller
         ]);
     }
 
-    public function store(Request $request, BuatPerusahaan $buat, AlihkanKePayrollBaru $payrollBaru, BuatAdminPerusahaan $admin)
+    public function store(Request $request, BuatPerusahaan $buat, AktifkanModulPayroll $payrollBaru, BuatAdminPerusahaan $admin)
     {
         $data = $request->validate([
             'code' => ['required', 'max:32', 'alpha_dash', Rule::unique('companies', 'code')],
@@ -94,6 +96,32 @@ final class PerusahaanController extends Controller
         $perusahaan->update($data);
 
         return redirect()->route('perusahaan.index', ['ubah' => $perusahaan->id])->with('sukses', 'Perusahaan diperbarui.');
+    }
+
+    /** Hapus permanen perusahaan beserta SELURUH datanya; konfirmasi dengan mengetik kode perusahaan (AUDIT.md §76). */
+    public function destroy(Request $request, Company $perusahaan, \App\Domain\Company\Actions\HapusPerusahaan $hapus)
+    {
+        abort_if($perusahaan->code === Company::DEFAULT_CODE, 422, 'Perusahaan DEFAULT adalah templat role, tidak bisa dihapus.');
+        $request->validate(['konfirmasi_kode' => ['required', 'in:'.$perusahaan->code]],
+            ['konfirmasi_kode.in' => 'Kode yang diketik tidak sama dengan kode perusahaan.', 'konfirmasi_kode.required' => 'Ketik kode perusahaan untuk konfirmasi.']);
+        if ($this->konteks->perusahaanDipilih() === (int) $perusahaan->id) {
+            session()->forget(CurrentCompany::SESSION_KEY);
+        }
+        $hapus->handle($perusahaan);
+
+        return redirect()->route('perusahaan.index')->with('sukses', "Perusahaan {$perusahaan->code} dan seluruh datanya dihapus permanen.");
+    }
+
+    /** Soft delete: perusahaan dinonaktifkan (data tetap ada, bisa diaktifkan lagi); semua akunnya tidak bisa login. */
+    public function status(Request $request, Company $perusahaan)
+    {
+        $aktif = $request->boolean('aktif');
+        $perusahaan->update(['is_active' => $aktif]);
+        if (! $aktif && $this->konteks->perusahaanDipilih() === (int) $perusahaan->id) {
+            session()->forget(CurrentCompany::SESSION_KEY);
+        }
+
+        return redirect()->route('perusahaan.index')->with('sukses', "Perusahaan {$perusahaan->code} ".($aktif ? 'diaktifkan.' : 'dinonaktifkan. Akun di perusahaan ini tidak bisa login.'));
     }
 
     public function pilih(Company $perusahaan)

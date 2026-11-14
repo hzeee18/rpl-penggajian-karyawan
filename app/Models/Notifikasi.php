@@ -37,11 +37,12 @@ class Notifikasi extends Model
     public function link(): string
     {
         return match ($this->jenis_ref) {
-            'approval' => route('approval.show', $this->ref_id),
-            'kontrak' => route('kontrak.show', $this->ref_id),
-            'payroll' => route('payroll.show', $this->ref_id),
-            'payslip' => route('slip.show', $this->ref_id),
-            'lembur' => route('lembur.index'),
+            // modul lama dihapus (AUDIT.md §68): notifikasi lama diarahkan ke halaman modul payroll yang setara
+            'approval' => route('pay.approval.index'),
+            'kontrak' => route('pay.kontrak.index'),
+            'payroll' => route('pay.run.index'),
+            'payslip' => route('pay.slip.index'),
+            'lembur' => route('pay.lembur.index'),
             'user' => route('users.index'),
             'karyawan' => route('users.create', ['karyawan_id' => $this->ref_id]),
             default => route('notifikasi.index'),

@@ -10,7 +10,7 @@
     <div class="card">
         <div class="table-responsive">
             <table class="table table-hover">
-                <thead><tr><th>Kode</th><th>Perusahaan</th><th class="text-center">Karyawan</th><th class="text-center">Pengguna</th><th>Status</th><th>Aksi</th></tr></thead>
+                <thead><tr><th>Kode</th><th>Perusahaan</th><th class="text-center">Karyawan</th><th class="text-center">Pengguna</th><th>Status</th><th class="text-center">Aksi</th></tr></thead>
                 <tbody>
                 @forelse ($perusahaan as $p)
                     <tr class="{{ $ubah->id === $p->id ? 'terpilih' : '' }}">
@@ -19,9 +19,18 @@
                         <td class="text-center">{{ $karyawan[$p->id] ?? 0 }}</td>
                         <td class="text-center">{{ $pengguna[$p->id] ?? 0 }}</td>
                         <td>{!! badge_status($p->is_active ? 'aktif' : 'nonaktif') !!}</td>
-                        <td class="text-nowrap"><div class="d-inline-flex gap-2">
+                        <td class="text-nowrap text-center"><div class="d-inline-flex gap-2 justify-content-center">
                             <a href="{{ route('perusahaan.index', ['ubah' => $p->id]) }}" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>
                             <a href="{{ route('perusahaan.index', ['admin' => $p->id]) }}" class="btn btn-light btn-icon" title="Akun Admin perusahaan"><i data-lucide="user-cog"></i></a>
+                            @if ($p->code !== \App\Domain\Company\Models\Company::DEFAULT_CODE)
+                                @if (auth()->user()->bisa('perusahaan', 'update'))
+                                    <form method="post" action="{{ route('perusahaan.status', $p) }}" data-confirm="{{ $p->is_active ? 'Nonaktifkan' : 'Aktifkan' }} perusahaan {{ $p->code }}?{{ $p->is_active ? ' Data tetap tersimpan, tetapi semua akun di perusahaan ini tidak bisa login.' : '' }}">@csrf<input type="hidden" name="aktif" value="{{ $p->is_active ? 0 : 1 }}">
+                                        <button class="btn btn-light btn-icon" title="{{ $p->is_active ? 'Nonaktifkan (data tetap tersimpan)' : 'Aktifkan kembali' }}"><i data-lucide="{{ $p->is_active ? 'power-off' : 'power' }}"></i></button></form>
+                                @endif
+                                @if (auth()->user()->bisa('perusahaan', 'delete'))
+                                    <a href="{{ route('perusahaan.index', ['hapus' => $p->id]) }}" class="btn btn-outline-danger btn-icon" title="Hapus permanen beserta semua data"><i data-lucide="trash-2"></i></a>
+                                @endif
+                            @endif
                         </div></td>
                     </tr>
                 @empty
@@ -32,7 +41,7 @@
         </div>
     </div>
 
-    <x-panel :buka="request()->hasAny(['ubah', 'baru']) || ($errors->any() && ! $adminUntuk)" :judul="$ubah->exists ? 'Ubah Perusahaan' : 'Tambah Perusahaan'" :sub="$ubah->exists ? $ubah->code . ' · ' . $ubah->name : 'Role dan hak akses bawaan disalin dari perusahaan DEFAULT'"
+    <x-panel :buka="request()->hasAny(['ubah', 'baru']) || ($errors->any() && ! $adminUntuk && ! request()->has('hapus'))" :judul="$ubah->exists ? 'Ubah Perusahaan' : 'Tambah Perusahaan'" :sub="$ubah->exists ? $ubah->code . ' · ' . $ubah->name : 'Role dan hak akses bawaan disalin dari perusahaan DEFAULT'"
              :action="$ubah->exists ? route('perusahaan.update', $ubah) : route('perusahaan.store')" :method="$ubah->exists ? 'put' : 'post'" enctype="multipart/form-data">
         @unless ($ubah->exists)
             <div class="mb-field"><label class="form-label">Kode perusahaan</label><input name="code" value="{{ old('code') }}" class="form-control" maxlength="32" required></div>
@@ -55,6 +64,19 @@
         <div class="tombol"><a href="{{ route('perusahaan.index') }}" class="btn btn-light">Batal</a><button class="btn btn-primary">Simpan</button></div>
     </x-panel>
 
+    @php $hapusUntuk = request()->integer('hapus') ? $perusahaan->firstWhere('id', request()->integer('hapus')) : null; @endphp
+    @if ($hapusUntuk && $hapusUntuk->code !== \App\Domain\Company\Models\Company::DEFAULT_CODE)
+        <x-panel id="drawer-hapus" judul="Hapus Permanen Perusahaan" :sub="$hapusUntuk->code . ' · ' . $hapusUntuk->name" :action="route('perusahaan.destroy', $hapusUntuk)" method="delete" :buka="true">
+            <div class="alert alert-danger small">
+                Semua data perusahaan ini akan <b>dihapus permanen dan tidak bisa dikembalikan</b>: {{ $pengguna[$hapusUntuk->id] ?? 0 }} akun, {{ $karyawan[$hapusUntuk->id] ?? 0 }} karyawan,
+                kontrak, absensi, leave, lembur, payroll, slip gaji, dan pengaturannya. Bila hanya ingin menghentikan sementara, pakai <b>Nonaktifkan</b>.
+            </div>
+            <div class="mb-field"><label class="form-label">Ketik <b>{{ $hapusUntuk->code }}</b> untuk konfirmasi</label>
+                <input name="konfirmasi_kode" class="form-control @error('konfirmasi_kode') is-invalid @enderror" autocomplete="off" required>
+                @error('konfirmasi_kode')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+            <div class="tombol"><a href="{{ route('perusahaan.index') }}" class="btn btn-light">Batal</a><button class="btn btn-danger">Hapus permanen</button></div>
+        </x-panel>
+    @endif
     @if ($adminUntuk)
         <x-panel id="drawer-admin" judul="Admin Perusahaan" :sub="$adminUntuk->code . ' · ' . $adminUntuk->name" :action="route('perusahaan.admin.store', $adminUntuk)" method="post" :buka="true">
             @forelse ($adminPerusahaan as $a)

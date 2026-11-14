@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Payroll;
 
-use App\Domain\Company\Models\Company;
-use App\Domain\Company\Tenancy\CurrentCompany;
 
 /**
- * Saklar "Payroll Baru aktif" per perusahaan (companies.payroll_baru, AUDIT.md §29).
+ * Modul payroll (companies.payroll_baru menandai perusahaan yang hak menunya sudah dipasang, AUDIT.md §29, §68).
  * Bila aktif, fitur lama yang bergantung pada kontrak/payroll lama dialihkan ke modul baru.
  */
 final class ModulPayroll
@@ -30,11 +28,9 @@ final class ModulPayroll
         'pajak' => 'pay.referensi.index',
     ];
 
-    /** Apakah perusahaan dalam konteks saat ini memakai modul payroll baru. */
+    /** Modul payroll lama sudah dihapus (AUDIT.md §68): semua perusahaan memakai modul payroll ini. */
     public static function aktif(): bool
     {
-        $id = app(CurrentCompany::class)->id();
-
-        return $id !== null && (bool) Company::whereKey($id)->value('payroll_baru');
+        return true;
     }
 }

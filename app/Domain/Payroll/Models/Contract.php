@@ -69,6 +69,12 @@ final class Contract extends Model
             ->whereHas('run', fn ($q) => $q->whereIn('status', [PayrollRun::PENDING, PayrollRun::APPROVED]))->exists();
     }
 
+    /** Kontrak aktif berjangka yang berakhir dalam 3 bulan ke depan atau sudah lewat (H-3 bulan, AUDIT.md §62). */
+    public function hampirBerakhir(): bool
+    {
+        return $this->is_active && $this->end_date !== null && $this->end_date->lte(now()->startOfDay()->addMonthsNoOverflow(3));
+    }
+
     public function isExpired(?\DateTimeInterface $per = null): bool
     {
         return $this->is_active && $this->end_date !== null && $this->end_date->lt(($per ? Carbon::instance($per) : now())->startOfDay());

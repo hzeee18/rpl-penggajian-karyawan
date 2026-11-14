@@ -83,4 +83,10 @@ final class Employee extends Model
 
         return $no === null || $no === '' ? null : str_repeat('*', max(0, strlen($no) - 4)).substr($no, -4);
     }
+
+    /** @return list<int> hari ISO yang dihitung hari kerja (pola karyawan -> departemen -> bawaan), AUDIT.md §55 */
+    public function hariKerja(): array
+    {
+        return WorkPattern::hariUntuk($this->pay_work_pattern_id, $this->departemen?->pay_work_pattern_id);
+    }
 }

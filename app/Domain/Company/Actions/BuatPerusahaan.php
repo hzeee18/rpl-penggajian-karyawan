@@ -21,7 +21,7 @@ final class BuatPerusahaan
 {
     /**
      * Role & hak bawaan bila perusahaan templat DEFAULT tidak ada (mis. dihapus saat cleansing, AUDIT.md §39).
-     * Hanya menu umum; menu payroll baru, hak HR/Admin lengkap, dan Super Admin dipasang AlihkanKePayrollBaru.
+     * Hanya menu umum; menu payroll baru, hak HR/Admin lengkap, dan Super Admin dipasang AktifkanModulPayroll.
      */
     public const ROLE_BAWAAN = [
         Role::ADMIN => [],
@@ -36,7 +36,9 @@ final class BuatPerusahaan
     public function handle(array $data): Company
     {
         return DB::transaction(function () use ($data): Company {
+            // default perusahaan baru: tanpa approval payroll dan tanpa penyetuju (AUDIT.md §77)
             $company = Company::create($data + ['is_active' => true]);
+            $company->forceFill(['payroll_butuh_approval' => false])->save();
             $templat = (int) Company::where('code', Company::DEFAULT_CODE)->value('id');
 
             // baca templat DEFAULT: query eksplisit ke perusahaan DEFAULT, bukan lintas perusahaan

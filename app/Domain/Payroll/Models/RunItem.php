@@ -8,8 +8,9 @@ use App\Domain\Company\Tenancy\BelongsToCompany;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Rincian komponen per karyawan per run. calculated_amount = hasil rumus; final_amount = nilai akhir
- * (bisa hasil edit/override). Override tidak tertimpa hitung ulang. Edit sel TIDAK dicatat di audit log.
+ * Rincian komponen per karyawan per run. calculated_amount = hasil rumus; final_amount = nilai akhir.
+ * Baris dengan payroll_item_id NULL dan kode adj_{component_id} = penyesuaian HR (pay_run_adjustments, AUDIT.md §52).
+ * is_overridden hanya ada di data lama (fitur ubah sel sudah diganti penyesuaian).
  */
 final class RunItem extends Model
 {

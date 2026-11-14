@@ -132,6 +132,54 @@ final class KelolaMasterPayroll
         });
     }
 
+    /** Hapus versi draft yang tidak dipakai (AUDIT.md §59). Versi terbit/terkunci/aktif, atau satu-satunya versi, tidak bisa dihapus. */
+    public function hapusVersi(MasterVersion $versi): void
+    {
+        DB::transaction(function () use ($versi) {
+            $versi = MasterVersion::lockForUpdate()->findOrFail($versi->id);
+            $this->pastikanDraft($versi);
+            if ((int) $versi->master->current_version_id === (int) $versi->id || $versi->master->versions()->count() <= 1) {
+                throw ValidationException::withMessages(['versi' => 'Versi ini satu-satunya versi master, jadi tidak bisa dihapus.']);
+            }
+            if (\App\Domain\Payroll\Models\PayrollRun::where('master_version_id', $versi->id)->exists()) {
+                throw ValidationException::withMessages(['versi' => 'Versi ini sudah dipakai payroll, jadi tidak bisa dihapus.']);
+            }
+            $this->audit->log('deleted', $versi, old: $versi->getAttributes());
+            $versi->delete(); // variabel, parameter, komponen ikut terhapus (cascade)
+        });
+    }
+
+    /** Master yang belum pernah terbit (semua versinya draft, tidak terkunci, tidak dipakai payroll) bisa dihapus (AUDIT.md §74). */
+    public static function bisaDihapus(Master $master): bool
+    {
+        $master->loadMissing('versions');
+
+        return $master->current_version_id === null
+            && $master->versions->every(fn (MasterVersion $v) => $v->status === 'draft' && ! $v->locked_at)
+            && ! \App\Domain\Payroll\Models\PayrollRun::whereIn('master_version_id', $master->versions->pluck('id'))->exists();
+    }
+
+    public function hapusMaster(Master $master): void
+    {
+        DB::transaction(function () use ($master) {
+            $master = Master::lockForUpdate()->findOrFail($master->id);
+            if (! self::bisaDihapus($master)) {
+                throw ValidationException::withMessages(['master' => 'Master yang sudah terbit tidak bisa dihapus. Nonaktifkan saja.']);
+            }
+            $this->audit->log('deleted', $master, old: $master->getAttributes());
+            $master->versions()->each(fn (MasterVersion $v) => $v->delete()); // variabel, parameter, komponen ikut terhapus (cascade)
+            $master->delete();
+        });
+    }
+
+    /** Master terbit tidak dihapus, hanya dinonaktifkan: tidak muncul di pilihan Generate Payroll; payroll lama tetap utuh. */
+    public function ubahStatus(Master $master, bool $aktif): void
+    {
+        $lama = $master->is_active;
+        $master->update(['is_active' => $aktif]);
+        $this->audit->log('updated', $master, old: ['is_active' => $lama], new: ['is_active' => $aktif]);
+    }
+
     private function pastikanDraft(MasterVersion $versi): void
     {
         if (! $versi->bisaDiubah()) {

@@ -21,9 +21,9 @@ final class SumberData
 {
     /** sumber => [field => keterangan] */
     public const FIELD = [
-        'attendances' => ['date' => 'tanggal hadir', 'weekday' => '1=Senin ... 7=Minggu', 'is_holiday' => 'hari libur perusahaan', 'check_in' => 'jam masuk HH:MM', 'check_out' => 'jam keluar HH:MM', 'late_hours' => 'jam terlambat'],
-        'leaves' => ['date' => 'tanggal leave', 'weekday' => '1-7', 'is_holiday' => 'hari libur', 'type' => 'kode tipe leave'],
-        'overtimes' => ['date' => 'tanggal lembur', 'weekday' => '1-7', 'is_holiday' => 'hari libur', 'hours' => 'durasi jam'],
+        'attendances' => ['date' => 'tanggal hadir', 'weekday' => '1=Senin ... 7=Minggu', 'is_holiday' => 'hari libur perusahaan', 'is_workday' => 'hari kerja menurut pola karyawan (bukan libur)', 'check_in' => 'jam masuk HH:MM', 'check_out' => 'jam keluar HH:MM', 'late_hours' => 'jam terlambat'],
+        'leaves' => ['date' => 'tanggal leave', 'weekday' => '1-7', 'is_holiday' => 'hari libur', 'is_workday' => 'hari kerja menurut pola karyawan', 'type' => 'kode tipe leave'],
+        'overtimes' => ['date' => 'tanggal lembur', 'weekday' => '1-7', 'is_holiday' => 'hari libur', 'is_workday' => 'hari kerja menurut pola karyawan (FALSE = lembur di hari libur/istirahat)', 'hours' => 'durasi jam'],
         'holidays' => ['date' => 'tanggal libur', 'weekday' => '1-7'],
         'employees' => ['join_date' => 'tanggal masuk', 'resign_date' => 'tanggal resign', 'ptkp' => 'status PTKP', 'has_npwp' => 'punya NPWP', 'department_code' => 'kode departemen', 'position_code' => 'kode jabatan'],
         'contracts' => ['start_date' => 'mulai kontrak', 'end_date' => 'akhir kontrak', 'name' => 'nama kontrak'],
@@ -40,10 +40,22 @@ final class SumberData
         private readonly CarbonImmutable $selesai,
     ) {}
 
-    /** @return array<string, true> tanggal libur perusahaan dalam periode */
+    /** @var list<int>|null */
+    private ?array $hariKerja = null;
+
+    /** @return list<int> hari ISO kerja karyawan ini (AUDIT.md §55) */
+    public function hariKerja(): array
+    {
+        return $this->hariKerja ??= $this->employee->hariKerja();
+    }
+
+    /** @return array<string, true> tanggal libur dalam periode: libur semua departemen + libur khusus departemen karyawan */
     public function libur(): array
     {
+        $dept = $this->employee->departemen_id;
+
         return $this->libur ??= Holiday::whereBetween('holiday_date', [$this->mulai->toDateString(), $this->selesai->toDateString()])
+            ->where(fn ($q) => $q->whereNull('departemen_id')->when($dept, fn ($w) => $w->orWhere('departemen_id', $dept)))
             ->pluck('holiday_date')->mapWithKeys(fn ($d) => [$d->toDateString() => true])->all();
     }
 
@@ -51,7 +63,8 @@ final class SumberData
     public function baris(string $sumber): array
     {
         $rentang = [$this->mulai->toDateString(), $this->selesai->toDateString()];
-        $hari = fn ($d) => ['date' => $d->toDateString(), 'weekday' => (int) $d->isoWeekday(), 'is_holiday' => isset($this->libur()[$d->toDateString()])];
+        $hari = fn ($d) => ['date' => $d->toDateString(), 'weekday' => (int) $d->isoWeekday(), 'is_holiday' => isset($this->libur()[$d->toDateString()]),
+            'is_workday' => in_array((int) $d->isoWeekday(), $this->hariKerja(), true) && ! isset($this->libur()[$d->toDateString()])];
         $emp = (int) $this->employee->id;
 
         return match ($sumber) {

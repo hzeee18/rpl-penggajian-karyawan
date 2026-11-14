@@ -34,6 +34,7 @@ final class KeputusanAksesTest extends TestCase
     {
         $this->artisan('payroll:aktifkan', ['kode' => 'DEFAULT']);
         PeriodConfig::create(['start_day' => 1, 'end_day' => 31, 'start_in_previous_month' => false]);
+        app(\App\Domain\Payroll\Actions\KelolaPeriode::class)->untukBulan('2026-11');
         $managerHr = User::where('username', 'manager.hr')->firstOrFail();
         $hr = User::where('username', 'hr')->firstOrFail();
 

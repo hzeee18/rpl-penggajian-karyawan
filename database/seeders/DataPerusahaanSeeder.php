@@ -7,7 +7,7 @@ namespace Database\Seeders;
 use App\Domain\Company\Models\Company;
 use App\Domain\Company\Tenancy\CurrentCompany;
 use App\Domain\Payroll\Actions\BuatKontrak;
-use App\Domain\Payroll\Actions\AlihkanKePayrollBaru;
+use App\Domain\Payroll\Actions\AktifkanModulPayroll;
 use App\Domain\Payroll\Models\Attendance;
 use App\Domain\Payroll\Models\Component;
 use App\Domain\Payroll\Models\Holiday;
@@ -54,7 +54,7 @@ final class DataPerusahaanSeeder extends Seeder
         'gaji_pokok' => ['Gaji Pokok', 'earning', true, true], 'uang_makan' => ['Uang Makan', 'earning', true, true],
         'tunjangan_transport' => ['Tunjangan Transport', 'earning', true, true], 'lembur' => ['Lembur', 'earning', true, false],
         'potongan_alpha' => ['Potongan Alpha', 'deduction', false, false], 'potongan_terlambat' => ['Potongan Terlambat', 'deduction', false, false],
-        'bpjs_tk' => ['BPJS Ketenagakerjaan', 'deduction', false, true], 'bpjs_kes' => ['BPJS Kesehatan', 'deduction', false, true],
+        'bpjs_tk' => ['BPJS Ketenagakerjaan', 'deduction', false, false], 'bpjs_kes' => ['BPJS Kesehatan', 'deduction', false, false], // dihitung di Master Payroll (AUDIT.md §73)
         'pph21' => ['PPh21 TER', 'deduction', false, false],
     ];
 
@@ -120,11 +120,14 @@ final class DataPerusahaanSeeder extends Seeder
         $cutoff = $opsi['cutoff'] ?? ['start_day' => 1, 'end_day' => 31, 'start_in_previous_month' => false];
         $varian = $opsi['varian'] ?? 'lengkap';
         $user = self::username($company->code);
-        app(AlihkanKePayrollBaru::class)->handle((int) $company->id);
+        app(AktifkanModulPayroll::class)->handle((int) $company->id);
 
         return app(CurrentCompany::class)->runAs((int) $company->id, function () use ($company, $opsi, $jumlah, $awalan, $cutoff, $varian, $user) {
             return DB::transaction(function () use ($company, $opsi, $jumlah, $awalan, $cutoff, $varian, $user) {
                 $config = PeriodConfig::create($cutoff);
+                foreach (['2026-10', '2026-11', '2026-12'] as $bulan) { // Kalender Payroll > Periode (AUDIT.md §53-54)
+                    app(\App\Domain\Payroll\Actions\KelolaPeriode::class)->untukBulan($bulan);
+                }
                 foreach (self::LIBUR_TETAP_2026 as $tgl => $ket) {
                     Holiday::create(['holiday_date' => $tgl, 'name' => $ket]);
                 }
@@ -132,6 +135,7 @@ final class DataPerusahaanSeeder extends Seeder
                     LeaveType::create(['code' => $c, 'name' => $n]);
                 }
                 $jabatan = [Position::create(['code' => 'STF', 'name' => 'Staf']), Position::create(['code' => 'SPV', 'name' => 'Supervisor'])];
+                $posManager = Position::create(['code' => 'MGR', 'name' => 'Manager']);
                 $dept = [Departemen::create(['kode' => 'HRD', 'nama' => 'Human Resource']), Departemen::create(['kode' => 'OPS', 'nama' => 'Operasional'])];
                 $pajak = Pajak::orderBy('id')->pluck('id')->all();
                 $domain = strtolower((string) preg_replace('/[^A-Za-z0-9]/', '', $company->code)).'.test';
@@ -149,8 +153,11 @@ final class DataPerusahaanSeeder extends Seeder
                     ]);
                     DB::table('karyawan')->where('id', $karyawan[$i]->id)->update(['position_id' => $jabatan[$i % 2]->id]);
                 }
+                // karyawan pertama = manager (akun manager.<kode>): jabatannya Manager, konsisten dengan role-nya
+                $karyawan[0]->forceFill(['jabatan' => 'Manager'])->save();
+                DB::table('karyawan')->where('id', $karyawan[0]->id)->update(['position_id' => $posManager->id]);
                 $dept[0]->aturManager([$karyawan[0]->id]);
-                $dept[1]->aturManager([$karyawan[0]->id]);
+                // Operasional: manager diisi seeder lain (karyawan massal); sebelum itu kosong, bukan manager HRD
 
                 $role = fn (string $n) => Role::where('nama', $n)->value('id');
                 $buatUser = fn (string $u, string $r, ?Karyawan $k) => User::create(['role_id' => $role($r), 'karyawan_id' => $k?->id, 'username' => $u,
@@ -168,8 +175,7 @@ final class DataPerusahaanSeeder extends Seeder
                 }
                 $nilaiKontrak = [
                     'gaji_pokok' => fn (int $i) => 5000000 + $i * 250000, 'uang_makan' => fn (int $i) => 550000 + ($i % 3) * 50000,
-                    'tunjangan_transport' => fn (int $i) => 400000 + ($i % 4) * 25000, 'bpjs_tk' => fn (int $i) => 100000 + $i * 5000,
-                    'bpjs_kes' => fn (int $i) => 50000,
+                    'tunjangan_transport' => fn (int $i) => 400000 + ($i % 4) * 25000,
                 ];
                 foreach ($karyawan as $i => $k) {
                     $nilai = [];
@@ -187,10 +193,28 @@ final class DataPerusahaanSeeder extends Seeder
                     $config->rentang(now()->format('Y-m'))[1]->toDateString(),
                 ];
                 $this->kehadiran($karyawan, $rentang);
+                self::namaiKontrak();
 
                 return $komponen;
             });
         });
+    }
+
+    /**
+     * Nama kontrak dummy berupa kode, format sama dengan nomor kontrak aplikasi lama:
+     * PKWT/OPS/0012/XI/2026 (jenis / kode departemen / urutan per tahun / bulan romawi / tahun mulai).
+     * Menamai ulang semua kontrak perusahaan aktif, urut tanggal mulai. PKWTT bila tanpa tanggal akhir.
+     */
+    public static function namaiKontrak(): void
+    {
+        $urut = [];
+        $romawi = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+        foreach (\App\Domain\Payroll\Models\Contract::with('employee.departemen')->orderBy('start_date')->orderBy('id')->get() as $c) {
+            $tahun = $c->start_date->year;
+            $urut[$tahun] = ($urut[$tahun] ?? 0) + 1;
+            $nama = sprintf('%s/%s/%04d/%s/%d', $c->end_date ? 'PKWT' : 'PKWTT', $c->employee?->departemen?->kode ?? 'UMUM', $urut[$tahun], $romawi[$c->start_date->month - 1], $tahun);
+            \App\Domain\Payroll\Models\Contract::whereKey($c->id)->update(['contract_name' => $nama]);
+        }
     }
 
     /**

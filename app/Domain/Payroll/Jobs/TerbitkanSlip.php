@@ -28,6 +28,7 @@ final class TerbitkanSlip implements ShouldQueue
 
     public function handle(CurrentCompany $konteks, BuatPdfSlip $pdf): void
     {
+        @set_time_limit(0); // pembuatan PDF ratusan slip: jangan kena batas 30 detik saat antrean memakai driver sync (temuan QA)
         $konteks->runAs($this->companyId, function () use ($pdf) {
             $run = PayrollRun::findOrFail($this->runId);
             if ($run->status !== PayrollRun::APPROVED) {

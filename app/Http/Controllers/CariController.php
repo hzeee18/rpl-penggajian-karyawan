@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Karyawan;
 use App\Models\Menu;
-use App\Models\Payslip;
 use Illuminate\Http\Request;
 
 /** Pencarian cepat di header: menu, karyawan, dan slip gaji sesuai hak akses role. */
@@ -43,20 +42,15 @@ class CariController extends Controller
             }
         }
 
-        // Slip gaji (HR semua, lainnya milik sendiri)
-        if ($user->bisa('slip')) {
-            $semua = $user->isRole('Admin') || $user->actsAsHr();
-            $dasar = Payslip::with(['payroll', 'karyawan'])->whereHas('payroll', fn ($w) => $w->where('status', 'final'))
-                ->join('payroll', 'payroll.id', '=', 'payslip.payroll_id')->orderByDesc('payroll.periode')->select('payslip.*');
-            $slip = ($semua
-                ? $dasar->where(fn ($w) => $w->whereHas('karyawan', fn ($k) => $k->where('nama', 'like', "%$q%")->orWhere('nik', 'like', "%$q%"))
-                    ->orWhere('payroll.periode', 'like', "%$q%"))->limit(5)->get()
-                // slip milik sendiri: cocokkan dengan nama bulan, mis. "oktober" atau "2026-10"
-                : $dasar->where('karyawan_id', $user->karyawan_id)->get()
-                    ->filter(fn ($s) => str_contains(mb_strtolower('slip gaji ' . nama_periode($s->payroll->periode) . ' ' . $s->payroll->periode), mb_strtolower($q)))->take(4))
+        // Slip gaji milik sendiri (modul payroll), cocokkan dengan judul payroll, mis. "oktober"
+        if ($user->bisa('pay-slip') && $user->karyawan_id) {
+            $slip = \App\Domain\Payroll\Models\Payslip::with('runEmployee.run')->where('employee_id', $user->karyawan_id)
+                ->whereHas('runEmployee.run', fn ($r) => $r->where('status', \App\Domain\Payroll\Models\PayrollRun::APPROVED))
+                ->orderByDesc('id')->get()
+                ->filter(fn ($s) => str_contains(mb_strtolower('slip gaji ' . $s->runEmployee->run->title), mb_strtolower($q)))->take(4)
                 ->map(fn ($s) => [
-                    'judul' => 'Slip ' . nama_periode($s->payroll->periode), 'sub' => $s->karyawan->nama . ' · ' . rupiah($s->thp),
-                    'ikon' => 'receipt-text', 'url' => route('slip.show', $s),
+                    'judul' => 'Slip ' . $s->runEmployee->run->title, 'sub' => rupiah($s->runEmployee->take_home_pay),
+                    'ikon' => 'receipt-text', 'url' => route('pay.slip.show', $s->id),
                 ])->values();
             if ($slip->isNotEmpty()) {
                 $grup[] = ['nama' => 'Slip gaji', 'item' => $slip];

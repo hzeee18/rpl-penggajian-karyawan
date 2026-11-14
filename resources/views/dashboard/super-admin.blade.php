@@ -62,7 +62,7 @@
     </div>
     <div class="table-responsive">
         <table class="table table-hover" id="tabelPerusahaan">
-            <thead><tr><th>Kode</th><th>Perusahaan</th><th class="text-center">Karyawan</th><th class="text-center">Kontrak payroll</th><th class="text-center">User aktif</th><th class="text-center">Admin</th><th>Payroll terakhir</th><th>Status</th><th>Aksi</th></tr></thead>
+            <thead><tr><th>Kode</th><th>Perusahaan</th><th class="text-center">Karyawan</th><th class="text-center">Kontrak payroll</th><th class="text-center">User aktif</th><th class="text-center">Admin</th><th>Payroll terakhir</th><th>Status</th><th class="text-center">Aksi</th></tr></thead>
             <tbody>
             @forelse ($perusahaan as $p)
                 <tr data-cari="{{ strtolower($p->code . ' ' . $p->name) }}">
@@ -74,7 +74,7 @@
                     <td class="text-center">@if ($p->admin){{ $p->admin }}@else<span class="badge badge-soft-warning">Belum ada</span>@endif</td>
                     <td>@if ($p->run)<div class="fw-medium">{{ $p->run->title }}</div><div class="small text-muted">{{ ['draft' => 'Draft', 'pending_approval' => 'Menunggu approval', 'approved' => 'Disetujui', 'rejected' => 'Ditolak'][$p->run->status] ?? $p->run->status }}</div>@else<span class="text-muted">-</span>@endif</td>
                     <td>{!! badge_status($p->aktif ? 'aktif' : 'nonaktif') !!}</td>
-                    <td class="text-nowrap"><div class="d-inline-flex gap-2">
+                    <td class="text-nowrap text-center"><div class="d-inline-flex gap-2 justify-content-center">
                         <a href="{{ route('perusahaan.index', ['admin' => $p->id]) }}" class="btn btn-light btn-icon" title="Akun Admin perusahaan"><i data-lucide="user-cog"></i></a>
                         <a href="{{ route('perusahaan.index', ['ubah' => $p->id]) }}" class="btn btn-light btn-icon" title="Ubah perusahaan"><i data-lucide="pencil"></i></a>
                     </div></td>

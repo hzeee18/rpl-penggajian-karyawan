@@ -31,7 +31,7 @@ final class UbahKontrak
                 throw ValidationException::withMessages(['contract' => 'Hanya kontrak aktif yang bisa diubah.']);
             }
             if ($kontrak->terkunci()) {
-                throw ValidationException::withMessages(['contract' => 'Kontrak ini sudah dipakai payroll yang diajukan/disetujui. Gunakan Perbarui untuk membuat versi baru.']);
+                throw ValidationException::withMessages(['contract' => 'Kontrak ini sudah dipakai payroll yang menunggu persetujuan atau sudah disetujui. Gunakan Perbarui untuk membuat kontrak baru.']);
             }
 
             $lamaKomponen = $kontrak->components()->pluck('amount', 'component_id')->map(fn ($a) => (string) $a)->all();

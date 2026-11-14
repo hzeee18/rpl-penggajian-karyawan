@@ -480,3 +480,57 @@ code.rumus { font-size: 12.5px; color: #0f4c75; background: var(--primary-50); p
     .stat-row.sebaris.padat .label { font-size: 12px; }
 }
 @media (max-width: 575px) { .stat-row.sebaris .stat-card { flex: 1 1 calc(50% - 6px); } .stat-row.sebaris .card-body { padding: 12px; } .stat-row.sebaris .angka { font-size: 13.5px; } }
+
+/* Pemilih bulan (form.js) */
+.pop-bulan { position: absolute; z-index: 1080; width: 248px; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 12px; box-shadow: 0 8px 24px rgba(15, 23, 42, .12); }
+.pop-bulan .grid-bulan { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+
+/* Dropdown versi Master Payroll: baris terpilih biru muda (bukan biru solid), ikon hapus draft di baris */
+.pilih-versi .dropdown-menu { min-width: 260px; max-height: 340px; overflow: auto; padding: 6px; }
+.pilih-versi .item-versi { display: flex; align-items: center; gap: 4px; border-radius: 6px; }
+.pilih-versi .item-versi .dropdown-item { display: flex; align-items: center; gap: 8px; border-radius: 6px; padding: 8px 10px; font-weight: 500; }
+.pilih-versi .item-versi.terpilih, .pilih-versi .item-versi.terpilih .dropdown-item { background: var(--primary-50); color: var(--primary-700); }
+.pilih-versi .item-versi .dropdown-item:active { background: var(--primary-100); color: var(--primary-700); }
+.pilih-versi .btn-hapus-versi { width: 32px; height: 32px; flex: none; color: #b91c1c; border: 0; background: transparent; }
+.pilih-versi .btn-hapus-versi:hover { background: #fee2e2; }
+
+/* Filter absensi/leave/lembur: kolom sama lebar dan sejajar */
+.filter-bar.filter-kehadiran { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.filter-bar.filter-kehadiran.dengan-rentang { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 991px) { .filter-bar.filter-kehadiran, .filter-bar.filter-kehadiran.dengan-rentang { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 575px) { .filter-bar.filter-kehadiran, .filter-bar.filter-kehadiran.dengan-rentang { grid-template-columns: 1fr; } }
+
+/* Detail Generate Payroll (Figma "Riwayat Payroll - Detail Periode") */
+.kesiapan { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 8px 16px; }
+.item-kesiapan { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; }
+.item-kesiapan > i { width: 20px; height: 20px; flex: none; }
+.ringkasan-payroll .stat-card.utama { border-color: var(--primary-600); }
+.ringkasan-payroll .angka { white-space: nowrap; }
+.tabel-payroll th, .tabel-payroll td { padding-left: 16px; padding-right: 16px; }
+.tabel-payroll td.text-end, .tabel-payroll th.text-end { min-width: 130px; }
+
+/* Tabel rincian payroll: kolom karyawan dan gaji bersih tetap terlihat saat tabel digeser ke samping */
+.tabel-payroll th:first-child, .tabel-payroll td:first-child { position: sticky; left: 0; z-index: 1; background: #fff; box-shadow: 1px 0 0 var(--border); }
+.tabel-payroll .kol-thp { position: sticky; right: 0; z-index: 1; background: #fff; box-shadow: -1px 0 0 var(--border); min-width: 160px; }
+.tabel-payroll thead th:first-child, .tabel-payroll thead .kol-thp { background: var(--bs-table-bg, #f8fafc); }
+.tabel-payroll tbody tr:hover td:first-child, .tabel-payroll tbody tr:hover .kol-thp { background: #f8fafc; }
+/* Gaji bersih: header sama seperti kolom lain, angka cukup ditonjolkan lewat warna teks (tanpa latar) */
+.tabel-payroll td.kol-thp { color: var(--primary-700); font-weight: 700; }
+/* Tabel ringkasan departemen selebar kartu lain; kolom angka berlebar proporsional, nama departemen mengisi sisa */
+.tabel-departemen th, .tabel-departemen td { white-space: nowrap; }
+.tabel-departemen th:first-child, .tabel-departemen td.kode { width: 70px; }
+.tabel-departemen th:last-child { width: 70px; }
+
+/* Detail payroll: kartu ringkasan grid rata, checklist & form preview rapi */
+.ringkasan-payroll { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; }
+.ringkasan-payroll > .ringkas-kartu { flex: 1 1 200px; margin: 0; } /* kartu meregang mengisi baris, tidak ada sisa kosong */
+.ringkas-kartu .card-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; height: 100%; }
+.ringkas-kartu .label { font-size: 12px; font-weight: 500; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ringkas-kartu .angka { font-size: clamp(16px, 1.35vw, 19px); font-weight: 700; line-height: 1.3; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ringkas-kartu .ket { font-size: 12px; color: var(--text-muted, #94a3b8); }
+.ringkas-kartu.utama { border-color: var(--primary-600); }
+.ringkas-kartu.utama .angka { color: var(--primary-700); }
+.item-kesiapan { min-height: 64px; }
+.item-kesiapan .btn { flex: none; }
+.form-preview { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; }
+.form-preview select { width: 240px; }

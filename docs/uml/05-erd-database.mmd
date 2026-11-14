@@ -1,0 +1,488 @@
+---
+title: ERD Database Aplikasi Penggajian (Multi-Perusahaan)
+---
+erDiagram
+  audit_logs {
+    int id PK
+    int company_id
+    int user_id
+    varchar action
+    varchar entity_type
+    int entity_id
+    text old_values
+    text new_values
+    varchar ip_address
+    datetime created_at
+  }
+  companies {
+    int id PK
+    varchar code
+    varchar name
+    text address
+    varchar logo_path
+    varchar signer_name
+    varchar signer_title
+    varchar signature_path
+    bool is_active
+    bool payroll_baru
+    bool payroll_butuh_approval
+    bool slip_pakai_password
+    varchar prorata_dasar
+  }
+  departemen {
+    int id PK
+    varchar kode
+    varchar nama
+    int manager_id FK
+    int company_id FK
+    int pay_work_pattern_id FK
+  }
+  departemen_manager {
+    int id PK
+    int departemen_id FK
+    int karyawan_id FK
+    int company_id FK
+  }
+  karyawan {
+    int id PK
+    int departemen_id FK
+    int pajak_id FK
+    varchar nik
+    varchar nama
+    varchar jabatan
+    date tgl_masuk
+    varchar no_rekening
+    varchar jenis_kelamin
+    varchar email
+    varchar telepon
+    text alamat
+    varchar nama_bank
+    varchar status_kepegawaian
+    int sisa_cuti
+    bool is_active
+    int company_id FK
+    int position_id FK
+    date resign_date
+    bool has_npwp
+    text npwp
+    text bank_account_no
+    int pay_work_pattern_id FK
+  }
+  menus {
+    int id PK
+    int parent_id FK
+    varchar nama
+    varchar url
+    varchar icon
+    int urutan
+  }
+  pajak {
+    int id PK
+    varchar status_ptkp
+    decimal nilai_ptkp
+    int golongan_ter_id FK
+  }
+  pay_attendances {
+    int id PK
+    int company_id FK
+    int employee_id FK
+    date attendance_date
+    time check_in
+    time check_out
+    decimal late_hours
+    int import_batch_id FK
+  }
+  pay_components {
+    int id PK
+    int company_id FK
+    varchar code
+    varchar name
+    varchar type
+    bool is_taxable
+    bool is_contractable
+    decimal default_amount
+    bool is_active
+  }
+  pay_contract_components {
+    int id PK
+    int company_id FK
+    int contract_id FK
+    int component_id FK
+    decimal amount
+  }
+  pay_contracts {
+    int id PK
+    int company_id FK
+    int employee_id FK
+    int previous_contract_id FK
+    varchar contract_name
+    date start_date
+    date end_date
+    bool is_active
+    decimal info_thp
+    int created_by FK
+  }
+  pay_holidays {
+    int id PK
+    int company_id FK
+    date holiday_date
+    int departemen_id FK
+    varchar type
+    varchar name
+  }
+  pay_periods {
+    int id PK
+    int company_id FK
+    char period_month
+    date start_date
+    date end_date
+    int created_by FK
+  }
+  pay_run_adjustments {
+    int id PK
+    int company_id FK
+    int run_id FK
+    int employee_id FK
+    int component_id FK
+    decimal amount
+    varchar note
+    int created_by FK
+  }
+  pay_work_patterns {
+    int id PK
+    int company_id FK
+    varchar code
+    varchar name
+    varchar work_days
+    bool is_default
+  }
+  pay_import_batch_rows {
+    int id PK
+    int company_id FK
+    int batch_id FK
+    int row_no
+    text payload
+    bool is_valid
+    varchar error_message
+  }
+  pay_import_batches {
+    int id PK
+    int company_id FK
+    varchar type
+    varchar file_name
+    int total_rows
+    int valid_rows
+    varchar status
+    int created_by FK
+    datetime committed_at
+  }
+  pay_items {
+    int id PK
+    int company_id FK
+    int master_version_id FK
+    int component_id FK
+    varchar code
+    varchar name
+    varchar type
+    bool is_taxable
+    varchar calc_type
+    text formula
+    varchar item_role
+    int sort_order
+  }
+  pay_leave_types {
+    int id PK
+    int company_id FK
+    varchar code
+    varchar name
+    bool is_active
+  }
+  pay_leaves {
+    int id PK
+    int company_id FK
+    int employee_id FK
+    int leave_type_id FK
+    date leave_date
+    varchar note
+    int import_batch_id FK
+  }
+  pay_master_versions {
+    int id PK
+    int company_id FK
+    int master_id FK
+    int version_no
+    varchar status
+    varchar note
+    datetime published_at
+    datetime locked_at
+    int created_by FK
+  }
+  pay_masters {
+    int id PK
+    int company_id FK
+    varchar code
+    varchar name
+    varchar description
+    int current_version_id FK
+    bool is_active
+  }
+  pay_overtimes {
+    int id PK
+    int company_id FK
+    int employee_id FK
+    date overtime_date
+    decimal duration_hours
+    varchar note
+    int import_batch_id FK
+  }
+  pay_params {
+    int id PK
+    int company_id FK
+    int master_version_id FK
+    varchar code
+    varchar name
+    decimal value
+  }
+  pay_payslips {
+    int id PK
+    int company_id FK
+    int run_employee_id FK
+    int employee_id FK
+    varchar file_path
+    datetime generated_at
+    varchar note
+  }
+  pay_period_configs {
+    int id PK
+    int company_id FK
+    int start_day
+    int end_day
+    bool start_in_previous_month
+  }
+  pay_positions {
+    int id PK
+    int company_id FK
+    varchar code
+    varchar name
+    bool is_active
+  }
+  pay_reference_table_rows {
+    int id PK
+    int company_id FK
+    int version_id FK
+    varchar key_value
+    decimal range_from
+    decimal range_to
+    decimal result_number
+    varchar result_text
+    int sort_order
+  }
+  pay_reference_table_versions {
+    int id PK
+    int company_id FK
+    int reference_table_id FK
+    int version_no
+    varchar status
+    date effective_from
+    datetime published_at
+    datetime locked_at
+    int created_by FK
+  }
+  pay_reference_tables {
+    int id PK
+    int company_id FK
+    varchar code
+    varchar name
+    varchar description
+    bool is_active
+  }
+  pay_run_employees {
+    int id PK
+    int run_id FK
+    int company_id FK
+    int employee_id FK
+    int contract_id FK
+    date period_start
+    date period_end
+    bool is_blocking
+    varchar employee_no
+    varchar nik
+    varchar full_name
+    varchar department_name
+    varchar position_name
+    varchar ptkp_status
+    varchar bank_name
+    text bank_account_no
+    text variables_snapshot
+    decimal total_earnings
+    decimal total_deductions
+    decimal gross_taxable
+    decimal take_home_pay
+  }
+  pay_run_items {
+    int id PK
+    int company_id FK
+    int run_employee_id FK
+    int payroll_item_id FK
+    int component_id FK
+    varchar code
+    varchar name
+    varchar type
+    bool is_taxable
+    int sort_order
+    decimal calculated_amount
+    decimal final_amount
+    bool is_overridden
+  }
+  pay_run_reference_versions {
+    int run_id PK, FK
+    int reference_table_id PK, FK
+    int reference_version_id FK
+  }
+  pay_runs {
+    int id PK
+    int company_id FK
+    varchar title
+    date period_start
+    date period_end
+    int master_version_id FK
+    varchar employee_scope
+    text employee_selection
+    varchar status
+    varchar job_type
+    varchar job_status
+    text job_error
+    datetime job_started_at
+    datetime job_finished_at
+    text skipped_employees
+    int created_by FK
+    int approver_user_id FK
+    datetime generated_at
+    datetime approved_at
+    datetime rejected_at
+    varchar reject_reason
+  }
+  pay_tax_monthly_histories {
+    int id PK
+    int company_id FK
+    int employee_id FK
+    int run_id FK
+    int tax_year
+    int tax_month
+    varchar ter_category
+    decimal ter_rate
+    decimal gross_taxable
+    decimal pph21
+  }
+  pay_variables {
+    int id PK
+    int company_id FK
+    int master_version_id FK
+    varchar code
+    varchar name
+    varchar kind
+    varchar source
+    text filter_expression
+    varchar value_expression
+    varchar aggregate
+    text formula
+    int sort_order
+  }
+  privileges {
+    int id PK
+    int role_id FK
+    int menu_id FK
+    bool can_view
+    bool can_create
+    bool can_update
+    bool can_delete
+    bool can_approve
+    int company_id FK
+  }
+  roles {
+    int id PK
+    varchar nama
+    int company_id FK
+  }
+  users {
+    int id PK
+    int role_id FK
+    int karyawan_id FK
+    varchar username
+    varchar email
+    bool is_active
+    int gagal_login
+    bool is_locked
+    datetime last_login
+    int company_id FK
+    int approver_user_id FK
+  }
+  karyawan ||--o{ departemen : "manager_id"
+  companies ||--o{ departemen : "company_id"
+  karyawan ||--o{ departemen_manager : "karyawan_id"
+  departemen ||--o{ departemen_manager : "departemen_id"
+  pay_positions ||--o{ karyawan : "position_id"
+  companies ||--o{ karyawan : "company_id"
+  departemen ||--o{ karyawan : "departemen_id"
+  pajak ||--o{ karyawan : "pajak_id"
+  menus ||--o{ menus : "parent_id"
+  pay_import_batches ||--o{ pay_attendances : "import_batch_id"
+  karyawan ||--o{ pay_attendances : "employee_id"
+  pay_components ||--o{ pay_contract_components : "component_id"
+  pay_contracts ||--o{ pay_contract_components : "contract_id"
+  users ||--o{ pay_contracts : "created_by"
+  pay_contracts ||--o{ pay_contracts : "previous_contract_id"
+  karyawan ||--o{ pay_contracts : "employee_id"
+  companies ||--o{ pay_contracts : "company_id"
+  pay_import_batches ||--o{ pay_import_batch_rows : "batch_id"
+  users ||--o{ pay_import_batches : "created_by"
+  pay_components ||--o{ pay_items : "component_id"
+  pay_master_versions ||--o{ pay_items : "master_version_id"
+  pay_import_batches ||--o{ pay_leaves : "import_batch_id"
+  pay_leave_types ||--o{ pay_leaves : "leave_type_id"
+  karyawan ||--o{ pay_leaves : "employee_id"
+  users ||--o{ pay_master_versions : "created_by"
+  pay_masters ||--o{ pay_master_versions : "master_id"
+  pay_master_versions ||--o{ pay_masters : "current_version_id"
+  companies ||--o{ pay_masters : "company_id"
+  pay_import_batches ||--o{ pay_overtimes : "import_batch_id"
+  karyawan ||--o{ pay_overtimes : "employee_id"
+  pay_master_versions ||--o{ pay_params : "master_version_id"
+  karyawan ||--o{ pay_payslips : "employee_id"
+  pay_run_employees ||--o{ pay_payslips : "run_employee_id"
+  pay_reference_table_versions ||--o{ pay_reference_table_rows : "version_id"
+  users ||--o{ pay_reference_table_versions : "created_by"
+  pay_reference_tables ||--o{ pay_reference_table_versions : "reference_table_id"
+  companies ||--o{ pay_reference_tables : "company_id"
+  pay_contracts ||--o{ pay_run_employees : "contract_id"
+  karyawan ||--o{ pay_run_employees : "employee_id"
+  pay_runs ||--o{ pay_run_employees : "run_id"
+  pay_components ||--o{ pay_run_items : "component_id"
+  pay_items ||--o{ pay_run_items : "payroll_item_id"
+  pay_run_employees ||--o{ pay_run_items : "run_employee_id"
+  pay_reference_table_versions ||--o{ pay_run_reference_versions : "reference_version_id"
+  pay_reference_tables ||--o{ pay_run_reference_versions : "reference_table_id"
+  pay_runs ||--o{ pay_run_reference_versions : "run_id"
+  companies ||--o{ pay_periods : "company_id"
+  departemen ||--o{ pay_holidays : "departemen_id"
+  pay_work_patterns ||--o{ departemen : "pay_work_pattern_id"
+  pay_work_patterns ||--o{ karyawan : "pay_work_pattern_id"
+  companies ||--o{ pay_work_patterns : "company_id"
+  pay_runs ||--o{ pay_run_adjustments : "run_id"
+  karyawan ||--o{ pay_run_adjustments : "employee_id"
+  pay_components ||--o{ pay_run_adjustments : "component_id"
+  users ||--o{ pay_run_adjustments : "created_by"
+  users ||--o{ pay_runs : "approver_user_id"
+  users ||--o{ pay_runs : "created_by"
+  pay_master_versions ||--o{ pay_runs : "master_version_id"
+  companies ||--o{ pay_runs : "company_id"
+  pay_runs ||--o{ pay_tax_monthly_histories : "run_id"
+  karyawan ||--o{ pay_tax_monthly_histories : "employee_id"
+  pay_master_versions ||--o{ pay_variables : "master_version_id"
+  roles ||--o{ privileges : "role_id"
+  menus ||--o{ privileges : "menu_id"
+  companies ||--o{ roles : "company_id"
+  users ||--o{ users : "approver_user_id"
+  karyawan ||--o{ users : "karyawan_id"
+  roles ||--o{ users : "role_id"
+  companies ||--o{ users : "company_id"

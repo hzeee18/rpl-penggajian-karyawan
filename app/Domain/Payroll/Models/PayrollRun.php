@@ -78,4 +78,22 @@ final class PayrollRun extends Model
     {
         return in_array($this->job_status, ['queued', 'running'], true);
     }
+
+    /** Proses antre/berjalan lebih dari 15 menit dianggap macet (worker mati / error fatal) dan boleh dibatalkan HR. */
+    public const BATAS_MACET_MENIT = 15;
+
+    public function macet(): bool
+    {
+        $sejak = $this->job_status === 'running' ? ($this->job_started_at ?? $this->updated_at) : $this->updated_at;
+
+        return $this->sedangDiproses() && $sejak !== null && $sejak->lt(now()->subMinutes(self::BATAS_MACET_MENIT));
+    }
+
+    /** Dipakai job: apakah proses yang dimulai pada $mulai masih yang berlaku (belum dibatalkan / diganti proses baru). */
+    public static function prosesMasihBerlaku(int $id, mixed $mulai): bool
+    {
+        $r = self::query()->whereKey($id)->first(['job_status', 'job_started_at']);
+
+        return $r !== null && $r->job_status === 'running' && (string) $r->job_started_at === (string) $mulai;
+    }
 }

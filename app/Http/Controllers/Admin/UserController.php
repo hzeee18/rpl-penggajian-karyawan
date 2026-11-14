@@ -36,14 +36,13 @@ class UserController extends Controller
             'user' => new User(['is_active' => true, 'karyawan_id' => $request->karyawan_id]),
             'roles' => Role::orderBy('id')->get(),
             'karyawan' => Karyawan::where('is_active', true)->doesntHave('user')->orderBy('nama')->get(),
-        ] + $this->dataApprover());
+        ]);
     }
 
     public function store(Request $request)
     {
         $data = $this->validasi($request);
         $u = User::create($data);
-        $this->simpanApprover($u, $data);
         LogAktivitas::catat('Buat akun ' . $u->namaTampil(), 'User');
 
         return redirect()->route('users.index')->with('sukses', 'User berhasil dibuat.');
@@ -56,7 +55,7 @@ class UserController extends Controller
             'roles' => Role::orderBy('id')->get(),
             'karyawan' => Karyawan::where('is_active', true)
                 ->where(fn ($q) => $q->doesntHave('user')->orWhere('id', $user->karyawan_id))->orderBy('nama')->get(),
-        ] + $this->dataApprover($user));
+        ]);
     }
 
     public function update(Request $request, User $user)
@@ -66,7 +65,6 @@ class UserController extends Controller
             unset($data['password']);
         }
         $user->update($data);
-        $this->simpanApprover($user, $data);
         LogAktivitas::catat('Ubah akun ' . $user->namaTampil(), 'User');
 
         return redirect()->route('users.index')->with('sukses', 'User berhasil diubah.');
@@ -103,7 +101,7 @@ class UserController extends Controller
     private function validasi(Request $request, ?User $user = null): array
     {
         $data = $request->validate([
-            'username' => ['required', 'alpha_dash', 'max:50', Rule::unique('users')->ignore($user)],
+            'username' => ['required', 'regex:/^[A-Za-z0-9._-]+$/', 'max:50', Rule::unique('users')->ignore($user)], // sama dengan akun admin perusahaan: titik boleh (mis. hr.mts)
             'email' => ['nullable', 'email', 'max:100'],
             'role_id' => ['required', \App\Domain\Company\Tenancy\TenantRule::exists('roles')],
             'karyawan_id' => ['nullable', \App\Domain\Company\Tenancy\TenantRule::exists('karyawan'), Rule::unique('users')->ignore($user)],
@@ -112,40 +110,6 @@ class UserController extends Controller
         ]);
         $data['is_active'] = $request->boolean('is_active');
 
-        // payroll baru: approver payroll diisi langsung di form user (khusus role HR), AUDIT.md §42
-        if (\App\Domain\Payroll\ModulPayroll::aktif() && $request->has('form_approver')) {
-            $approver = $request->validate(['approver_user_id' => ['nullable', 'integer', \App\Domain\Company\Tenancy\TenantRule::exists('users')]])['approver_user_id'] ?? null;
-            $roleHr = Role::whereKey($data['role_id'])->value('nama') === Role::HR;
-            if ($approver !== null && $roleHr) {
-                $m = User::with('role')->find($approver);
-                if (($user && (int) $m->id === (int) $user->id) || ! $m->is_active || $m->role?->nama !== Role::MANAGER) {
-                    throw \Illuminate\Validation\ValidationException::withMessages(['approver_user_id' => 'Approver harus user Manager aktif dan bukan user itu sendiri.']);
-                }
-            }
-            $data['approver_user_id'] = $roleHr ? $approver : null;
-        }
-
         return $data;
-    }
-
-    /** approver_user_id bukan kolom fillable User (model lama tidak diubah): disimpan eksplisit bila form mengirimnya. */
-    private function simpanApprover(User $user, array $data): void
-    {
-        if (array_key_exists('approver_user_id', $data)) {
-            $user->forceFill(['approver_user_id' => $data['approver_user_id']])->save();
-        }
-    }
-
-    /** Data pilihan approver payroll untuk form user (hanya perusahaan yang memakai payroll baru). */
-    private function dataApprover(?User $user = null): array
-    {
-        $aktif = \App\Domain\Payroll\ModulPayroll::aktif();
-
-        return [
-            'payrollBaru' => $aktif,
-            'managerApprover' => $aktif ? User::with('karyawan')->where('is_active', true)->whereHas('role', fn ($q) => $q->where('nama', Role::MANAGER))
-                ->when($user?->id, fn ($q, $id) => $q->where('id', '!=', $id))->orderBy('username')->get() : collect(),
-            'roleHrId' => $aktif ? Role::where('nama', Role::HR)->value('id') : null,
-        ];
     }
 }

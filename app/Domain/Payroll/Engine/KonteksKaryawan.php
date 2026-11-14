@@ -27,11 +27,13 @@ final class KonteksKaryawan implements KonteksRumus
     /**
      * @param  array<string, string>  $kontrak  kode komponen => nominal
      * @param  array<string, true>  $libur  tanggal libur
+     * @param  list<int>  $hariKerjaPola  hari ISO kerja karyawan (pola hari kerja, AUDIT.md §55)
      */
     public function __construct(
         private readonly array $kontrak,
         private readonly array $libur,
         private readonly string $tanggalAcuan,
+        private readonly array $hariKerjaPola = [1, 2, 3, 4, 5],
     ) {}
 
     public function set(string $nama, Nilai $nilai): void
@@ -57,7 +59,7 @@ final class KonteksKaryawan implements KonteksRumus
     {
         $n = 0;
         foreach (CarbonPeriod::create(CarbonImmutable::parse($mulai), CarbonImmutable::parse($selesai)) as $d) {
-            if (! $d->isWeekend() && ! isset($this->libur[$d->toDateString()])) {
+            if (in_array((int) $d->isoWeekday(), $this->hariKerjaPola, true) && ! isset($this->libur[$d->toDateString()])) {
                 $n++;
             }
         }
@@ -73,7 +75,8 @@ final class KonteksKaryawan implements KonteksRumus
         }
 
         $q = $versi->rows()->getQuery()->where(fn ($w) => $kunci === '' ? $w->whereNull('key_value')->orWhere('key_value', '') : $w->where('key_value', $kunci));
-        foreach ($q->get() as $row) {
+        // urutan pasti: rentang terkecil dulu, lalu id (baris yang bersinggungan selalu memberi hasil yang sama)
+        foreach ($q->orderBy('range_from')->orderBy('id')->get() as $row) {
             if ($nilai !== null) {
                 if ($row->range_from !== null && Desimal::banding($nilai, (string) $row->range_from) < 0) {
                     continue;

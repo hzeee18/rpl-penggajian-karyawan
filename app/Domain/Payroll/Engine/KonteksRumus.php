@@ -10,7 +10,7 @@ interface KonteksRumus
     /** Nilai variabel/parameter/komponen/field baris; null = tidak dikenal. */
     public function nilai(string $nama): ?Nilai;
 
-    /** Jumlah hari Senin-Jumat di [mulai, selesai] dikurangi hari libur perusahaan. */
+    /** Jumlah hari kerja (pola hari kerja karyawan) di [mulai, selesai] dikurangi hari libur yang berlaku untuknya. */
     public function hariKerja(string $mulai, string $selesai): int;
 
     /** Hasil tabel referensi: angka (LOOKUP) atau teks (LOOKUP_TEXT). Null = tidak ada baris cocok. */

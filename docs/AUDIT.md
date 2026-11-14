@@ -491,14 +491,14 @@ Dampak yang sudah dijelaskan ke pemilik sebelum diputuskan: Proses Payroll lama,
 Rancangan: saklar per perusahaan `companies.payroll_baru` (migration `2026_11_20_000001_add_payroll_baru_to_companies`, bawaan false). Kode lama tidak dihapus; perusahaan yang belum beralih (dan tes karakterisasi) berperilaku seperti semula.
 
 - `ModulPayroll::aktif()` membaca saklar perusahaan konteks. `ModulPayroll::MENU_DIGANTIKAN`: `kontrak` -> Kontrak Payroll, `payroll` & `laporan` -> Generate Payroll, `slip` -> Slip Gaji Payroll, `komponen` (Komponen Gaji lama) -> Katalog Komponen, `pay-karyawan` -> Data Karyawan.
-- `AlihkanKePayrollBaru` (dipakai `php artisan payroll:aktifkan {kode}`, pembuatan perusahaan oleh Super Admin, dan `payroll:isi-data`): hak bawaan payroll baru, saklar on, hak role perusahaan atas menu yang digantikan dicabut (menu tersembunyi). Perusahaan lain tidak berubah. Centang "Aktifkan modul Payroll Baru" (§27) dihapus: perusahaan baru selalu memakai payroll baru.
+- `AktifkanModulPayroll` (dipakai `php artisan payroll:aktifkan {kode}`, pembuatan perusahaan oleh Super Admin, dan `payroll:isi-data`): hak bawaan payroll baru, saklar on, hak role perusahaan atas menu yang digantikan dicabut (menu tersembunyi). Perusahaan lain tidak berubah. Centang "Aktifkan modul Payroll Baru" (§27) dihapus: perusahaan baru selalu memakai payroll baru.
 - Middleware `modul-lama:{menu}` pada route lama (kontrak, kontrak-pdf, payroll, laporan, slip, komponen, pay/karyawan): bila saklar on, dialihkan ke halaman pengganti.
 - Form Data Karyawan (`karyawan/form`): bagian "Data payroll" (jabatan payroll, tanggal resign, punya NPWP, NPWP terenkripsi; kosong = tidak diubah) hanya bila saklar on; hanya diproses dari form lengkap (penanda `data_payroll`), sehingga panel cepat "Ubah Karyawan" tidak menghapusnya. Perubahan kolom payroll dicatat di `audit_logs` (NPWP/rekening tidak ikut).
-- Detail karyawan, Tim Saya, Profil & Kontrak: kontrak dari `pay_contracts` (partial `payroll-baru/_kontrak-karyawan`, `profil/_kontrak-payroll`); tombol Unduh Kontrak (PDF kontrak lama) disembunyikan.
+- Detail karyawan, Tim Saya, Profil & Kontrak: kontrak dari `pay_contracts` (partial `payroll/_kontrak-karyawan`, `profil/_kontrak-payroll`); tombol Unduh Kontrak (PDF kontrak lama) disembunyikan.
 - Cek boleh-lembur (`Karyawan::berhakLembur`, daftar di Absensi): saklar on = punya kontrak payroll aktif (nilai lembur dihitung rumus master, bukan komponen kontrak).
 - Dashboard: HR (kartu Kontrak Payroll Aktif & Payroll dari `pay_runs`, pengingat kontrak habis / payroll ditolak, tombol Proses Payroll ke Generate Payroll); Manager (tanpa estimasi upah lembur dari gaji pokok lama); Karyawan (slip lama tidak ditampilkan, lembur "dihitung saat payroll").
 - Import Excel jenis `kontrak` ditolak bila saklar on.
-- Tes: `ModulPayrollBaruTest` (5), `SuperAdminTest` disesuaikan, `MenuSidebarTest` (menu yang digantikan dikecualikan).
+- Tes: `ModulPayrollTest` (5), `SuperAdminTest` disesuaikan, `MenuSidebarTest` (menu yang digantikan dikecualikan).
 
 Belum berubah (di luar permintaan, menunggu keputusan bila perlu): menu Absensi/Cuti/Lembur/Import Excel lama tetap ada berdampingan dengan Absensi/Leave/Lembur/Import CSV payroll baru (mesin rumus hanya membaca data `pay_*`); menu Approval lama tetap (cuti/lembur); Periode (master payroll lama) tetap karena dipakai filter/penguncian absensi lama; job harian `kontrak:aktifkan` tetap berjalan (tidak berdampak bila tidak ada kontrak lama baru).
 
@@ -526,7 +526,7 @@ Permintaan pemilik: login staf, dashboard dan Absensi/Cuti/Lembur belum mengikut
   - Dashboard (`dashboard/karyawan-payroll-baru.blade.php`): kehadiran, leave per tipe, jam lembur periode cut off dari `pay_attendances/pay_leaves/pay_overtimes`; **tanpa kartu slip gaji** (slip tetap di menu Slip Gaji).
   - `/absensi` (`absensi/saya-payroll-baru.blade.php`): riwayat harian sendiri dari tabel `pay_*`, filter Hadir/Leave/Lembur, tautan ke `/pay/slip`.
   - Ringkasan dihitung `App\Domain\Payroll\KehadiranKaryawan` (data apa adanya; tidak ada aturan alpha/potongan/uang makan, itu urusan master payroll). Konsep lama "alfa" dan "sisa cuti tahunan" tidak ditampilkan karena tidak ada di modul baru.
-- Hak menu: `AlihkanKePayrollBaru::hakKaryawan()` memberi role Karyawan lihat `absensi`, dan menutup `cuti` & `lembur` lama (isinya sudah di halaman Absensi). Diterapkan di dev untuk DEFAULT dan MTS (sebelumnya: DEFAULT Karyawan lihat absensi/cuti/lembur; MTS Karyawan tidak punya ketiganya). Backup setelah perubahan: `penggajian_karyawan-setelah-hak-karyawan-absensi-20261112-131404.sql`.
+- Hak menu: `AktifkanModulPayroll::hakKaryawan()` memberi role Karyawan lihat `absensi`, dan menutup `cuti` & `lembur` lama (isinya sudah di halaman Absensi). Diterapkan di dev untuk DEFAULT dan MTS (sebelumnya: DEFAULT Karyawan lihat absensi/cuti/lembur; MTS Karyawan tidak punya ketiganya). Backup setelah perubahan: `penggajian_karyawan-setelah-hak-karyawan-absensi-20261112-131404.sql`.
 - Belum: tampilan Manager (rekap tim di `/absensi`, input lembur di `/lembur`) dan HR (`/absensi`, `/import`, `/pajak`, `/master-payroll`, `/approval`) masih modul lama; dibahas bersama permintaan penataan menu.
 
 ## 33. Manager mengikuti payroll baru (2026-11-12)
@@ -536,7 +536,7 @@ Permintaan pemilik (login Manager): Dashboard sesuai payroll baru; Approval cuku
 - Dashboard Manager (`dashboard/manager-payroll-baru.blade.php`, bila `payroll_baru` aktif): payroll (`pay_runs`) berstatus menunggu dengan `approver_user_id` = user ini, kehadiran tim hari ini dan periode cut off, serta lembur tim dari tabel `pay_*`. Tidak ada nominal gaji.
 - `/approval` lama masuk `ModulPayroll::MENU_DIGANTIKAN` dan dialihkan ke `/pay/approval`; hak menu `approval` dicabut untuk semua role di perusahaan yang beralih.
 - `/pay/slip`: role Manager, termasuk Manager HR yang untuk menu lain bertindak sebagai HR, hanya melihat slip miliknya. Sebelumnya Manager HR melihat semua slip lewat hak `pay-run` milik HR.
-- `AlihkanKePayrollBaru::HAK_MENU_LAMA`: role Manager tidak lagi punya akses Absensi/Cuti/Lembur lama, yang datanya dari tabel lama. Menu Data Karyawan dan Profil **tetap** (bukan payroll); bisa ditutup bila pemilik menghendaki.
+- `AktifkanModulPayroll::HAK_MENU_LAMA`: role Manager tidak lagi punya akses Absensi/Cuti/Lembur lama, yang datanya dari tabel lama. Menu Data Karyawan dan Profil **tetap** (bukan payroll); bisa ditutup bila pemilik menghendaki.
 - Diterapkan di dev untuk DEFAULT dan MTS. Backup sebelum perubahan: `penggajian_karyawan-sebelum-hak-manager-20261112-135019.sql`.
 - Catatan: Manager HR (`manager.hr`, `manager.mts`) tetap melihat menu HR karena aturan lama "Manager HR bertindak sebagai HR" (`User::bisa`). Tidak diubah di sini; masuk penataan menu HR.
 
@@ -549,11 +549,11 @@ Permintaan pemilik (login HR): menu HR = Dashboard (payroll baru), Data Karyawan
 
 Perubahan:
 
-- `AlihkanKePayrollBaru::HAK_PERAN` (menggantikan `hakKaryawan`/`HAK_MENU_LAMA`) memuat hak role Karyawan, Manager, HR setelah beralih. HR: `users` vcud baru; ditutup: absensi/cuti/lembur/import/pajak/master-payroll lama, departemen, pay-jabatan, pay-tipe-leave, pay-cutoff, pay-referensi. `PasangMenuPayroll::MENU` tidak lagi memberi HR hak bawaan atas empat menu pay-* itu.
-- `PasangHakPlatform::HAK_SUPER_ADMIN` + departemen, pay-jabatan, pay-tipe-leave, pay-cutoff (vu), pay-referensi. `AlihkanKePayrollBaru` memanggil `PasangHakPlatform` setelah menu payroll dibuat.
+- `AktifkanModulPayroll::HAK_PERAN` (menggantikan `hakKaryawan`/`HAK_MENU_LAMA`) memuat hak role Karyawan, Manager, HR setelah beralih. HR: `users` vcud baru; ditutup: absensi/cuti/lembur/import/pajak/master-payroll lama, departemen, pay-jabatan, pay-tipe-leave, pay-cutoff, pay-referensi. `PasangMenuPayroll::MENU` tidak lagi memberi HR hak bawaan atas empat menu pay-* itu.
+- `PasangHakPlatform::HAK_SUPER_ADMIN` + departemen, pay-jabatan, pay-tipe-leave, pay-cutoff (vu), pay-referensi. `AktifkanModulPayroll` memanggil `PasangHakPlatform` setelah menu payroll dibuat.
 - Middleware baru `perlu-perusahaan` (`PerluPerusahaan`): Super Admin tanpa perusahaan terpilih diarahkan ke menu Perusahaan dengan pesan, karena data master itu milik satu perusahaan.
 - `ModulPayroll::MENU_DIGANTIKAN` + `import` → `/pay/import`, `master-payroll` (Periode) → `/pay/cutoff`, `pajak` → `/pay/referensi`.
-- Dashboard HR (`dashboard/hr-payroll-baru.blade.php`) seluruhnya dari modul baru: karyawan tanpa kontrak payroll, hadir/leave hari ini, lembur periode, kontrak aktif/habis, progres run terakhir, input leave & lembur terbaru, hari hadir per departemen, pengingat. `hrPayrollBaru()` lama (yang mencampur data absensi lama) diganti.
+- Dashboard HR (`dashboard/hr-payroll-baru.blade.php`) seluruhnya dari modul baru: karyawan tanpa kontrak payroll, hadir/leave hari ini, lembur periode, kontrak aktif/habis, progres run terakhir, input leave & lembur terbaru, hari hadir per departemen, pengingat. `hrDashboard()` lama (yang mencampur data absensi lama) diganti.
 - `/pay/slip`: **semua role hanya slip miliknya** (termasuk HR). Rincian gaji semua karyawan dilihat HR di Generate Payroll.
 - Diterapkan di dev untuk DEFAULT dan MTS. Backup sebelum perubahan: `penggajian_karyawan-sebelum-hak-hr-20261112-150545.sql`.
 - Catatan: Manager HR mendapat menu HR lewat aturan lama `User::bisa`; role Admin masih punya hak lihat menu pay-* (bawaan sebelumnya), tidak diubah.
@@ -562,7 +562,7 @@ Perubahan:
 
 Permintaan pemilik: Admin membuka semua menu; Jabatan cukup satu (pakai payroll baru); nama dan grup menu di database sesuai susunan Data HRIS / Payroll / Konfigurasi / Master Data. Pemilik minta langsung kode tanpa menjalankan test.
 
-- `App\Domain\Payroll\Actions\TataMenu` (idempoten, dipanggil `AlihkanKePayrollBaru`) mengatur `menus.parent_id/nama/urutan/icon`:
+- `App\Domain\Payroll\Actions\TataMenu` (idempoten, dipanggil `AktifkanModulPayroll`) mengatur `menus.parent_id/nama/urutan/icon`:
   - Tanpa grup: Dashboard, Profil, Absensi Saya (`absensi`, riwayat karyawan sendiri), Slip Gaji (`pay-slip`).
   - Data HRIS: Karyawan, Kontrak, Absensi, Leave, Lembur, Import CSV, Approver.
   - Payroll: Master Payroll, Generate Payroll, Approval.
@@ -571,7 +571,7 @@ Permintaan pemilik: Admin membuka semua menu; Jabatan cukup satu (pakai payroll 
   - Modul Lama: 12 menu lama yang digantikan (tidak dihapus, tanpa hak sehingga tidak tampil).
   - Grup "Payroll Baru" dipakai ulang dan diganti nama "Payroll"; `PasangMenuPayroll` mengenali kedua nama.
 - **Belum ada di daftar pemilik, ditempatkan sementara (menunggu konfirmasi):** Import CSV → Data HRIS; Slip Gaji, Profil, Absensi Saya → tanpa grup; Manajemen Menu → Master Data; Pajak & Tarif TER lama → Modul Lama (Super Admin tetap punya hak, tampil di grup Modul Lama).
-- Admin: `AlihkanKePayrollBaru::hakAdmin()` memberi role Admin hak atas semua menu di grup di atas (kecuali menu platform dan Modul Lama): vcud; Dashboard/Slip v, Approval va, Cut Off vu.
+- Admin: `AktifkanModulPayroll::hakAdmin()` memberi role Admin hak atas semua menu di grup di atas (kecuali menu platform dan Modul Lama): vcud; Dashboard/Slip v, Approval va, Cut Off vu.
 - Form Data Karyawan (payroll baru): satu field **Jabatan** berupa pilihan master Jabatan (`position_id`, wajib); kolom teks `karyawan.jabatan` diisi otomatis dari nama jabatan. Field "Jabatan payroll" terpisah dihapus. Label sidebar lama "Absensi, Cuti & Lembur" tidak dipakai lagi di perusahaan payroll baru.
 - Diterapkan di dev. Backup sebelum perubahan: `penggajian_karyawan-sebelum-tata-menu-20261112-151224.sql`.
 - **Test belum dijalankan** untuk §34–§35 secara penuh (atas permintaan pemilik). Test yang memeriksa teks "Payroll Baru" di sidebar kemungkinan perlu disesuaikan.
@@ -610,7 +610,7 @@ Permintaan pemilik: hapus seluruh data transaksi untuk QA manual dari awal, tanp
 
 Permintaan pemilik: perusahaan DEFAULT juga dihapus semua (lanjutan §38). Database dev kini hanya berisi Super Admin, menu, dan tabel nasional TER/PTKP.
 
-- Kode: `BuatPerusahaan` tidak lagi bergantung pada DEFAULT. Bila templat DEFAULT tidak ada, perusahaan baru mendapat role Admin, HR, Manager, Karyawan dengan hak menu umum dari `BuatPerusahaan::ROLE_BAWAAN`. Hak payroll baru, HR, Admin, dan Super Admin tetap dipasang `AlihkanKePayrollBaru`. Approval mapping lama tidak dibuat (hanya dipakai modul lama). Test: `SuperAdminTest::test_perusahaan_baru_tetap_bisa_dibuat_tanpa_templat_default`.
+- Kode: `BuatPerusahaan` tidak lagi bergantung pada DEFAULT. Bila templat DEFAULT tidak ada, perusahaan baru mendapat role Admin, HR, Manager, Karyawan dengan hak menu umum dari `BuatPerusahaan::ROLE_BAWAAN`. Hak payroll baru, HR, Admin, dan Super Admin tetap dipasang `AktifkanModulPayroll`. Approval mapping lama tidak dibuat (hanya dipakai modul lama). Test: `SuperAdminTest::test_perusahaan_baru_tetap_bisa_dibuat_tanpa_templat_default`.
 - Dev: semua baris ber-`company_id` milik DEFAULT dihapus (user, role, privilege, departemen, approval mapping, master_payroll lama), lalu baris `companies`. Backup sebelum: `penggajian_karyawan-sebelum-hapus-default-20261112-155449.sql`.
 - **Temuan:** sebagian hak Super Admin (users, roles, menus, departemen, pajak, pay-*) ternyata tersimpan dengan `company_id` DEFAULT, bukan NULL. Kemungkinan dari backfill Fase 1a, atau dari baris yang dibuat sebelum role Super Admin ada. Baris itu ikut terhapus bersama DEFAULT, lalu dipasang ulang dengan `PasangHakPlatform` (`company_id` NULL). Kini 11 hak Super Admin, semuanya `company_id` NULL. Di instalasi lain yang masih punya DEFAULT, hak itu tetap berfungsi (cekAkses tanpa scope), hanya penandaannya keliru.
 - Seeder (`DatabaseSeeder`, `PayrollDemoSeeder`) masih memakai DEFAULT sebagai perusahaan instalasi; tidak diubah. Untuk mengisi data dummy: buat perusahaan dari menu Company, lalu `php artisan payroll:isi-data {kode}`.
@@ -620,7 +620,7 @@ Permintaan pemilik: perusahaan DEFAULT juga dihapus semua (lanjutan §38). Datab
 Keputusan pemilik (mengganti sebagian §34): Super Admin hanya mengakses Dashboard dan Perusahaan, dan dari sana membuat perusahaan beserta akun Admin-nya. **Admin perusahaan mendapat semua akses kecuali Perusahaan.**
 
 - `PasangHakPlatform::HAK_SUPER_ADMIN` = dashboard (v), perusahaan (vcud). `handle()` mencabut hak Super Admin lain yang pernah dipasang (users, roles, menus, pajak, departemen, pay-jabatan, pay-tipe-leave, pay-cutoff, pay-referensi). Diterapkan di dev.
-- Jabatan, Departemen, Tipe Leave, Cut Off, Tabel Referensi kini dikelola **Admin perusahaan** (hak sudah ada lewat `AlihkanKePayrollBaru::hakAdmin()`, §35). HR tetap tidak punya menu itu (§34).
+- Jabatan, Departemen, Tipe Leave, Cut Off, Tabel Referensi kini dikelola **Admin perusahaan** (hak sudah ada lewat `AktifkanModulPayroll::hakAdmin()`, §35). HR tetap tidak punya menu itu (§34).
 - Tombol "Pilih" / "Keluar dari perusahaan aktif" dihapus dari halaman Perusahaan dan dashboard Super Admin. Route pilih/keluar dan middleware `perlu-perusahaan` dibiarkan sebagai cadangan.
 - **Perlu diketahui pemilik:**
   - **Manajemen Menu** tidak diberikan ke Admin perusahaan. Tabel `menus` dipakai bersama semua perusahaan, jadi perubahan oleh satu Admin akan mengubah menu perusahaan lain. Susunan menu diatur kode (`TataMenu`), sehingga saat ini tidak ada role yang membuka menu ini.
@@ -681,7 +681,281 @@ Hasil: `php artisan test` 190/190 lulus (sebelumnya berhenti di tengah).
 ## 46. Cut off tanpa celah dan audit scope (2026-11-12)
 
 - **Cut off:** konfigurasi yang membuat tanggal tidak masuk periode mana pun (atau masuk dua periode) sekarang ditolak di menu Cut Off. Satu bulan: mulai harus 1 dan selesai 31 (= akhir bulan, otomatis 28/29/30 di bulan pendek). Lintas bulan: mulai = selesai + 1 (mis. 26 s/d 25). Test `MasterDataTest::test_cut_off_yang_menyisakan_tanggal_kosong_ditolak`. Data dev perusahaan MTS diubah dari 1–30 ke 1–31; run draft Desember diperbarui ke 1–31 Des, judul "Payroll Desember 2026", lalu preview diulang (3 karyawan).
-- **Audit scope perusahaan:** semua `DB::table`, `join`, `selectRaw`, `withoutGlobalScope` di `app/` dicek ulang. `CompanyScope` memakai kolom berkualifikasi (aman untuk `join`); query mentah di job payroll hanya ke `pay_run_reference_versions` berdasarkan run yang sudah lolos scope; `DB::table` di dashboard Super Admin memang lintas perusahaan (agregat); `AlihkanKePayrollBaru` membatasi privilege ke role perusahaan itu; job membawa `company_id` (`runAs`); PDF slip di `payslips/{company_id}/...`. Tidak ada celah baru.
+- **Audit scope perusahaan:** semua `DB::table`, `join`, `selectRaw`, `withoutGlobalScope` di `app/` dicek ulang. `CompanyScope` memakai kolom berkualifikasi (aman untuk `join`); query mentah di job payroll hanya ke `pay_run_reference_versions` berdasarkan run yang sudah lolos scope; `DB::table` di dashboard Super Admin memang lintas perusahaan (agregat); `AktifkanModulPayroll` membatasi privilege ke role perusahaan itu; job membawa `company_id` (`runAs`); PDF slip di `payslips/{company_id}/...`. Tidak ada celah baru.
 - **Audit cakupan karyawan di run:** `PemilihKaryawan` memakai model ber-scope, jadi id karyawan/departemen perusahaan lain yang diselipkan ke pilihan diabaikan; ubah sel mencari karyawan lewat `$run->employees()`. Ditambah test `AlurPayrollTest::test_cakupan_karyawan_tidak_bisa_menarik_karyawan_perusahaan_lain` (perorangan, per departemen, semua).
 
 Hasil: `php artisan test` 192/192 lulus.
+
+## 47. Tindak lanjut code review payroll (2026-11-13)
+
+Keputusan pemilik atas review flow payroll:
+
+- **Setelan approval per perusahaan:** kolom baru `companies.payroll_butuh_approval` (bawaan true). Admin mengatur di menu Approver Payroll. Bila false, `ProsesGenerate` langsung memanggil `AlurPayroll::finalkan` (status approved, riwayat pajak, audit `approved` bertanda otomatis) lalu event slip; approver tidak wajib.
+- **Approver ikut di run:** boleh hanya bila karyawan approver berada di departemen HR (`Departemen::KODE_HR`, konstanta modul lama). Dicek saat generate dan saat setujui.
+- **Nilai negatif:** ubah sel hanya menerima angka >= 0; generate ditolak bila ada THP < 0 (nama karyawan disebut).
+- **Klik ganda / proses bersamaan:** preview, generate, setujui, tolak mengunci baris run (`lockForUpdate`) dan memeriksa ulang status di dalam transaksi.
+- **LOOKUP** tabel referensi diurutkan `range_from, id` agar rentang bersinggungan selalu memberi hasil sama.
+- **Pencarian slip:** `orWhere` dikelompokkan.
+- **Karyawan resign** sebelum awal periode dilewati dengan alasan.
+- Belum dijalankan di database dev: migration `2026_11_22_000001_add_payroll_butuh_approval_to_companies` (menunggu persetujuan).
+- Test: 204/204 lulus (10 test baru di `AlurPayrollTest`).
+
+## 48. Batalkan proses preview/generate yang macet (2026-11-13)
+
+Disetujui pemilik (saran #2 review). Proses berstatus antre/berjalan lebih dari 15 menit (`PayrollRun::BATAS_MACET_MENIT`, `macet()`) memunculkan tombol **Batalkan proses** di halaman run (hak `pay-run,update`, route `POST /pay/run/{id}/batalkan`). `AlurPayroll::batalkanProses` mengunci baris run, membuang hasil preview setengah jadi, melepas `is_blocking`, menandai `job_status = failed` dengan pesan, dan mencatat audit `job_cancelled`. Job yang telat selesai setelah dibatalkan tidak menimpa status: `ProsesPratinjau`/`ProsesGenerate` memeriksa `PayrollRun::prosesMasihBerlaku()` (job_status masih `running` dan `job_started_at` sama dengan milik job itu) sebelum menyimpan hasil. Test `AlurPayrollTest::test_batalkan_proses_yang_macet`.
+
+## 49. Approval payroll berbasis role (2026-11-13)
+
+Keputusan pemilik: Manager bisa lebih dari satu, jadi approval tidak lagi ke satu orang (`users.approver_user_id`). Ini **mengganti keputusan §9 dan §42** soal approver per user HR.
+
+- Penyetuju = user aktif yang role-nya punya hak `pay-approval: approve` **dan** karyawannya di departemen HR (`Departemen::KODE_HR`). Logika di `App\Domain\Payroll\Run\PenyetujuPayroll` (`boleh()`, `daftar()`).
+- Semua penyetuju melihat dan bisa menyetujui/menolak semua payroll yang menunggu. Keputusan pertama yang dipakai; keputusan kedua ditolak ("tidak sedang menunggu persetujuan"). `pay_runs.approver_user_id` sekarang berarti **siapa yang memutuskan** (kosong selama menunggu, atau bila langsung final tanpa approval).
+- Generate (bila perusahaan butuh approval) ditolak kalau belum ada penyetuju sama sekali.
+- Halaman Approval terbuka untuk semua role yang punya menunya (mis. Admin melihat saja); tombol Setujui/Tolak hanya untuk penyetuju. Kolom baru "Diputuskan oleh".
+- Menu Approver Payroll sekarang berisi setelan perusahaan + daftar penyetuju (baca saja). Field "Approver payroll" di form Manajemen User dihapus (kode `UserController` kembali seperti `main`); kolom `users.approver_user_id` tidak dihapus, hanya tidak dipakai lagi.
+- Pengecekan "approver di luar HR yang gajinya ikut di run" (§47) tidak diperlukan lagi: penyetuju selalu orang HR.
+
+## 50. Setelan PDF slip pakai password (2026-11-13)
+
+Keputusan pemilik: password slip jadi setelan perusahaan. Migration `2026_11_22_000002_add_slip_pakai_password_to_companies` (`companies.slip_pakai_password`, bawaan true = perilaku sekarang). Diatur Admin di menu Approver Payroll. Bila false, `BuatPdfSlip` membuat PDF tanpa enkripsi dan slip tetap terbit walau nomor rekening kosong. Berlaku untuk slip yang terbit setelah setelan disimpan (slip lama tidak dibuat ulang). Test `SlipTest::test_setelan_tanpa_password_pdf_terbit_tanpa_enkripsi_walau_rekening_kosong`.
+
+## 51. Kontrak dipilih dari tanggal + prorata (2026-11-13)
+
+Keputusan pemilik ("pakai best practice"):
+
+- `App\Domain\Payroll\Run\KontrakPeriode` memilih kontrak yang **berlaku di tanggal periode**: kontrak aktif + kontrak lama yang sudah diperbarui (punya penerus), rentang tanggalnya beririsan dengan periode. Kontrak yang dinonaktifkan manual tidak dipakai. Tiap kontrak jadi segmen yang dibatasi awal periode / tanggal masuk, akhir periode / tanggal resign, tanggal akhir kontrak, dan sehari sebelum kontrak berikutnya.
+- Karyawan tanpa segmen dilewati: "tidak punya kontrak yang berlaku di periode ini" (dulu: kontrak aktif apa pun dipakai walau sudah habis atau belum mulai).
+- Item master "dari kontrak" bertipe **penambah** dibayar prorata: jumlah (nilai kontrak segmen × hari segmen ÷ hari periode). Item potongan dari kontrak tetap penuh (kontrak terbaru). Fungsi `CONTRACT()` di rumus tetap nilai penuh kontrak terbaru. Variabel bawaan baru `period_days` dan `paid_days`; bila prorata, snapshot run mencatat `paid_days` dan `prorata`.
+- Dasar prorata = setelan perusahaan (migration `2026_11_22_000003_add_prorata_dasar_to_companies`, bawaan `kalender`): `kalender` (hari kalender), `kerja` (Senin–Jumat dikurangi libur), `tidak` (penuh kontrak terbaru). Diatur di menu Cut Off.
+- Peringatan "kontrak berakhir sebelum akhir periode" di halaman run diperbarui: sisa hari tidak dibayar.
+- Test `ProrataKontrakTest` (8 kasus: penuh, karyawan baru, hari kerja, tanpa prorata, resign, ganti kontrak, kontrak habis, nonaktif manual, kontrak belum mulai).
+- Catatan untuk pemilik: aturan "potongan dari kontrak tidak diprorata" ada di mesin hitung. Bila perusahaan ingin BPJS/potongan ikut prorata, ubah item itu jadi rumus memakai `paid_days / period_days`.
+
+## 52. "Tambah penyesuaian" menggantikan ubah sel (2026-11-13)
+
+Keputusan pemilik: ubah sel dihapus. Penggantinya tabel `pay_run_adjustments` (migration `2026_11_22_000004_create_pay_run_adjustments_table`): HR menambah penyesuaian per karyawan di payroll draft dengan jenis dari Katalog Komponen aktif, nominal > 0, keterangan wajib (drawer "Tambah penyesuaian" di halaman run). Penyesuaian:
+
+- dihitung sesudah item master dan **sebelum PPh21**: penambah kena pajak (mis. Bonus, THR) menambah bruto; Reimburse (tidak kena pajak) tidak; potongan pengurang pajak ikut iuran;
+- dijumlah per komponen jadi satu baris rincian `adj_{component_id}` bernama "{Komponen} (penyesuaian)", tampil di tabel preview, approval (dengan daftar keterangan), dan slip;
+- disimpan per run + karyawan, jadi tetap ada saat preview diulang; tercatat di audit log (ubah sel dulu tidak);
+- tidak bisa ditambah/dihapus setelah generate.
+
+Route `PUT /pay/run/{id}/karyawan/{karyawan}` dan `AlurPayroll::ubahSel` dihapus. Kolom `pay_run_items.is_overridden` tetap (data lama). Test di `AlurPayrollTest` diganti ke penyesuaian.
+
+## 53. Kalender Payroll: tab Periode + Hari Libur (2026-11-13)
+
+Keputusan pemilik (saran mockup "Master Periode & Kalender Libur", digabung jadi satu menu). Migration `2026_11_22_000005_create_pay_periods_and_holiday_type`:
+
+- Tabel `pay_periods` (satu baris per bulan payroll per perusahaan). Periode dibuat dari aturan Cut Off; bila periode bulan sebelumnya ada, mulai = selesainya + 1 (menyambung). Tombol "Buat periode berikutnya"; membuat payroll untuk bulan yang belum punya periode juga membuat periodenya (`KelolaPeriode::untukBulan`). `AlurPayroll::buat` sekarang mengambil rentang dari sini.
+- Tanggal selesai bisa diubah selama periode belum dipakai payroll (draft/menunggu/final); periode bulan berikutnya ikut bergeser mulainya, dan ditolak bila periode berikutnya sudah dipakai. Status: Belum dipakai, Ada draft payroll, Menunggu approval, Terkunci · payroll final. Perubahan tercatat di audit log.
+- `pay_holidays.type` (nasional / cuti bersama / perusahaan, bawaan nasional). Tab Hari Libur menampilkan kalender satu periode berwarna per jenis + daftar CRUD yang sama seperti sebelumnya.
+- Menu `pay-libur` diganti nama "Kalender Payroll" (URL dan hak akses tetap). Aturan Cut Off dan setelan prorata tetap di menu Cut Off (Admin).
+- Test `KalenderPayrollTest`. Snapshot karakterisasi `admin/roles.html` diperbarui hanya untuk nama menu ini.
+
+Belum dijalankan di database dev: migration `2026_11_22_000002` s/d `2026_11_22_000005` (menunggu persetujuan). Hasil: `php artisan test` 216/216 lulus.
+
+## 54. Generate Payroll dari periode yang sudah dibuat; libur bisa diklik di kalender (2026-11-13)
+
+Permintaan pemilik: "di menu generate payroll harusnya sudah tergenerate, jadi buat periode dulu" (seperti alur modul lama: menu Periode lalu Proses Payroll per periode).
+
+- `AlurPayroll::buat` tidak lagi membuat periode otomatis: periode bulan itu harus sudah ada di Kalender Payroll > Periode, bila belum ditolak dengan pesan yang mengarah ke sana.
+- Halaman Generate Payroll punya kartu **Periode berikutnya** (periode paling awal yang belum punya payroll) dengan tombol "Generate payroll {bulan}"; bila tidak ada, tombol "Buka Kalender Payroll". Drawer Payroll Baru memilih periode dari daftar (dengan statusnya), bukan isian bulan bebas.
+- Tab Hari Libur: tanggal di kalender bisa diklik. Libur yang ada membuka form ubah, tanggal lain membuka form tambah dengan tanggal terisi. Ubah/hapus lewat tabel tetap ada.
+- `DataPerusahaanSeeder` membuat periode Okt–Des 2026; test helper `SiapkanPayroll` membuat periode Nov 2026.
+- Test `KalenderPayrollTest` (5 kasus). Hasil: `php artisan test` 218/218 lulus.
+
+## 55. Pola hari kerja per departemen/karyawan, libur khusus departemen (2026-11-13)
+
+Keputusan pemilik: operasional bisa masuk Sabtu/Minggu, jadi hari kerja tidak dikunci Senin–Jumat. Ini **menyimpang dari `PAYROLL_SPEC.md`** (`WORKDAYS` = Senin–Jumat dikurangi holidays), atas persetujuan pemilik.
+
+- Migration `2026_11_22_000006_create_pay_work_patterns` (belum dijalankan di dev): tabel `pay_work_patterns` (kode, nama, `work_days` hari ISO mis. `1,2,3,4,5`, `is_default`), kolom nullable `departemen.pay_work_pattern_id` dan `karyawan.pay_work_pattern_id`, kolom `pay_holidays.departemen_id` (NULL = semua departemen). Unique libur diganti `(company_id, holiday_date, departemen_id)`; libur khusus departemen di tanggal yang sudah libur semua departemen ditolak di form. Rollback gagal bila sudah ada libur khusus departemen di tanggal yang sama dengan libur lain (harus dibersihkan dulu).
+- Urutan pola: karyawan (pengecualian) → departemen → pola bawaan perusahaan → Senin–Jumat (tanpa data pola, perilaku sama seperti sebelumnya). `Employee::hariKerja()`, `WorkPattern::hariUntuk()`.
+- Mesin hitung: `workdays`, `WORKDAYS()`, dan prorata dasar hari kerja memakai pola karyawan dan libur yang berlaku untuknya (semua departemen + departemennya). Baris absensi/leave/lembur punya field baru `row.is_workday` (mis. lembur di hari istirahat). Uang makan berbasis `hadir` tidak berubah (dari absensi nyata).
+- Import leave: hari di luar pola karyawan dilewati (dulu Sabtu/Minggu).
+- Kalender Payroll: tab baru **Pola Hari Kerja** (CRUD pola, pola per departemen, pengecualian karyawan; hak `pay-libur`). Tab Hari Libur: kolom "Berlaku untuk" dan pilihan "Lihat untuk" departemen; kalender menandai hari istirahat menurut pola. Ringkasan hari kerja di tab Periode memakai pola bawaan.
+- Batasan: pola = hari tetap per minggu. Shift bergilir per orang (jadwal berbeda tiap minggu) belum didukung; untuk itu rumus sebaiknya memakai absensi nyata (`hadir`).
+- Halaman lama (form departemen/karyawan) tidak diubah. Test `PolaHariKerjaTest` (4). Hasil: `php artisan test` 222/222 lulus.
+
+## 56. Hapus periode yang belum dipakai (2026-11-14)
+
+Permintaan pemilik: "yang belum dipakai bisa dihapus". Tab Periode punya tombol hapus untuk periode **paling akhir** yang belum dipakai payroll (`KelolaPeriode::hapus`, `DELETE /pay/libur/periode/{id}`, hak `pay-libur,delete`, tercatat di audit log). Periode di tengah tidak bisa dihapus supaya periode tetap menyambung; periode yang dipakai payroll (draft/menunggu/final) ditolak. Pola hari kerja dan hari libur sudah bisa dihapus sebelumnya (pola yang dihapus membuat departemen/karyawan pemakainya kembali ke pola bawaan). Test `KalenderPayrollTest::test_periode_yang_belum_dipakai_bisa_dihapus`. Hasil: 223/223 lulus.
+
+## 57. Rapikan tampilan dan permintaan kecil (2026-11-14)
+
+Hanya tampilan, alur dan logika tidak berubah kecuali disebut:
+
+- **Master Payroll**: daftar dengan badge versi (aktif/terbit/draft/terkunci) dan tombol buka; halaman versi dengan ringkasan, tabel ber-badge (jenis, cara hitung, rumus sebagai kode), form tambah/ubah di drawer, uji rumus dengan filter bar, panduan rumus bisa dilipat. Field dan route sama.
+- **Import CSV**: mengikuti Figma "HR / Import Excel": tabel riwayat lebar penuh (No. IM-x, status Berhasil/Ada error/Siap disimpan/Dibatalkan, file + pengunggah, baris valid), tombol Unduh Template (dropdown) dan Upload File (drawer berisi keterangan kolom per jenis). Halaman preview punya ringkasan baris valid/error.
+- **Kontrak**: mengikuti Figma "HR / Kontrak" dan "Detail & Riwayat (Drawer)": chip Aktif/Segera berakhir (≤ 90 hari)/Nonaktif/Semua dengan jumlah, kolom gaji pokok dan sisa masa berlaku, tombol Perbarui di baris, drawer tab Detail/Riwayat bergaya linimasa.
+- **Profil & detail karyawan**: tabel Riwayat Kontrak mengikuti Figma "Karyawan / Profil & Kontrak" (no. kontrak, periode, gaji pokok, komponen, status, aksi).
+- **Absensi/Leave/Lembur (HR)**: filter bar periode + multi pilih departemen + multi pilih karyawan dikelompokkan per departemen, chip filter aktif, reset. Parameter lama `karyawan` tetap diterima.
+- **Pemilih bulan**: semua `input type=month` diganti pemilih bulan buatan sendiri di `public/js/form.js` (Safari desktop tidak punya kalender bulan, jadi filter di Absensi Saya tidak bisa dipakai). Versi aset dinaikkan (`app.css?v=25`, `form.js?v=10`), snapshot karakterisasi ikut diperbarui hanya untuk nomor versi ini.
+- **Generate Payroll**: catatan "Pilih departemen bila lingkup..." dihapus.
+- **Slip tanpa password (perilaku)**: saat diunduh, PDF dibuat ulang bila status password file berbeda dari setelan sekarang; slip lama ikut tanpa password setelah setelan diubah ke Tidak (termasuk slip yang dulu belum terbit karena rekening kosong), dan kembali berpassword bila setelan diubah ke Ya. Test `SlipTest::test_slip_lama_diunduh_sesuai_setelan_password_saat_ini`.
+- Hasil: `php artisan test` 224/224 lulus.
+
+## 58. Tarik kembali payroll + koreksi payroll final (2026-11-14)
+
+Keputusan pemilik (saran koreksi payroll yang salah):
+
+- **Tarik kembali**: payroll berstatus menunggu approval bisa dikembalikan ke draft oleh role ber-hak `pay-run,update` (HR), opsional dengan alasan (`AlurPayroll::tarikKembali`, `POST /pay/run/{id}/tarik`, audit `withdrawn`). Tanda blocking karyawan dilepas, `generated_at` dikosongkan; HR memperbaiki (preview ulang / penyesuaian) lalu generate lagi. Versi master/tabel referensi yang sudah terkunci tetap terkunci. Payroll yang sudah disetujui tidak bisa ditarik.
+- **Payroll final yang salah**: tidak diubah. Halaman run final menampilkan arahan koreksi lewat Tambah penyesuaian di payroll periode berikutnya. **Payroll koreksi khusus periode yang sama belum dibuat**: butuh hitung selisih per komponen dan PPh21 ulang untuk karyawan yang sudah punya payroll final di periode itu (perubahan besar di pemilih karyawan dan riwayat pajak), menunggu keputusan pemilik.
+- `saya-payroll-baru.blade.php`: sisa `</div>` dari penghapusan catatan "Data diinput HR" dibuang (tampilan Absensi Saya rusak).
+- Test `AlurPayrollTest::test_tarik_kembali_payroll_yang_menunggu_approval`. Hasil: 225/225 lulus.
+
+## 59. Filter periode absensi, hapus draft master, rapikan drawer (2026-11-14)
+
+- **Filter periode** (absensi/leave/lembur HR): dropdown periode dari Kalender Payroll (default periode yang sedang berjalan, dengan status: terbuka/ada draft/menunggu approval/terkunci) + pilihan "Rentang bebas…" (pemilih rentang tanggal, maks. 1 tahun). Bulan yang belum punya periode memakai aturan Cut Off seperti sebelumnya, dengan tautan buat periode. Test `KalenderPayrollTest::test_filter_absensi_per_periode_kalender_dan_rentang_bebas`.
+- **Master Payroll**: versi draft yang bukan versi aktif, bukan satu-satunya versi, dan belum dipakai payroll bisa dihapus (`KelolaMasterPayroll::hapusVersi`, `DELETE /pay/master/versi/{id}`, hak `pay-master,delete`, audit `deleted`, isi ikut terhapus lewat cascade). Daftar versi tidak lagi menumpuk: kolom Draft hanya menampilkan draft terbaru (+n lainnya) dan semua versi ada di dropdown riwayat. Kotak ringkasan 4 kolom di halaman versi dihapus. Test `MasterReferensiTest::test_versi_draft_bisa_dihapus_dan_daftar_versi_tidak_menumpuk`.
+- **Preview import**: kolom memakai judul yang bisa dibaca (NIK, Tanggal, ...), ditambah kolom **Nama karyawan** (dicari dari NIK di perusahaan sendiri), kolom hasil validasi diganti nama "Hasil cek" agar tidak tertukar dengan kolom `keterangan` dari CSV.
+- **Cek semua drawer** (kontrak baru/perbarui/ubah/lihat, master baru/isi, payroll baru, penyesuaian, upload & perbaiki baris import, absensi/leave/lembur, periode, hari libur, pola hari kerja, katalog komponen, jabatan, tipe leave) pada 1366 px: tidak ada isi yang keluar dari drawer. Diperbaiki: tombol drawer penyesuaian tanpa Batal/footer, nominal kontrak tampil "250000.00" (sekarang format Rupiah), label "Nik" di form kehadiran, catatan leave "Sabtu dan Minggu dilewati" disesuaikan pola hari kerja.
+- Hasil: `php artisan test` 227/227 lulus.
+
+## 60. Redaksi Kalender Payroll dan pembuatan periode lewat konfirmasi (2026-11-14)
+
+- "Buat periode berikutnya" sekarang membuka modal konfirmasi berisi bulan dan tanggal yang dihitung otomatis (aturan Cut Off + menyambung dengan periode sebelumnya, `KelolaPeriode::rentangBaru`/`bulanBerikutnya`); setelah dibuat tidak lagi membuka form ubah tanggal. Mengubah tanggal selesai tetap lewat ikon pensil selama periode belum diproses (aturan geser periode tidak berubah).
+- Label status periode disatukan di `PayPeriod::STATUS`: Belum diproses, Draft payroll, Menunggu persetujuan, Final (dipakai tab Periode dan drawer Payroll Baru). Dropdown filter periode absensi/leave/lembur tidak lagi menampilkan status.
+- Catatan "Aturan bawaan dari Cut Off..." dihapus; hanya muncul ajakan mengatur Cut Off bila belum ada.
+- Redaksi lain dirapikan (lihat laporan thread). Hasil: 227/227 lulus.
+
+## 61. Redaksi modul payroll baru (2026-11-14)
+
+Hanya teks, logika tidak berubah. Istilah disatukan: jenis komponen **Pendapatan / Potongan** (sebelumnya Penambah / Pengurang), **persetujuan** untuk kalimat (nama menu Approval/Approver tetap), **Manager HR** untuk penyetuju. Tabel hasil payroll tidak lagi menampilkan label jenis di bawah judul kolom; nilai potongan diberi tanda "−". Katalog Komponen, master payroll, kontrak, penyesuaian, ringkasan run, halaman slip, dan PDF slip memakai istilah baru (`badge_status` menerima `pendapatan`/`potongan`). Pesan error/sukses payroll dirapikan (lihat laporan thread). Halaman modul lama (dibekukan oleh tes karakterisasi) tidak diubah. Hasil: 227/227 lulus.
+
+## 62. Keterangan select di bawah, tombol Perbarui H-3 bulan (2026-11-14)
+
+- **Select**: teks opsi dibuat pendek; keterangan opsi terpilih (atribut `data-ket`) tampil sebagai teks bantu di bawah select dan berubah mengikuti pilihan (`public/js/form.js`, versi `form.js?v=11`). Diterapkan di: periode Payroll Baru (rentang + status), filter periode absensi/leave/lembur (rentang), jenis penyesuaian (pendapatan/potongan, kena pajak), periode kalender Hari Libur, pola per departemen (hari kerja), komponen katalog / jenis variabel / cara hitung / peran di Master Payroll, dasar prorata di Cut Off. Select karyawan "NIK · Nama" dibiarkan (sudah satu baris dan dipakai untuk mencari NIK). Select di modul lama tidak diubah (menunggu izin pemilik).
+- **Perbarui kontrak**: tombol di daftar hanya muncul bila kontrak aktif berjangka berakhir ≤ 3 bulan lagi atau sudah lewat (`Contract::hampirBerakhir`, juga dipakai chip "Segera berakhir" dan penanda sisa waktu). Di drawer detail, kontrak yang masih lama tetap punya tombol "Perubahan gaji" (aksi yang sama: kontrak baru, kontrak lama dinonaktifkan) agar kenaikan gaji tetap bisa dicatat; kontrak tetap tanpa tanggal akhir tidak pernah memunculkan tombol di daftar. Test `KontrakTest::test_tombol_perbarui_hanya_muncul_h_min_3_bulan_sebelum_kontrak_berakhir`. Hasil: 228/228.
+
+## 63. Kunci hari libur di periode payroll yang dikirim/final (2026-11-14)
+
+- Tambah, ubah, atau hapus hari libur yang tanggalnya (lama maupun baru) masuk rentang payroll **menunggu persetujuan** atau **final** ditolak di server (`LiburController::periksaKunci`, pesan menyebut nama payroll). Payroll draft tidak dikunci karena dihitung ulang saat preview. Di daftar libur barisnya bergembok (bisa dilihat, tidak bisa diubah/dihapus); di kalender, tanggal kosong di periode terkunci tidak bisa diklik untuk menambah dan ada catatan. `MasterSederhanaController` punya hook `periksaKunci`/`alasanKunci` (bawaan tidak mengunci).
+- **Pola hari kerja belum dikunci per periode**: pola berlaku "sekarang", sedangkan payroll yang sudah dikirim/final menyimpan hasil hitungnya (rincian komponen + snapshot variabel), jadi mengubah pola tidak mengubah payroll tersebut. Tab Pola menampilkan catatan ini. Usulan bila ingin lebih ketat (menunggu keputusan pemilik): pola berlaku mulai tanggal tertentu (riwayat pola per departemen/karyawan) sehingga periode lama tetap memakai pola lamanya.
+- Test `KalenderPayrollTest::test_hari_libur_di_periode_yang_sudah_dikirim_atau_final_terkunci`. Hasil: 229/229.
+
+## 64. Tab Hari Libur jadi kalender bulanan, redaksi prorata (2026-11-14)
+
+- Tab Hari Libur tidak lagi memakai pilihan periode: kalender bulanan biasa dengan tombol bulan sebelumnya/berikutnya dan "Hari ini" (`?bulan=Y-m`); filter "Lihat untuk" departemen tetap. Tanggal yang masuk payroll menunggu persetujuan/final bergembok dan tidak bisa diklik (tooltip menjelaskan); banner kuning dan teks petunjuk klik dihapus. Setelah simpan/hapus, kembali ke bulan tanggal libur tersebut. Validasi server §63 tetap.
+- Subjudul halaman: "Tanggal libur tidak dihitung sebagai hari kerja saat menghitung gaji."
+- Kartu prorata di Cut Off: judul "Gaji untuk karyawan yang tidak bekerja sebulan penuh", pilihan "Hitung per hari kalender / Hitung per hari kerja / Selalu dibayar penuh" dengan contoh di bawah select; istilah paid_days/period_days dihapus dari teks (logika sama). Hasil: 229/229.
+
+## 65. Prorata selalu per hari kerja (2026-11-14)
+
+Keputusan pemilik: prorata gaji dari kontrak dihitung per **hari kerja** (pola hari kerja karyawan/departemen dikurangi hari libur yang berlaku untuknya, sama dengan `workdays`/`WORKDAYS`). Pilihan "per hari kalender" dihapus dari menu Cut Off; setelan tinggal "Hitung per hari kerja" (bawaan) dan "Selalu dibayar penuh". Tanpa migration: nilai lama `kalender` di `companies.prorata_dasar` (termasuk bawaan kolom) diperlakukan sebagai `kerja` oleh `Kalkulator::dasarProrata`; validasi hanya menerima `kerja|tidak`. Variabel bawaan baru `paid_workdays` (hari kerja yang tertutup kontrak/masa kerja); snapshot run mencatat `paid_days`, `paid_workdays`, `prorata`. Contoh (periode 26 Okt–25 Nov 2026, 23 hari kerja, gaji 5.700.000): masuk 10 Nov 2.941.935 → 2.973.913 (12/23); resign 15 Nov 3.861.290 → 3.717.391 (15/23); ganti kontrak 11 Nov ke 6,2 jt 5.941.935 → 5.939.130; kontrak habis 20 Nov 4.780.645 → 4.956.522 (20/23). Hasil: 229/229.
+
+## 66. Detail Generate Payroll: checklist kesiapan, ringkasan, filter (2026-11-14)
+
+- **Checklist "Persiapan sebelum generate"** (hanya saat draft): Master payroll terbit, Penyetuju payroll, dan Preview (ada & tidak ada gaji bersih minus) **wajib**, sama dengan pengecekan server saat generate; Kontrak karyawan, Absensi periode ini, dan Hari libur **opsional** (peringatan + tombol Buka ke menu terkait). Tombol Generate nonaktif selama item wajib belum terpenuhi. Catatan "Belum ada penyetuju payroll…" di halaman daftar dihapus (sudah jadi item checklist).
+- **Lingkup karyawan**: form preview tidak lagi memilih departemen/perorangan; preview selalu untuk semua karyawan aktif (`scope=all`). Backend lingkup tetap ada.
+- **Tampilan detail** mengikuti Figma "Riwayat Payroll - Detail Periode": kartu ringkasan per komponen + kartu Gaji bersih, tabel per departemen (kode, gaji bersih, departemen/manager tanpa avatar, jumlah karyawan, aksi lihat), filter departemen/karyawan (karyawan dikelompokkan per departemen) untuk tabel rincian, kolom rincian diberi jarak dan kolom "Gaji bersih", penyesuaian dengan jarak nominal–keterangan, riwayat persetujuan (stepper), daftar karyawan dilewati bisa dilipat.
+- Test `AlurPayrollTest::test_detail_payroll_checklist_kesiapan_ringkasan_dan_filter`. Hasil: 230/230.
+
+## 67. Data uji alur, dokumen, dan diagram (2026-11-14)
+
+- `FlowUjiSeeder` (`php artisan db:seed --class=FlowUjiSeeder`): perusahaan **UJI** berisi semua kasus alur (lihat README §4b dan `docs/SKENARIO_UJI.md`). Memakai `DataPerusahaanSeeder` lalu menambah departemen Finance, pola hari kerja (Operasional Senin–Minggu), libur cuti bersama dan khusus departemen, variasi kontrak (tetap/hampir habis/lama), karyawan masuk & resign di tengah periode, jenis penyesuaian Bonus/Reimburse, Master "Payroll Usual" (PPh21 TER otomatis, potongan alpha memakai `paid_workdays`), payroll Oktober final (slip terbit), November draft + penyesuaian, Desember belum diproses. Antrean diproses `sync` dan `memory_limit` 512M selama seeding. Bila perusahaan UJI sudah ada, seeder tidak mengubah apa pun. Test `FlowUjiSeederTest`.
+- Pesan validasi Bahasa Indonesia dilengkapi (`regex`, `between`, `required_without`, dll.) dan nama atribut kolom modul payroll baru. Kode pola hari kerja dinormalkan (huruf kecil, spasi/strip → garis bawah).
+- README diperbarui (cara menjalankan, worker antrean, akun, data uji, alur baru, masalah umum). Catatan: di data QA (`DataQaSeeder`) manager `septiana` ada di departemen Finance sehingga **bukan** penyetuju (penyetuju harus Manager di departemen HRD); pakai data UJI untuk menguji approval.
+- Diagram Mermaid diperbarui (salinan di `docs/uml/`, asal folder project `uml/`): use case, activity kontrak/master & Kalender Payroll/generate-approval, class diagram (PayPeriod, Holiday, WorkPattern, KontrakPeriode, RunAdjustment, PenyetujuPayroll, setelan Company), sequence generate-approval dan unduh slip, ERD (`pay_periods`, `pay_run_adjustments`, `pay_work_patterns`, kolom baru `companies`, `pay_holidays`, `departemen`, `karyawan`). File `.drawio` belum digambar ulang.
+- Hasil: `php artisan test` 232/232.
+
+## 68. Modul payroll lama dihapus; rapikan detail payroll (2026-11-14)
+
+Keputusan pemilik: "modul lama di hapus saja". Ini mengganti prinsip AGENTS.md bahwa modul lama hanya dinonaktifkan.
+
+- **Dihapus (route, controller, view):** Kontrak lama (+ unduh kontrak PDF), Proses Payroll lama, Riwayat/Laporan Payroll lama (Excel/PDF), Approval lama, Slip Gaji lama, Import Excel lama, Komponen Gaji lama, Pajak & Tarif TER lama, Periode (master payroll lama), Cuti/Izin/Sakit lama, Lembur lama, input & rekap Absensi lama (HR harian/semua, Absensi Tim Manager), Karyawan Payroll lama (`/pay/karyawan`), dashboard HR/Manager/Karyawan versi lama, middleware `modul-lama` (`AlihkanModulLama`), helper lama di `Controller`, partial/komponen yang tidak dipakai lagi (`filter-periode`, `tab-kehadiran`, `hapus`, `x-pilih-periode`, `x-riwayat-approval`).
+- **Tetap:** menu Absensi hanya riwayat milik karyawan sendiri dari modul payroll. `ModulPayroll::aktif()` selalu `true`. Sidebar tidak pernah menampilkan menu lama walau hak lamanya masih ada di database. Notifikasi lama diarahkan ke halaman modul payroll yang setara. Pencarian header memakai slip modul payroll.
+- **Tidak dihapus (sengaja):** tabel dan migration lama, model lama, `PayrollService`/`ApprovalService`, dan data contoh lama di `DatabaseSeeder` (masih dipakai seeder/test sebagai data karyawan). Menghapus tabel butuh migration baru dan backup; belum dilakukan.
+- **Test dihapus:** seluruh tes karakterisasi modul lama (`tests/Feature/Karakterisasi`, snapshot halaman lama), `AutoApprovePayrollTest`, `KontrakPerbaruiTest`, `ManagerTidakLihatGajiTest`, `MasterPayrollPeriodeTest`, `MultiManagerRumusTest`. Tes multi-tenant/payroll yang menyebut route lama disesuaikan (sekarang 404).
+- **Detail payroll (`/pay/run/{id}`):** kolom Karyawan dan Gaji bersih tetap terlihat saat tabel rincian digeser ke samping; penyesuaian menampilkan nama/NIK dan jenis/keterangan pajak dua baris. Dicek di browser dengan data UJI.
+- Hasil: `php artisan test` 198/198.
+
+## 69. Kalender Payroll masuk grup Payroll (2026-11-14)
+
+Keputusan pemilik: menu Kalender Payroll dipindah dari grup Konfigurasi ke grup **Payroll** (urutan: Kalender Payroll, Master Payroll, Generate Payroll, Approval). `TataMenu` diperbarui dan migration `2026_11_22_000007_pindah_kalender_payroll_ke_grup_payroll` menyusun ulang tabel menus yang sudah ada (hanya parent_id/urutan; rollback mengembalikan ke Konfigurasi). Breadcrumb semua halaman modul payroll diganti dari "Payroll Baru / …" menjadi "Payroll / …" (modul lama sudah dihapus). Route dan hak akses tidak berubah. Hasil: 198/198.
+
+## 70. Nama "Baru" dihapus; kartu ringkasan detail payroll (2026-11-14)
+
+- Karena modul lama sudah dihapus, penamaan "Baru" diganti nama biasa: `app/Http/Controllers/PayrollBaru` → `app/Http/Controllers/Payroll` (namespace `App\Http\Controllers\Payroll`), `MasterPayrollBaruController` → `MasterPayrollController`, `resources/views/payroll-baru` → `resources/views/payroll`, `routes/payroll-baru.php` → `routes/payroll.php`, view dashboard `*-payroll-baru` → `hr`/`manager`/`karyawan`, `absensi/saya-payroll-baru` → `absensi/saya`, `AlihkanKePayrollBaru` → `AktifkanModulPayroll`, `tests/Feature/PayrollBaru` → `tests/Feature/Payroll`, `ModulPayrollBaruTest` → `ModulPayrollTest`, method dashboard/absensi tanpa akhiran PayrollBaru. Grup menu baru bernama "Payroll" (database lama bernama "Payroll Baru" tetap dikenali). Label "Payroll Baru"/"Master Payroll Baru" → "Buat Payroll"/"Buat Master Payroll". Kolom `companies.payroll_baru` dan nama migration lama tidak diganti (butuh migration; tidak berpengaruh ke tampilan). Catatan lama di AUDIT tetap memakai nama lama.
+- Detail payroll: kartu ringkasan memakai grid rata (`minmax(210px, 1fr)`), ukuran nominal menyesuaikan lebar, kartu Gaji bersih di depan dan dua kolom (menonjol), label/keterangan seragam, potongan berwarna merah. Checklist kesiapan dengan tinggi minimum seragam dan form "Master payroll" (pilihan + tombol + teks bantu) dirapikan. Dicek di browser lebar 1366 dan 1024. Hasil: 198/198.
+
+## 71. Detail payroll: section Master payroll, kartu penuh, kolom Gaji bersih (2026-11-14)
+
+- Section "Master payroll" jadi satu baris: judul + teks bantu di kiri, pilihan master + tombol "Hitung ulang"/"Lihat preview" di kanan.
+- Kartu ringkasan memakai flex-wrap (`flex: 1 1 200px`) sehingga setiap baris terisi penuh tanpa sisa kosong; warna merah pada potongan dihapus (cukup tanda "−"); kartu Gaji bersih tidak lagi dua kolom, hanya bingkai dan angka biru.
+- Tabel departemen: urutan kolom Kode, Departemen/manager, Karyawan, Gaji bersih, Aksi (Gaji bersih tidak lagi terselip di antara kode dan nama).
+- Tabel karyawan: kolom Gaji bersih (lengket di kanan) diberi latar biru muda dan angka biru, lebar minimum 160px. Dicek di browser lebar 1366. Hasil: 198/198.
+
+## 72. Karyawan dummy massal di perusahaan UJI (2026-11-14)
+
+- `database/seeders/KaryawanMassalSeeder.php` (dijalankan manual setelah `FlowUjiSeeder`, tidak masuk `DatabaseSeeder`): 110 karyawan fiktif (NIK `M0001`–`M0110`), akun `m001.uji`… (password `password`), departemen baru IT, MKT, GDG (pola baru `gudang` Senin–Sabtu), kontrak dengan gaji bervariasi (acak tetap `mt_srand(2026)`), sebagian hampir habis, masuk/resign di tengah periode, absensi/leave/lembur 26 Sep – 25 Des 2026 mengikuti pola hari kerja (insert massal dengan `company_id` eksplisit). Aman dijalankan ulang. Test `KaryawanMassalSeederTest`.
+- Dicek di dev: preview payroll November untuk 122 karyawan selesai ±1,6 detik (dijalankan dalam transaksi lalu di-rollback).
+- Backup database dev sebelum pembersihan data DEFAULT: `storage/backups/` (diabaikan git).
+
+## 73. BPJS dihitung otomatis dari gaji pokok (2026-11-14)
+
+- Keputusan pemilik: BPJS tidak lagi diketik di kontrak. Komponen `bpjs_tk` dan `bpjs_kes` di Katalog Komponen tidak lagi "nilai dari kontrak", sehingga hilang dari form kontrak (nilai lama di kontrak lama dibiarkan, tidak dipakai rumus).
+- Master Payroll: `ROUND(IF(batas_upah_bpjs_x > 0, MIN(CONTRACT('gaji_pokok'), batas_upah_bpjs_x), CONTRACT('gaji_pokok')) * tarif_bpjs_x / 100)`. Parameter `tarif_bpjs_kes` = 1, `tarif_bpjs_tk` = 2, `batas_upah_bpjs_*` = 0 (tanpa batas; HR mengisi sesuai peraturan, angka tidak dikarang). Memakai gaji pokok kontrak penuh (bukan hasil prorata). Kasus khusus lewat "Tambah penyesuaian".
+- Kode: tidak ada perubahan mesin rumus. Seeder: `FlowUjiSeeder::pasangBpjs()` dipakai `FlowUjiSeeder` dan `PayrollDemoSeeder`; `DataPerusahaanSeeder` dan `KaryawanMassalSeeder` tidak lagi mengisi nilai BPJS kontrak. Test `FlowUjiSeederTest` memeriksa Kes 1% dan TK 2%.
+- Dev (perusahaan UJI): versi baru Master "Payroll Usual" (salinan + BPJS rumus) diterbitkan; katalog BPJS diubah. Versi lama tetap tersimpan.
+
+## 74. Lima perbaikan tampilan dan data (2026-11-14)
+
+- Kalender Payroll › Hari Libur: daftar di bawah kalender hanya berisi libur bulan yang ditampilkan (dan departemen yang dipilih). Hook baru `MasterSederhanaController::saringDaftar()`, dipakai `LiburController`.
+- Nama kontrak dummy berupa kode, format nomor kontrak aplikasi lama: `PKWT/OPS/0012/XI/2026` (`DataPerusahaanSeeder::namaiKontrak()`, dipakai semua seeder). Kontrak UJI di dev dinamai ulang.
+- Master Payroll: master yang belum pernah terbit (semua versi draft, tidak dipakai payroll) bisa dihapus (`KelolaMasterPayroll::hapusMaster`); master terbit hanya bisa dinonaktifkan/diaktifkan (`ubahStatus`, kolom Status, tombol power). Penyebab "Default" tidak bisa dihapus: sebelumnya hanya ada hapus versi, dan satu-satunya versi tidak boleh dihapus. Kode/nama "usual"/"Payroll Usual" diganti "default"/"Payroll Default" di seeder, test, dokumen, dan dev (draft "default" buatan pemilik yang kosong dihapus atas permintaannya).
+- Generate Payroll: catatan "Payroll yang di-generate bisa disetujui oleh …" dihapus.
+- Katalog Komponen (dan semua tabel MasterSederhana): kolom Aksi rata tengah; tombol nonaktifkan memakai gaya netral `btn-light` ikon `power-off` (hapus fisik tetap merah `trash-2`).
+
+## 75. Seeder skenario multi-tenant dan akun Super Admin (2026-11-14)
+
+- `FlowUjiSeeder` membuat akun `superadmin` (company_id NULL, role Super Admin) bila belum ada.
+- `SkenarioMultiTenantSeeder`: FlowUji + KaryawanMassal + perusahaan MTS (PT Maju Terus Sejahtera, 26–25, varian a) dan SBR (PT Sinar Baru Raya, kalender bulanan, varian b) lewat `PayrollDemoSeeder::perusahaan()` (dibuat public). Akun `admin|hr|manager|staf.<kode>`. Test `SkenarioMultiTenantSeederTest` (isolasi kontrak antar perusahaan, daftar perusahaan Super Admin).
+- Dev: dijalankan; MTS dan SBR dibuat. Perusahaan DEFAULT belum dibersihkan (menunggu konfirmasi pemilik).
+
+## 76. Nama perusahaan data uji, hapus/nonaktif perusahaan, ikon aksi (2026-11-14)
+
+- Perusahaan data alur (`FlowUjiSeeder::KODE`) bukan lagi "UJI – PT Uji Alur" tetapi **MTS – PT Maju Terus Sejahtera**; akun `admin|hr|manager|staf.mts`, karyawan massal `m001.mts`…; perusahaan kecil di `SkenarioMultiTenantSeeder` menjadi **BNS – PT Bina Nusa Sentosa** (NIK `N…`). Tidak ada lagi teks "uji" di data yang tampil. Dev dinamai ulang di tempat (kode, nama, username, email; slip PDF MTS dibuat ulang).
+- Super Admin (keputusan pemilik: dua tombol): **Nonaktifkan** (soft delete, ikon `power-off`/`power`, data tetap, bisa diaktifkan lagi; login dan sesi akun perusahaan nonaktif ditolak di `AuthController` dan `AkunAktif`) dan **Hapus permanen** (ikon `trash-2`, drawer konfirmasi ketik kode perusahaan) lewat `App\Domain\Company\Actions\HapusPerusahaan`: semua baris ber-`company_id` dihapus dalam satu transaksi dengan urutan mengikuti foreign key (rujukan melingkar master↔versi dan user→approver diputus dulu), lalu folder `payslips/{id}`, `signatures/{id}`, `imports/{id}`. DEFAULT (templat role) tidak bisa dihapus/dinonaktifkan. Test di `SuperAdminTest` dan `SkenarioMultiTenantSeederTest` (hapus MTS lengkap tanpa sisa baris).
+- Semua kolom aksi tabel: header "Aksi" rata tengah, sel rata tengah, tombol berupa ikon `btn-icon` bertooltip (`eye` buka/lihat, `pencil` ubah, `trash-2` hapus merah, `power-off` nonaktifkan, `download`, `refresh-cw` perbarui kontrak, `check` simpan pola). Tombol teks di baris tabel (Buka, Lihat, Perbarui, Hapus pengecualian, Simpan) diganti ikon.
+- Catatan dev: saat dicek, perusahaan BNS dan SBR sudah tidak ada dan MTS bernama "PT Mitra Tiga Sepakat" (diubah pemilik lewat aplikasi pukul 17:16); tidak dibuat ulang.
+- Detail payroll (lanjutan): kolom Gaji bersih tidak lagi berlatar biru (sebelumnya selector `:last-child` ikut mewarnai sel kosong "Belum ada data preview" dan header jadi dua warna). Sekarang kelas `kol-thp`: header sama seperti kolom lain, angka biru tebal, tetap lengket di kanan. Saat belum ada preview, tabel tidak ditampilkan, hanya empty state dengan petunjuk "Lihat preview". Badge "Belum siap" merah, selaras dengan ikon item wajib yang belum terpenuhi.
+
+## 77. Penyetuju payroll diatur sendiri (user dan/atau role) (2026-11-14)
+
+- Keputusan pemilik: penyetuju tidak lagi otomatis "Manager di departemen HR". Tabel baru `pay_payroll_approvers` (migration `2026_11_22_000008`, bisa di-rollback; backfill = penyetuju menurut aturan lama sebagai user agar generate tetap jalan). Model `PayrollApprover`.
+- `PenyetujuPayroll`: boleh = akun aktif, role punya hak "Approval Payroll: approve", dan (user-nya dipilih ATAU role-nya dipilih). Tidak ada syarat jabatan/departemen. `daftar()` = gabungan user terpilih + anggota role terpilih. Kandidat yang bisa dipilih hanya role/user dengan hak approve (hak menu tetap diatur di Manajemen Role).
+- Menu Approver Payroll: kartu "Siapa yang menyetujui payroll?" (pilih banyak role dan user), tabel "Penyetuju yang berlaku" dengan kolom "Dipilih lewat". Simpan kosong ditolak selama payroll butuh approval. Route `PUT pay/approver/penyetuju` (hak update Approver).
+- Teks "Manager HR" di modul payroll diganti "penyetuju"; checklist kesiapan item Approval: "Penyetuju sudah diatur" / "Belum ada penyetuju; atur di menu Approver Payroll".
+- Seeder: karyawan pertama (akun `manager.<kode>`) kini berjabatan **Manager** (posisi `MGR`), dan dipilih sebagai penyetuju lewat `PayrollApprover`. Test `ModulPayrollTest::test_penyetuju_payroll_diatur_lewat_role_atau_user`; `SiapkanPayroll` memilih manager.hr dan manager.hr2.
+- Revisi (masukan pemilik): **default tanpa approval** dan tanpa penyetuju. Perusahaan baru (`BuatPerusahaan`) dibuat dengan `payroll_butuh_approval = false`; seeder tidak memilih penyetuju; migration `000008` tanpa backfill (diubah sebelum di-commit; di dev sudah terlanjur jalan, baris Adi dihapus manual atas permintaan pemilik dan MTS diset tanpa approval). Satu form di Approver Payroll: "Payroll perlu persetujuan?" + (bila Ya) role/user penyetuju **wajib** minimal satu (validasi saat simpan; generate tetap ditolak bila kosong; checklist kesiapan menandai item Approval). Semua role dan semua user aktif bisa dipilih (pilihan bisa dicari, multi). Penyetuju terpilih otomatis bisa membuka menu Approval walau role-nya tanpa hak menu (middleware `penyetuju-payroll`, sidebar), setujui/tolak dicek di `AlurPayroll`. Jabatan Adi Pratama di dev diubah ke Manager.
+
+## 78. Database dev dibersihkan: hanya Super Admin dan MTS (2026-11-14)
+
+- Atas permintaan langsung pemilik ("dibersihin aja ... hanya perusahaan mts"): backup `storage/backups/dev-20261114-181122-sebelum-bersih.sql`, lalu semua perusahaan selain DEFAULT dihapus permanen (`HapusPerusahaan`), DEFAULT dikosongkan menjadi templat murni (`HapusPerusahaan::kosongkanTemplat()`: hanya `roles`, `privileges`, `approval_mapping` yang disimpan; 120 karyawan, 15 user, data payroll lama terhapus), lalu `FlowUjiSeeder` + `KaryawanMassalSeeder` dijalankan ulang. Isi akhir: `superadmin`, perusahaan MTS (122 karyawan, 114 akun), tanpa approval bawaan.
+- DEFAULT tanpa karyawan tidak tampil di daftar perusahaan maupun dashboard Super Admin (tetap dipakai sebagai templat role saat membuat perusahaan baru).
+- `DataBersihSeeder`: langkah yang sama untuk database baru (`migrate:fresh --seed` lalu `db:seed --class=DataBersihSeeder`). Test `SuperAdminTest::test_default_dikosongkan_jadi_templat_dan_disembunyikan`.
+
+## 79. Tabel departemen di detail payroll dan manager departemen (2026-11-14)
+
+- Tabel ringkasan departemen sebelumnya hanya 5 kolom sehingga ruang tengah kosong. Percobaan membatasi lebar kartu (880px) dibatalkan karena tabel jadi kecil. Sekarang tabel tetap selebar kartu lain dan diisi kolom informatif: Kode, Departemen/manager, Karyawan, Pendapatan, Potongan, Gaji bersih, Aksi (kolom "Porsi" sempat dicoba lalu dihapus atas permintaan pemilik). Query `perDepartemen` ditambah `sum(total_earnings)` dan `sum(total_deductions)`. Dicek di browser lebar 1366 (tanpa scroll horizontal) dan 1920.
+- Seeder: Adi Pratama hanya manager HRD (sebelumnya juga Operasional). Setiap departemen punya manager sendiri: HRD Adi, FIN dari FlowUjiSeeder, OPS/IT/MKT/GDG karyawan massal pertama di departemen itu. Dev (MTS) disamakan; sebelum karyawan massal dijalankan, Operasional tanpa manager.
+
+## 80. Multi select: klik pilihan terpilih membatalkan; filter jadi form biasa (2026-11-14)
+
+- Bug: di Tom Select, klik opsi yang sudah terpilih pada multi select tidak membatalkannya. `form.js` menambah `toggleMulti()` (klik/mousedown fase capture pada `.option.selected` memanggil `removeItem`) dan memakainya di dua varian multi select (ringkas untuk filter, chips untuk pilihan penyetuju; chips tidak lagi menyembunyikan opsi terpilih, melainkan menampilkan centang). Diuji di browser: pilih Finance lalu klik lagi → kosong.
+- Form filter `data-auto-submit` kini form biasa (`data-turbo="false"`): halaman dimuat ulang penuh, tanpa Turbo/fetch; posisi scroll tetap dipulihkan lewat `sessionStorage`.
+- Livewire belum terpasang dan tidak dipakai (stack: Blade, Bootstrap 5, Turbo Drive, Tom Select, JS biasa; fetch hanya untuk pencarian cepat header dan pratinjau rumus). Pemasangan menunggu keputusan pemilik karena menambah dependensi (AGENTS.md: tanya dulu).
+
+## 81. Percobaan Livewire dibatalkan (rollback) (2026-11-14)
+
+- Livewire sempat dipasang dan beberapa halaman diubah, tetapi tampilan berubah dan pemilik memutuskan TIDAK memakai Livewire. Rollback: `livewire/livewire` dicabut (composer.json/lock kembali sama dengan HEAD), Turbo dikembalikan, semua halaman (Approver Payroll, detail Generate Payroll, Absensi/Leave/Lembur, Katalog Komponen, Jabatan, Tipe Leave, Kalender Payroll, Approval) kembali ke controller + Blade; test dikembalikan ke versi HTTP. Snapshot sebelum rollback: `storage/backups/proyek-sebelum-rollback-livewire-*.tgz` dan `diff-*.patch`.
+- Tetap dipertahankan: perbaikan toggle multi select (Tom Select), filter jadi form biasa, `Actions\AturApprover`, `Actions\KunciLibur`, penyetuju kustom, BPJS otomatis, tabel departemen, dan lainnya.
+- Arahan pemilik berikutnya: AJAX hanya untuk aksi tertentu (perpindahan tab Kalender Payroll, pencarian cepat, pratinjau rumus); sisanya form biasa. Perpindahan tab tanpa reload BELUM dibuat.
+
+
+## 82. QA otomatis end to end (2026-11-15)
+
+Dua agen QA menguji paralel lewat HTTP (curl) di server uji dengan database SQLite sementara (data dev tidak disentuh): (A) daftar perusahaan, setup admin, hak akses, nonaktif/hapus perusahaan, sampai generate dan slip; (B) demo MTS: preview 122 karyawan, penyesuaian, approval, slip, kunci periode, import CSV, crawl ±150 halaman per peran.
+- Lulus: isolasi tenant (id perusahaan lain 404/403), pesan validasi bahasa Indonesia, nonaktif/hapus perusahaan, approval wajib penyetuju, tarik kembali/tolak/setujui, kunci hari libur, import CSV dengan preview, slip berpassword dan akses hanya milik sendiri, tidak ada link rusak.
+- Bug ditemukan dan diperbaiki: (1) Cut Off tidak bisa disimpan dari form browser (nilai form berupa teks, perbandingan ketat dengan angka selalu gagal; test lama memakai angka sehingga lolos) → `CutoffController` meng-cast angka, test baru memakai teks; (2) username dengan titik ditolak di Manajemen User padahal akun seed memakainya → aturan disamakan dengan akun admin perusahaan; (3) finalisasi payroll dengan antrean `sync` kena batas 30 detik (PDF 122 slip) → `TerbitkanSlip` memanggil `set_time_limit(0)`; (4) slip "Terbit" tanpa file PDF memberi 404 → unduh membuat ulang PDF bila file belum ada.
+- Catatan: BPJS memakai gaji pokok kontrak penuh (bukan hasil prorata), sesuai §73; template CSV memakai tanggal contoh 2026-11-13 yang masuk periode final; header memakai branding aplikasi untuk semua tenant. Update Figma dan diagram draw.io belum dikerjakan.

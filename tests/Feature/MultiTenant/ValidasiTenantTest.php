@@ -6,10 +6,8 @@ namespace Tests\Feature\MultiTenant;
 
 use App\Models\Karyawan;
 use App\Models\Pajak;
-use App\Models\Payslip;
 use App\Models\Role;
 use App\Models\User;
-use App\Services\PayrollService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -59,12 +57,6 @@ final class ValidasiTenantTest extends TestCase
                 'pajak_id' => Pajak::value('id'), 'status_kepegawaian' => 'kontrak', 'sisa_cuti' => 12])
             ->assertSessionHasErrors('departemen_id');
 
-        foreach (['/lembur' => ['tanggal' => '2026-11-09', 'jam_mulai' => '17:00', 'jam_selesai' => '19:00'],
-            '/cuti' => ['jenis' => 'cuti', 'tgl_mulai' => '2026-11-12', 'tgl_selesai' => '2026-11-12'],
-            '/absensi' => ['tanggal' => '2026-11-08', 'jam_masuk' => '08:00', 'jam_keluar' => '17:00', 'status' => 'hadir'],
-            '/kontrak' => ['jenis' => 'PKWT', 'tgl_mulai' => '2026-12-01', 'gaji_pokok' => 5000000]] as $url => $isi) {
-            $this->actingAs($hrB)->from($url)->post($url, $isi + ['karyawan_id' => $karyawanA->id])->assertSessionHasErrors('karyawan_id');
-        }
 
         $this->assertSame(0, DB::table('departemen')->where('kode', 'BM')->count());
     }
@@ -81,21 +73,5 @@ final class ValidasiTenantTest extends TestCase
         $this->actingAs($adminB)->from('/users')
             ->post('/users', ['username' => 'baru.b', 'role_id' => $roleHrA, 'password' => 'password123', 'password_confirmation' => 'password123'])
             ->assertSessionHasErrors('role_id');
-    }
-
-    public function test_pdf_slip_disimpan_di_folder_perusahaan(): void
-    {
-        Storage::fake('local');
-        $slip = Payslip::firstOrFail();
-
-        $path = app(PayrollService::class)->generatePdf($slip);
-
-        $this->assertStringStartsWith("slip/{$this->defaultId()}/", $path);
-        Storage::disk('local')->assertExists($path);
-
-        $rizky = User::where('username', 'rizky')->firstOrFail();
-        $slipRizky = Payslip::where('karyawan_id', $rizky->karyawan_id)->firstOrFail();
-        $this->actingAs($rizky)->get("/slip/{$slipRizky->id}/unduh")->assertOk();
-        $this->assertStringStartsWith("slip/{$this->defaultId()}/", (string) $slipRizky->fresh()->file_pdf);
     }
 }

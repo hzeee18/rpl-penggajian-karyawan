@@ -29,7 +29,7 @@ class Menu extends Model
         return $q->where(fn ($w) => $w->whereNull('url')->orWhereNotIn('url', \App\Domain\Company\Actions\PasangHakPlatform::MENU_PLATFORM));
     }
 
-    /** Alamat halaman menu (menu Payroll Baru `pay-x` berada di `/pay/x`; menu lama sama dengan url). */
+    /** Alamat halaman menu (menu modul payroll `pay-x` berada di `/pay/x`; menu lain sama dengan url). */
     public function alamat(): string
     {
         return \App\Domain\Payroll\Actions\PasangMenuPayroll::alamat((string) $this->url);
