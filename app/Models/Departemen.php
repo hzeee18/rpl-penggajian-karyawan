@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Domain\Company\Tenancy\BelongsToCompany;
 use Illuminate\Database\Eloquent\Model;
 
 class Departemen extends Model
 {
+    use BelongsToCompany;
+
     public const KODE_HR = 'HRD';
 
     protected $table = 'departemen';
@@ -25,7 +28,7 @@ class Departemen extends Model
     /** Semua manager departemen ini (bisa lebih dari satu). */
     public function managers()
     {
-        return $this->belongsToMany(Karyawan::class, 'departemen_manager')->withTimestamps()->orderBy('nama');
+        return $this->belongsToMany(Karyawan::class, 'departemen_manager')->using(DepartemenManager::class)->withTimestamps()->orderBy('nama');
     }
 
     /** Departemen yang dikelola seorang karyawan (sebagai salah satu manager). */

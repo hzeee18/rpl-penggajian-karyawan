@@ -22,4 +22,21 @@ class Menu extends Model
     {
         return $this->hasMany(Privilege::class);
     }
+
+    /** Multi-tenant: tanpa menu khusus Super Admin (platform). */
+    public function scopeUntukPerusahaan($q)
+    {
+        return $q->where(fn ($w) => $w->whereNull('url')->orWhereNotIn('url', \App\Domain\Company\Actions\PasangHakPlatform::MENU_PLATFORM));
+    }
+
+    /** Alamat halaman menu (menu modul payroll `pay-x` berada di `/pay/x`; menu lain sama dengan url). */
+    public function alamat(): string
+    {
+        return \App\Domain\Payroll\Actions\PasangMenuPayroll::alamat((string) $this->url);
+    }
+
+    public function isPlatform(): bool
+    {
+        return in_array($this->url, \App\Domain\Company\Actions\PasangHakPlatform::MENU_PLATFORM, true);
+    }
 }

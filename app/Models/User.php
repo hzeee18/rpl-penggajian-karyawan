@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Domain\Company\Tenancy\BelongsToCompany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
+    use BelongsToCompany;
+
     use Notifiable;
 
     public const MAKS_GAGAL_LOGIN = 5;
@@ -28,7 +31,8 @@ class User extends Authenticatable
 
     public function role()
     {
-        return $this->belongsTo(Role::class);
+        // multi-tenant: role milik user sendiri; tanpa scope agar role platform (Super Admin, company_id NULL) terbaca
+        return $this->belongsTo(Role::class)->withoutGlobalScope(\App\Domain\Company\Tenancy\CompanyScope::class);
     }
 
     public function karyawan()

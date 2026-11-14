@@ -12,9 +12,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // multi-tenant: paling depan agar route model binding juga dibatasi perusahaan
+        $middleware->web(prepend: [\App\Domain\Company\Tenancy\TenantRequestContext::class]);
         $middleware->alias([
             'akses' => \App\Http\Middleware\CekAkses::class,
+            'penyetuju-payroll' => \App\Http\Middleware\AksesApprovalPayroll::class,
             'aktif' => \App\Http\Middleware\AkunAktif::class,
+            'super-admin' => \App\Domain\Company\Tenancy\HanyaSuperAdmin::class,
+            'perlu-perusahaan' => \App\Http\Middleware\PerluPerusahaan::class,
         ]);
         $middleware->redirectGuestsTo('/login');
         $middleware->redirectUsersTo('/dashboard');

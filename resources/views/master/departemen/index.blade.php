@@ -11,7 +11,7 @@
         <x-cari placeholder="Cari departemen..." />
         <div class="table-responsive">
             <table class="table table-hover">
-                <thead><tr><th>Kode</th><th>Departemen</th><th>Manager</th><th class="text-center">Karyawan</th><th>Aksi</th></tr></thead>
+                <thead><tr><th>Kode</th><th>Departemen</th><th>Manager</th><th class="text-center">Karyawan</th><th class="text-center">Aksi</th></tr></thead>
                 <tbody>
                 @forelse ($departemen as $d)
                     <tr class="{{ $ubah->id === $d->id ? 'terpilih' : '' }}">
@@ -19,7 +19,7 @@
                         <td>{{ $d->nama }}</td>
                         <td>@forelse ($d->managers as $m)<div class="{{ $loop->first ? '' : 'mt-2' }}">{!! orang($m->nama, $m->jabatan . ($m->user?->isRole('Manager') ? '' : ' · belum punya akun Manager')) !!}</div>@empty<span class="text-muted">Belum ada</span>@endforelse</td>
                         <td class="text-center">{{ $d->karyawan_count }}</td>
-                        <td class="text-nowrap">@include('partials.aksi', ['ubah' => route('departemen.index', ['ubah' => $d->id]), 'hapus' => route('departemen.destroy', $d)])</td>
+                        <td class="text-nowrap text-center">@include('partials.aksi', ['ubah' => route('departemen.index', ['ubah' => $d->id]), 'hapus' => route('departemen.destroy', $d)])</td>
                     </tr>
                 @empty
                     <tr><td colspan="5"><x-empty ikon="building-2" judul="Belum ada departemen" /></td></tr>

@@ -253,7 +253,8 @@ class PayrollService
     public function generatePdf(Payslip $slip): string
     {
         $slip->loadMissing('karyawan.departemen', 'payroll');
-        $path = 'slip/' . $slip->payroll->periode . '/' . $slip->karyawan->nik . '.pdf';
+        // multi-tenant: folder per perusahaan (NIK bisa sama di perusahaan lain). Slip lama tetap memakai path tersimpan.
+        $path = 'slip/' . $slip->company_id . '/' . $slip->payroll->periode . '/' . $slip->karyawan->nik . '.pdf';
         $pdf = Pdf::loadView('slip.pdf', ['slip' => $slip, 'details' => $slip->details()])->setPaper('a4');
         Storage::disk('local')->put($path, $pdf->output());
         $slip->update(['file_pdf' => $path]);

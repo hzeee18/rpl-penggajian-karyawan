@@ -1,0 +1,4 @@
+nik,tanggal,durasi_jam,keterangan
+A0001,2026-12-05,0,Durasi nol
+A0002,2026-12-05,30,Lebih dari 24 jam
+A0003,2026-13-05,2,Bulan tidak valid

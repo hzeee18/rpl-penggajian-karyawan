@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Domain\Company\Tenancy\BelongsToCompany;
 use Illuminate\Database\Eloquent\Model;
 
 class Role extends Model
 {
+    use BelongsToCompany;
+
     public const ADMIN = 'Admin';
     public const HR = 'HR';
     public const MANAGER = 'Manager';

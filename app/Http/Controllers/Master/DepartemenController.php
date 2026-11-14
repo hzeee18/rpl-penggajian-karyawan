@@ -61,10 +61,10 @@ class DepartemenController extends Controller
     private function validasi(Request $request, ?Departemen $d = null): array
     {
         return $request->validate([
-            'kode' => ['required', 'max:10', Rule::unique('departemen')->ignore($d)],
+            'kode' => ['required', 'max:10', \App\Domain\Company\Tenancy\TenantRule::unique('departemen')->ignore($d)],
             'nama' => 'required|max:100',
             'manager_ids' => 'nullable|array',
-            'manager_ids.*' => 'exists:karyawan,id',
+            'manager_ids.*' => [\App\Domain\Company\Tenancy\TenantRule::exists('karyawan')],
         ]);
     }
 }

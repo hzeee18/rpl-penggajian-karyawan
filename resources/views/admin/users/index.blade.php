@@ -17,7 +17,7 @@
     </x-cari>
     <div class="table-responsive">
         <table class="table table-hover">
-            <thead><tr><th>Pengguna</th><th>Role</th><th>Departemen</th><th>Status</th><th>Login terakhir</th><th>Aksi</th></tr></thead>
+            <thead><tr><th>Pengguna</th><th>Role</th><th>Departemen</th><th>Status</th><th>Login terakhir</th><th class="text-center">Aksi</th></tr></thead>
             <tbody>
             @forelse ($users as $u)
                 <tr>
@@ -30,7 +30,7 @@
                         @else<span class="badge badge-soft-danger">Nonaktif</span>@endif
                     </td>
                     <td class="text-nowrap">{{ $u->last_login?->translatedFormat('j M H.i') ?? '-' }}</td>
-                    <td class="text-nowrap">
+                    <td class="text-nowrap text-center">
                         <a href="{{ route('users.edit', $u) }}" class="btn btn-light btn-icon" title="Ubah"><i data-lucide="pencil"></i></a>
                         <div class="dropdown d-inline">
                             <button class="btn btn-light btn-icon" data-bs-toggle="dropdown" title="Lainnya"><i data-lucide="more-vertical"></i></button>

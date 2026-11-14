@@ -1,0 +1,4 @@
+<div class="mb-field"><label class="form-label">Username Admin</label><input name="admin_username" value="{{ old('admin_username') }}" class="form-control" maxlength="50" required autocomplete="off"></div>
+<div class="mb-field"><label class="form-label">Email Admin (opsional)</label><input type="email" name="admin_email" value="{{ old('admin_email') }}" class="form-control"></div>
+<div class="mb-field"><label class="form-label">Password</label><input type="password" name="admin_password" class="form-control" minlength="8" required autocomplete="new-password"><div class="form-text">Minimal 8 karakter.</div></div>
+<div class="mb-field"><label class="form-label">Ulangi password</label><input type="password" name="admin_password_confirmation" class="form-control" required autocomplete="new-password"></div>

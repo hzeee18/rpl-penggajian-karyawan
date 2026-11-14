@@ -1,8 +1,8 @@
 @extends('layouts.app')
 @section('title', 'Dashboard')
 @section('content')
-<x-page-header judul="Dashboard Manager" :sub="($dept ? 'Manager Departemen ' . $dept->nama : 'Manager') . ' · ' . ($jumlahTim) . ' anggota tim'">
-    <a href="{{ route('approval.index') }}" class="btn btn-primary"><i data-lucide="circle-check"></i> Buka Approval</a>
+<x-page-header judul="Dashboard Manager" :sub="($dept ? 'Manager Departemen ' . $dept->nama : 'Manager') . ' · ' . $jumlahTim . ' anggota tim'">
+    @if (auth()->user()->bisa('pay-approval'))<a href="{{ route('pay.approval.index') }}" class="btn btn-primary"><i data-lucide="circle-check"></i> Buka Approval Payroll</a>@endif
 </x-page-header>
 
 @include('dashboard._stat')
@@ -11,30 +11,22 @@
     <div class="col-lg-8">
         <div class="card h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <span>Perlu Persetujuan Anda<span class="sub">{{ auth()->user()->isManagerHr() ? 'Payroll semua departemen dan kontrak tim' : 'Kontrak karyawan divisi Anda' }}</span></span>
-                <a href="{{ route('approval.index') }}" class="fw-semibold small">Lihat semua</a>
+                <span>Payroll Menunggu Persetujuan Anda<span class="sub">Disetujui atau ditolak di menu Approval Payroll</span></span>
+                @if (auth()->user()->bisa('pay-approval'))<a href="{{ route('pay.approval.index') }}" class="fw-semibold small">Lihat semua</a>@endif
             </div>
             <div class="table-responsive">
                 <table class="table">
-                    <thead><tr><th>Pengaju</th><th>Jenis</th><th>Detail</th><th class="text-end">Aksi</th></tr></thead>
+                    <thead><tr><th>Payroll</th><th>Periode</th><th>Diajukan oleh</th><th class="text-center">Aksi</th></tr></thead>
                     <tbody>
-                    @forelse ($approvals as $a)
-                        @php $ref = $a->ref(); @endphp
+                    @forelse ($menunggu as $r)
                         <tr>
-                            <td>{!! orang($a->jenis_ref === 'kontrak' ? $ref?->karyawan?->nama : 'HR', 'Diajukan · ' . $a->created_at->translatedFormat('j M')) !!}</td>
-                            <td><span class="badge badge-soft-primary">{{ ucfirst($a->jenis_ref) }}</span></td>
-                            <td class="text-secondary">
-                                @if ($a->jenis_ref === 'kontrak' && $ref) {{ $ref->jenis }} · {{ tgl($ref->tgl_mulai, 'j M Y') }} – {{ $ref->tgl_akhir ? tgl($ref->tgl_akhir, 'j M Y') : 'tetap' }}{{ auth()->user()->bolehLihatGaji() ? ' · GP Rp ' . jt($ref->gaji_pokok) : '' }}
-                                @elseif ($ref) Payroll {{ $ref->namaPeriode() }} @endif
-                            </td>
-                            <td class="text-end text-nowrap">
-                                <a href="{{ route('approval.show', $a) }}" class="btn btn-setuju btn-icon" title="Review & setujui"><i data-lucide="check"></i></a>
-                                <a href="{{ route('approval.show', $a) }}" class="btn btn-tolak btn-icon" title="Review & tolak"><i data-lucide="x"></i></a>
-                                <a href="{{ route('approval.show', $a) }}" class="btn btn-light btn-icon" title="Lihat"><i data-lucide="eye"></i></a>
-                            </td>
+                            <td class="fw-semibold">{{ $r->title }}</td>
+                            <td class="text-nowrap">{{ tgl($r->period_start, 'j M') }} – {{ tgl($r->period_end, 'j M Y') }}</td>
+                            <td>{{ $r->creator?->namaTampil() ?? '-' }}</td>
+                            <td class=" text-center"><a href="{{ route('pay.approval.show', $r->id) }}" class="btn btn-light btn-icon" title="Review"><i data-lucide="eye"></i></a></td>
                         </tr>
                     @empty
-                        <tr><td colspan="4"><x-empty ikon="clipboard-check" judul="Semua sudah beres" pesan="Tidak ada kontrak atau payroll yang menunggu approval kamu." /></td></tr>
+                        <tr><td colspan="4"><x-empty ikon="clipboard-check" judul="Semua sudah beres" pesan="Tidak ada payroll yang menunggu approval kamu." /></td></tr>
                     @endforelse
                     </tbody>
                 </table>
@@ -57,23 +49,19 @@
 </div>
 
 <div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <span>Lembur Tim Bulan Ini<span class="sub">Hanya karyawan yang kontraknya memiliki komponen lembur</span></span>
-    </div>
+    <div class="card-header">Lembur Tim Periode Ini<span class="sub">{{ tgl($awal, 'j M') }} – {{ tgl($akhir, 'j M Y') }} · diinput HR, dihitung saat payroll</span></div>
     <div class="table-responsive">
         <table class="table">
-            @php $gajiOk = auth()->user()->bolehLihatGaji(); @endphp
-            <thead><tr><th>Karyawan</th><th>Total jam</th>@if ($gajiOk)<th class="text-end">Estimasi upah lembur</th>@endif<th>Sumber</th></tr></thead>
+            <thead><tr><th>Karyawan</th><th>Hari lembur</th><th>Total jam</th></tr></thead>
             <tbody>
             @forelse ($lembur as $l)
                 <tr>
                     <td>{!! orang($l->karyawan->nama, $l->karyawan->jabatan) !!}</td>
-                    <td>{{ $l->jam + 0 }} jam</td>
-                    @if ($gajiOk)<td class="text-uang">{{ rupiah($l->upah) }}</td>@endif
-                    <td><span class="badge badge-soft-neutral">{{ $l->sumber }}</span></td>
+                    <td>{{ $l->hari }} hari</td>
+                    <td>{{ \App\Domain\Payroll\KehadiranKaryawan::angka($l->jam) }} jam</td>
                 </tr>
             @empty
-                <tr><td colspan="4"><x-empty ikon="clock" judul="Belum ada lembur periode ini" pesan="Lembur yang kamu input untuk tim akan tercatat di sini." /></td></tr>
+                <tr><td colspan="3"><x-empty ikon="clock" judul="Belum ada lembur periode ini" pesan="Lembur tim diinput HR di modul payroll." /></td></tr>
             @endforelse
             </tbody>
         </table>

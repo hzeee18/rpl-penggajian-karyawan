@@ -26,6 +26,13 @@ class AppServiceProvider extends ServiceProvider
                 return;
             }
             $role = $user->isManagerHr() ? 'Manager HR' : $user->role->nama;
+            // multi-tenant: Super Admin melihat perusahaan yang sedang dikerjakan
+            $labelPeran = $role;
+            $konteks = app(\App\Domain\Company\Tenancy\CurrentCompany::class);
+            if ($konteks->isSuperAdmin()) {
+                $kode = \App\Domain\Company\Models\Company::whereKey($konteks->perusahaanDipilih())->value('code');
+                $labelPeran = $role . ($kode ? ' · ' . $kode : '');
+            }
 
             // Figma: HR & Karyawan punya satu menu "Absensi, Cuti & Lembur" (pakai tab),
             // Manager punya "Absensi Tim" (absensi + cuti) dan "Lembur Tim".
@@ -36,14 +43,19 @@ class AppServiceProvider extends ServiceProvider
                 'Manager' => ['cuti', 'profil'],
                 default => [],
             };
+            $payrollBaru = \App\Domain\Payroll\ModulPayroll::aktif(); // nama menu dari tabel menus (AUDIT.md §35)
             $label = match ($role) {
-                'HR', 'Karyawan', 'Manager HR' => ['absensi' => 'Absensi, Cuti & Lembur'],
+                'HR', 'Karyawan', 'Manager HR' => $payrollBaru ? [] : ['absensi' => 'Absensi, Cuti & Lembur'],
                 'Manager' => ['karyawan' => 'Tim Saya', 'absensi' => 'Absensi Tim', 'lembur' => 'Lembur Tim'],
                 default => [],
             };
             $induk = ['cuti' => 'absensi'] + (in_array('lembur', $sembunyi) ? ['lembur' => 'absensi'] : []);
 
-            $boleh = fn ($m) => $user->bisa($m->url) && ! in_array($m->url, $sembunyi);
+            // menu modul lama yang halamannya sudah dihapus (AUDIT.md §68) tidak pernah tampil, walau hak lamanya masih ada
+            $sembunyi = [...$sembunyi, ...array_keys(\App\Domain\Payroll\ModulPayroll::MENU_DIGANTIKAN), 'cuti', 'lembur'];
+            // penyetuju payroll terpilih (Approver Payroll) selalu melihat menu Approval walau role-nya tanpa hak menu (AUDIT.md §77)
+            $penyetuju = $user->company_id !== null && \App\Domain\Payroll\Run\PenyetujuPayroll::boleh($user);
+            $boleh = fn ($m) => ($user->bisa($m->url) || ($m->url === 'pay-approval' && $penyetuju)) && ! in_array($m->url, $sembunyi);
             $rapikan = function ($m) use ($label) {
                 $m->nama = $label[$m->url] ?? $m->nama;
 
@@ -59,12 +71,14 @@ class AppServiceProvider extends ServiceProvider
 
             // menu aktif: segmen pertama URL (cuti/lembur yang disembunyikan ikut ke absensi)
             $segmen = request()->segment(1);
-            $aktif = $induk[$segmen] ?? $segmen;
+            $aktif = $segmen === 'pay'
+                ? \App\Domain\Payroll\Actions\PasangMenuPayroll::menuDariSegmen(request()->segment(2))
+                : ($induk[$segmen] ?? $segmen);
 
             $view->with('sidebarUtama', $menus->whereNotNull('url'))
                 ->with('sidebarGrup', $menus->whereNull('url'))
                 ->with('menuAktif', $aktif)
-                ->with('labelRole', $role)
+                ->with('labelRole', $labelPeran)
                 ->with('jumlahNotif', $user->notifikasi()->where('is_read', false)->count())
                 ->with('notifTerbaru', $user->notifikasi()->take(6)->get());
         });

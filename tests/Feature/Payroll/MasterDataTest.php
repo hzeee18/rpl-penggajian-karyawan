@@ -1,0 +1,172 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Feature\Payroll;
+
+use App\Domain\Payroll\Models\Component;
+use App\Domain\Payroll\Models\Employee;
+use App\Domain\Payroll\Models\PeriodConfig;
+use App\Domain\Payroll\Models\Position;
+use App\Models\Karyawan;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
+use Tests\TestCase;
+
+/** Fase 2: data master payroll baru (jabatan, libur, tipe leave, komponen, cut off, karyawan payroll). */
+final class MasterDataTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected bool $seed = true;
+
+    private User $hr;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->artisan('payroll:aktifkan', ['kode' => 'DEFAULT'])->assertSuccessful();
+        $this->hr = User::where('username', 'hr')->firstOrFail();
+    }
+
+    /** Jabatan, Tipe Leave, Cut Off, Departemen, Tabel Referensi dikelola Admin perusahaan (AUDIT.md §40). */
+    private function admin(): static
+    {
+        return $this->actingAs(User::where('username', 'admin')->firstOrFail());
+    }
+
+    public function test_master_tertentu_dikelola_admin_bukan_hr(): void
+    {
+        foreach (['/pay/jabatan', '/pay/tipe-leave', '/pay/cutoff', '/pay/referensi', '/departemen'] as $url) {
+            $this->actingAs($this->hr)->get($url)->assertForbidden();
+            $this->admin()->get($url)->assertOk();
+        }
+        foreach (['/pay/komponen', '/pay/libur', '/pay/kontrak', '/users'] as $url) {
+            $this->actingAs($this->hr)->get($url)->assertOk();
+        }
+        $this->admin()->get('/perusahaan')->assertForbidden();
+    }
+
+    public function test_menu_payroll_baru_tertutup_sampai_diaktifkan(): void
+    {
+        $roleHr = $this->hr->role_id;
+        DB::table('privileges')->where('role_id', $roleHr)->whereIn('menu_id', DB::table('menus')->where('url', 'like', 'pay-%')->pluck('id'))->delete();
+
+        $tautan = '#<a href="[^"]*/pay/komponen" class="nav-item-link#';
+        $this->actingAs($this->hr)->get('/pay/komponen')->assertForbidden();
+        $this->assertDoesNotMatchRegularExpression($tautan, $this->actingAs($this->hr)->get('/dashboard')->assertOk()->getContent());
+
+        $this->artisan('payroll:aktifkan', ['kode' => 'DEFAULT']);
+        $this->actingAs($this->hr)->get('/pay/komponen')->assertOk();
+        $this->assertMatchesRegularExpression($tautan, $this->actingAs($this->hr)->get('/dashboard')->getContent());
+        $this->actingAs(User::where('username', 'rizky')->firstOrFail())->get('/pay/jabatan')->assertForbidden();
+    }
+
+    public function test_jabatan_crud_unik_per_perusahaan_dan_hanya_dinonaktifkan(): void
+    {
+        $this->admin()->post('/pay/jabatan', ['code' => 'STF', 'name' => 'Staf', 'is_active' => 1])->assertSessionHasNoErrors();
+        $this->from('/pay/jabatan')->post('/pay/jabatan', ['code' => 'STF', 'name' => 'Staf lagi'])->assertSessionHasErrors('code');
+        $jabatan = Position::where('code', 'STF')->firstOrFail();
+
+        $this->put("/pay/jabatan/{$jabatan->id}", ['code' => 'STF', 'name' => 'Staf Senior', 'is_active' => 1])->assertSessionHasNoErrors();
+        $this->delete("/pay/jabatan/{$jabatan->id}")->assertRedirect();
+
+        $this->assertDatabaseHas('pay_positions', ['id' => $jabatan->id, 'name' => 'Staf Senior', 'is_active' => false]);
+        $this->assertSame(['created', 'updated', 'deactivated'], DB::table('audit_logs')->where('entity_type', Position::class)->orderBy('id')->pluck('action')->all());
+        $this->assertSame((int) $this->hr->company_id, (int) DB::table('audit_logs')->where('entity_type', Position::class)->value('company_id'));
+    }
+
+    public function test_komponen_kode_rumus_dan_nilai_uang_tepat(): void
+    {
+        $this->actingAs($this->hr)->from('/pay/komponen')
+            ->post('/pay/komponen', ['code' => 'Uang Makan', 'name' => 'Uang Makan', 'type' => 'earning', 'default_amount' => '100'])
+            ->assertSessionHasErrors('code');
+
+        $this->actingAs($this->hr)->post('/pay/komponen', [
+            'code' => 'uang_makan', 'name' => 'Uang Makan', 'type' => 'earning', 'default_amount' => '1234567.89', 'is_taxable' => 1, 'is_contractable' => 1, 'is_active' => 1,
+        ])->assertSessionHasNoErrors();
+        $this->actingAs($this->hr)->from('/pay/komponen')
+            ->post('/pay/komponen', ['code' => 'x', 'name' => 'X', 'type' => 'earning', 'default_amount' => '1.234'])->assertSessionHasErrors('default_amount');
+
+        $komponen = Component::where('code', 'uang_makan')->firstOrFail();
+        $this->assertSame('1234567.89', $komponen->default_amount);
+        $this->assertSame('1234567.89', (string) DB::table('pay_components')->where('id', $komponen->id)->value('default_amount'));
+        $this->assertTrue($komponen->is_taxable);
+
+        $this->actingAs($this->hr)->delete("/pay/komponen/{$komponen->id}");
+        $this->assertDatabaseHas('pay_components', ['id' => $komponen->id, 'is_active' => false]);
+    }
+
+    public function test_libur_dan_tipe_leave(): void
+    {
+        $this->actingAs($this->hr)->post('/pay/libur', ['holiday_date' => '2026-12-25', 'name' => 'Natal'])->assertSessionHasNoErrors();
+        $this->actingAs($this->hr)->from('/pay/libur')->post('/pay/libur', ['holiday_date' => '2026-12-25', 'name' => 'Lagi'])->assertSessionHasErrors('holiday_date');
+        $id = DB::table('pay_holidays')->value('id');
+        $this->actingAs($this->hr)->delete("/pay/libur/{$id}");
+        $this->assertDatabaseMissing('pay_holidays', ['id' => $id]);
+
+        $this->admin()->post('/pay/tipe-leave', ['code' => 'sakit_bersurat', 'name' => 'Sakit dengan surat dokter', 'is_active' => 1])->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('pay_leave_types', ['code' => 'sakit_bersurat', 'company_id' => $this->hr->company_id]);
+    }
+
+    public function test_cut_off_lintas_bulan_dan_kalender_bulanan(): void
+    {
+        $this->admin()->put('/pay/cutoff', ['start_day' => 26, 'end_day' => 25, 'start_in_previous_month' => 1])->assertSessionHasNoErrors();
+        [$mulai, $selesai] = PeriodConfig::firstOrFail()->rentang('2026-11');
+        $this->assertSame(['2026-10-26', '2026-11-25'], [$mulai->toDateString(), $selesai->toDateString()]);
+        $this->assertSame(['2026-02-26', '2026-03-25'], array_map(fn ($d) => $d->toDateString(), PeriodConfig::firstOrFail()->rentang('2026-03')));
+
+        $this->put('/pay/cutoff', ['start_day' => 1, 'end_day' => 31])->assertSessionHasNoErrors();
+        $this->assertSame(['2026-02-01', '2026-02-28'], array_map(fn ($d) => $d->toDateString(), PeriodConfig::firstOrFail()->rentang('2026-02')));
+        $this->assertSame(1, PeriodConfig::count(), 'satu konfigurasi per perusahaan');
+
+        $this->from('/pay/cutoff')->put('/pay/cutoff', ['start_day' => 26, 'end_day' => 25])->assertSessionHasErrors('end_day');
+    }
+
+    public function test_cut_off_yang_menyisakan_tanggal_kosong_ditolak(): void
+    {
+        $this->admin()->put('/pay/cutoff', ['start_day' => 1, 'end_day' => 31])->assertSessionHasNoErrors();
+        // 1 s/d 30 di bulan yang sama: tanggal 31 (Des, Jan, Mar, ...) tidak masuk periode mana pun
+        $this->from('/pay/cutoff')->put('/pay/cutoff', ['start_day' => 1, 'end_day' => 30])->assertSessionHasErrors('end_day');
+        // 5 s/d 31: tanggal 1-4 tidak terhitung
+        $this->from('/pay/cutoff')->put('/pay/cutoff', ['start_day' => 5, 'end_day' => 31])->assertSessionHasErrors('start_day');
+        // lintas bulan harus menyambung: 26 s/d 25 boleh, 26 s/d 20 (21-25 hilang) dan 20 s/d 25 (tumpang tindih) ditolak
+        $this->from('/pay/cutoff')->put('/pay/cutoff', ['start_day' => 26, 'end_day' => 20, 'start_in_previous_month' => 1])->assertSessionHasErrors('start_day');
+        $this->from('/pay/cutoff')->put('/pay/cutoff', ['start_day' => 20, 'end_day' => 25, 'start_in_previous_month' => 1])->assertSessionHasErrors('start_day');
+        $this->assertSame([1, 31], [(int) PeriodConfig::firstOrFail()->start_day, (int) PeriodConfig::firstOrFail()->end_day]);
+    }
+
+    public function test_npwp_dan_rekening_terenkripsi_dan_tidak_masuk_log(): void
+    {
+        $rizky = Karyawan::where('nama', 'Rizky Maulana')->firstOrFail();
+        $jabatan = Position::create(['code' => 'PRG', 'name' => 'Programmer']);
+
+        // setelah beralih ke payroll baru, data payroll diisi di form Data Karyawan (AUDIT.md §29)
+        $isi = collect($rizky->only(['nik', 'nama', 'jenis_kelamin', 'departemen_id', 'jabatan', 'pajak_id', 'status_kepegawaian', 'email', 'telepon', 'alamat', 'nama_bank', 'no_rekening', 'sisa_cuti']))
+            ->put('tgl_masuk', $rizky->tgl_masuk->toDateString())->put('is_active', 1)->all();
+        $this->actingAs($this->hr)->put("/karyawan/{$rizky->id}", $isi + ['data_payroll' => 1, 'position_id' => $jabatan->id, 'has_npwp' => 1, 'npwp' => '12.345.678.9-012.345'])
+            ->assertSessionHasNoErrors();
+
+        $raw = DB::table('karyawan')->where('id', $rizky->id)->first();
+        $this->assertStringNotContainsString('12.345.678', (string) $raw->npwp);
+        $this->assertSame('12.345.678.9-012.345', Employee::findOrFail($rizky->id)->npwp);
+        $this->assertSame($jabatan->id, (int) $raw->position_id);
+        $this->assertStringNotContainsString('12.345.678', (string) DB::table('audit_logs')->pluck('new_values')->join(' '));
+
+        // rekening: dari no_rekening (modul lama), disalin terenkripsi dan tetap sinkron
+        $this->assertSame((string) $raw->no_rekening, Crypt::decryptString((string) $raw->bank_account_no));
+        $rizky->update(['no_rekening' => '1112223334']);
+        $this->assertSame('1112223334', Employee::findOrFail($rizky->id)->bank_account_no);
+        $this->assertSame('******3334', Employee::findOrFail($rizky->id)->rekeningSamaran());
+    }
+
+    /** Form HTTP mengirim teks ("26", bukan 26): cut off lintas bulan harus tetap bisa disimpan (ditemukan QA). */
+    public function test_cut_off_dari_form_teks_bisa_disimpan(): void
+    {
+        $this->admin()->put('/pay/cutoff', ['start_day' => '26', 'end_day' => '25', 'start_in_previous_month' => '1'])->assertSessionHasNoErrors();
+        $this->assertSame([26, 25, true], [PeriodConfig::firstOrFail()->start_day, PeriodConfig::firstOrFail()->end_day, (bool) PeriodConfig::firstOrFail()->start_in_previous_month]);
+        $this->put('/pay/cutoff', ['start_day' => '1', 'end_day' => '31'])->assertSessionHasNoErrors();
+    }
+}

@@ -1,0 +1,254 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Feature\MultiTenant;
+
+use App\Domain\Company\Models\Company;
+use App\Domain\Company\Tenancy\CompanyScope;
+use App\Models\Role;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Tests\TestCase;
+
+/** Fase 1d: Super Admin (platform), pemilihan perusahaan, hak akses per perusahaan. */
+final class SuperAdminTest extends TestCase
+{
+    use BuatPerusahaanLain;
+    use RefreshDatabase;
+
+    protected bool $seed = true;
+
+    private function buatSuperAdmin(): User
+    {
+        $this->artisan('super-admin:buat', ['username' => 'super', '--password' => 'rahasia123'])->assertSuccessful();
+
+        return User::withoutGlobalScope(CompanyScope::class)->where('username', 'super')->firstOrFail();
+    }
+
+    public function test_perintah_membuat_akun_platform_tanpa_perusahaan(): void
+    {
+        $super = $this->buatSuperAdmin();
+
+        $this->assertNull($super->company_id);
+        $this->assertSame('Super Admin', $super->role->nama);
+        $this->assertNull($super->role->company_id);
+        $this->artisan('super-admin:buat', ['username' => 'super'])->assertFailed();
+    }
+
+    public function test_login_lalu_diarahkan_ke_perusahaan_dan_tanpa_pilihan_tidak_melihat_data(): void
+    {
+        $this->buatSuperAdmin();
+
+        $this->post('/login', ['username' => 'super', 'password' => 'rahasia123'])->assertRedirect('/dashboard');
+        // dashboard platform: ringkasan lintas perusahaan, hanya angka (AUDIT.md §37)
+        $this->get('/dashboard')->assertOk()->assertSee('Dashboard Super Admin')->assertSee('Karyawan Dikelola')
+            ->assertSee('DEFAULT')->assertSee('grafikKaryawan')->assertDontSee('Rizky Maulana');
+        $this->get('/perusahaan')->assertOk()->assertSee('DEFAULT');
+
+        $this->get('/users')->assertForbidden();
+        $this->get('/karyawan')->assertForbidden();
+    }
+
+    public function test_super_admin_hanya_dashboard_dan_perusahaan(): void
+    {
+        $super = $this->buatSuperAdmin();
+        $default = Company::where('code', 'DEFAULT')->firstOrFail();
+
+        // keputusan pemilik (AUDIT.md §40): isi perusahaan dikelola Admin perusahaan, bukan Super Admin
+        $html = $this->actingAs($super)->get('/perusahaan')->assertOk()->assertDontSee('>Pilih</button>', false)->getContent();
+        preg_match_all('#<a href="https?://[^/"]+/([^"]*)" class="nav-item-link#', $html, $m);
+        $this->assertEqualsCanonicalizing(['dashboard', 'perusahaan'], array_values(array_unique($m[1])));
+        foreach (['/users', '/roles', '/menus', '/karyawan', '/departemen', '/pay/jabatan', '/pay/referensi'] as $url) {
+            $this->actingAs($super)->withSession([\App\Domain\Company\Tenancy\CurrentCompany::SESSION_KEY => (int) $default->id])->get($url)->assertForbidden();
+        }
+    }
+
+    public function test_perusahaan_baru_mendapat_role_hak_akses_dan_approval_bawaan(): void
+    {
+        $super = $this->buatSuperAdmin();
+
+        $this->actingAs($super)->post('/perusahaan', ['code' => 'PTC', 'name' => 'PT Contoh', 'admin_username' => 'admin.ptc', 'admin_password' => 'rahasia123', 'admin_password_confirmation' => 'rahasia123'])->assertSessionHasNoErrors();
+
+        $baru = Company::where('code', 'PTC')->firstOrFail();
+        $roles = DB::table('roles')->where('company_id', $baru->id)->orderBy('id')->pluck('nama')->all();
+        $this->assertSame([Role::ADMIN, Role::HR, Role::MANAGER, Role::KARYAWAN], $roles);
+        // hak bawaan disalin dari DEFAULT (lalu modul payroll baru ditambahkan, AUDIT.md §29)
+        $pasangan = fn (int $cid) => DB::table('privileges')->join('roles', 'roles.id', '=', 'privileges.role_id')->join('menus', 'menus.id', '=', 'privileges.menu_id')
+            ->where('privileges.company_id', $cid)->get(['roles.nama', 'menus.url'])->map(fn ($r) => "{$r->nama}:{$r->url}")->all();
+        $this->assertSame([], array_diff($pasangan($this->defaultId()), $pasangan((int) $baru->id)));
+        $this->assertSame(DB::table('approval_mapping')->where('company_id', $this->defaultId())->count(), DB::table('approval_mapping')->where('company_id', $baru->id)->count());
+    }
+
+    public function test_super_admin_membuat_perusahaan_beserta_akun_admin_yang_bisa_langsung_login(): void
+    {
+        $super = $this->buatSuperAdmin();
+
+        // akun Admin wajib diisi saat membuat perusahaan
+        $this->actingAs($super)->post('/perusahaan', ['code' => 'PTA', 'name' => 'PT Admin'])->assertSessionHasErrors(['admin_username', 'admin_password']);
+        $this->assertFalse(Company::where('code', 'PTA')->exists(), 'perusahaan tidak dibuat tanpa akun Admin');
+        $this->actingAs($super)->post('/perusahaan', ['code' => 'PTA', 'name' => 'PT Admin', 'admin_username' => 'admin', 'admin_password' => 'rahasia123', 'admin_password_confirmation' => 'rahasia123'])
+            ->assertSessionHasErrors('admin_username'); // username unik global
+
+        $this->actingAs($super)->post('/perusahaan', ['code' => 'PTA', 'name' => 'PT Admin', 'admin_username' => 'admin.pta', 'admin_email' => 'admin@pta.test',
+            'admin_password' => 'rahasia123', 'admin_password_confirmation' => 'rahasia123'])->assertSessionHasNoErrors();
+        $pta = Company::where('code', 'PTA')->firstOrFail();
+        $akun = User::withoutGlobalScope(CompanyScope::class)->where('username', 'admin.pta')->firstOrFail();
+        $this->assertSame((int) $pta->id, (int) $akun->company_id);
+        $this->assertSame(Role::ADMIN, DB::table('roles')->where('id', $akun->role_id)->value('nama'));
+        $this->assertSame((int) $pta->id, (int) DB::table('roles')->where('id', $akun->role_id)->value('company_id'));
+
+        // Admin perusahaan login sendiri dan mengelola user perusahaannya
+        $this->post('/logout');
+        $this->post('/login', ['username' => 'admin.pta', 'password' => 'rahasia123'])->assertRedirect('/dashboard');
+        $this->get('/users')->assertOk()->assertSee('admin.pta')->assertDontSee('rizky');
+        $this->get('/pay/jabatan')->assertOk();
+        $this->post('/logout');
+
+        // Admin tambahan dari drawer "Admin Perusahaan" tanpa memilih perusahaan
+        $this->actingAs($super)->get("/perusahaan?admin={$pta->id}")->assertOk()->assertSee('Admin Perusahaan')->assertSee('admin.pta');
+        $this->actingAs($super)->post("/perusahaan/{$pta->id}/admin", ['admin_username' => 'admin2.pta', 'admin_password' => 'rahasia123', 'admin_password_confirmation' => 'rahasia123'])
+            ->assertRedirect(route('perusahaan.index', ['admin' => $pta->id]));
+        $this->assertSame((int) $pta->id, (int) User::withoutGlobalScope(CompanyScope::class)->where('username', 'admin2.pta')->value('company_id'));
+        $this->actingAs(User::withoutGlobalScope(CompanyScope::class)->where('username', 'admin')->firstOrFail())->post("/perusahaan/{$pta->id}/admin", ['admin_username' => 'x.pta'])->assertForbidden();
+    }
+
+    public function test_perusahaan_baru_tetap_bisa_dibuat_tanpa_templat_default(): void
+    {
+        $super = $this->buatSuperAdmin();
+        Company::where('code', 'DEFAULT')->update(['code' => 'LAMA']); // seperti DEFAULT sudah dihapus
+
+        $this->actingAs($super)->post('/perusahaan', ['code' => 'PTN', 'name' => 'PT Nol', 'admin_username' => 'admin.ptn',
+            'admin_password' => 'rahasia123', 'admin_password_confirmation' => 'rahasia123'])->assertSessionHasNoErrors();
+        $ptn = Company::where('code', 'PTN')->firstOrFail();
+        $this->assertEqualsCanonicalizing([Role::ADMIN, Role::HR, Role::MANAGER, Role::KARYAWAN], DB::table('roles')->where('company_id', $ptn->id)->pluck('nama')->all());
+
+        $this->post('/logout');
+        $this->post('/login', ['username' => 'admin.ptn', 'password' => 'rahasia123'])->assertRedirect('/dashboard');
+        $this->get('/dashboard')->assertOk();
+        $this->get('/users')->assertOk();
+        $this->get('/pay/master')->assertOk();
+    }
+
+    public function test_perusahaan_baru_langsung_memakai_payroll_baru(): void
+    {
+        $super = $this->buatSuperAdmin();
+        $hak = fn (string $kode, string $url) => DB::table('privileges')->join('roles', 'roles.id', '=', 'privileges.role_id')
+            ->where('roles.company_id', Company::where('code', $kode)->value('id'))->where('roles.nama', Role::HR)
+            ->where('privileges.menu_id', DB::table('menus')->where('url', $url)->value('id'))->value('privileges.can_view');
+
+        $this->actingAs($super)->post('/perusahaan', ['code' => 'PTP', 'name' => 'PT Payroll', 'admin_username' => 'admin.ptp', 'admin_password' => 'rahasia123', 'admin_password_confirmation' => 'rahasia123'])->assertSessionHasNoErrors();
+
+        $this->assertTrue(Company::where('code', 'PTP')->firstOrFail()->payroll_baru);
+        $this->assertTrue((bool) $hak('PTP', 'pay-run'));
+        $this->assertFalse((bool) $hak('PTP', 'kontrak'), 'menu Kontrak lama disembunyikan');
+        $this->assertFalse(Company::where('code', 'DEFAULT')->firstOrFail()->payroll_baru, 'perusahaan lain tidak ikut berubah');
+        $this->assertTrue((bool) $hak('DEFAULT', 'kontrak'));
+        $this->assertNull($hak('DEFAULT', 'pay-run'));
+    }
+
+    public function test_hak_pajak_dan_menu_perusahaan(): void
+    {
+        $super = $this->buatSuperAdmin();
+        $hr = User::where('username', 'hr')->firstOrFail();
+        $admin = User::where('username', 'admin')->firstOrFail();
+
+        $this->assertFalse($super->bisa('pay-referensi'), 'Super Admin hanya Dashboard & Perusahaan (AUDIT.md §40)');
+
+        $this->actingAs($admin)->get('/perusahaan')->assertForbidden();
+    }
+
+    public function test_admin_perusahaan_tidak_bisa_memakai_role_super_admin(): void
+    {
+        $this->buatSuperAdmin();
+        $admin = User::where('username', 'admin')->firstOrFail();
+        $roleSuper = DB::table('roles')->whereNull('company_id')->where('nama', 'Super Admin')->value('id');
+
+        $this->actingAs($admin)->get('/roles')->assertOk()->assertDontSee('Super Admin');
+        $this->actingAs($admin)->from('/users')
+            ->post('/users', ['username' => 'naik.pangkat', 'role_id' => $roleSuper, 'password' => 'password123', 'password_confirmation' => 'password123'])
+            ->assertSessionHasErrors('role_id');
+    }
+
+    public function test_menu_perusahaan_tidak_bisa_diberikan_atau_dihapus_admin_perusahaan(): void
+    {
+        $this->buatSuperAdmin();
+        $admin = User::where('username', 'admin')->firstOrFail();
+        $hr = User::where('username', 'hr')->firstOrFail();
+        $menuPerusahaan = DB::table('menus')->where('url', 'perusahaan')->value('id');
+
+        $this->actingAs($admin)->put("/roles/{$hr->role_id}/hak-akses", ['akses' => [$menuPerusahaan => ['view' => 1, 'create' => 1]]]);
+        $this->assertFalse(DB::table('privileges')->where('role_id', $hr->role_id)->where('menu_id', $menuPerusahaan)->exists());
+        $this->actingAs($admin)->get('/menus?q=perusahaan')->assertForbidden(); // Manajemen Menu khusus Super Admin (AUDIT.md §26)
+        $this->actingAs($admin)->delete("/menus/{$menuPerusahaan}")->assertForbidden();
+
+        // lapisan kedua: walau hak menu dipaksa masuk tabel, halaman tetap khusus Super Admin
+        DB::table('privileges')->insert(['company_id' => $this->defaultId(), 'role_id' => $hr->role_id, 'menu_id' => $menuPerusahaan,
+            'can_view' => true, 'can_create' => true, 'can_update' => true, 'can_delete' => true, 'can_approve' => false]);
+        $this->actingAs($hr)->get('/perusahaan')->assertForbidden();
+        $this->actingAs($hr)->post('/perusahaan', ['code' => 'X', 'name' => 'X'])->assertForbidden();
+    }
+
+    public function test_akun_super_admin_terkunci_tanpa_notifikasi_ke_admin_perusahaan(): void
+    {
+        $super = $this->buatSuperAdmin();
+        $sebelum = DB::table('notifikasi')->count();
+
+        for ($i = 0; $i < 5; $i++) {
+            $this->post('/login', ['username' => 'super', 'password' => 'salah']);
+        }
+
+        $this->assertTrue((bool) DB::table('users')->where('id', $super->id)->value('is_locked'));
+        $this->assertSame($sebelum, DB::table('notifikasi')->count());
+    }
+
+    /** AUDIT.md §76: soft delete = nonaktifkan (akun tidak bisa login); hard delete = hapus permanen semua data, ketik kode. */
+    public function test_nonaktifkan_dan_hapus_permanen_perusahaan(): void
+    {
+        $super = $this->buatSuperAdmin();
+        ['company' => $isi, 'users' => $users, 'karyawan' => $karyawan] = $this->perusahaanLain('ISI');
+        $this->actingAs($super)->get('/perusahaan')->assertOk()->assertSee('Nonaktifkan (data tetap tersimpan)')->assertSee('Hapus permanen beserta semua data');
+        $this->actingAs($super)->get("/perusahaan?hapus={$isi->id}")->assertOk()->assertSee('Ketik <b>ISI</b> untuk konfirmasi', false);
+
+        // soft delete
+        $this->actingAs($super)->post("/perusahaan/{$isi->id}/status", ['aktif' => 0])->assertRedirect();
+        $this->assertFalse($isi->fresh()->is_active);
+        auth()->logout();
+        $this->post('/login', ['username' => 'hr.isi', 'password' => 'password'])->assertSessionHasErrors('username');
+        $this->assertGuest();
+        $this->actingAs($users['HR'])->get('/dashboard')->assertRedirect(route('login')); // sesi berjalan ikut dikeluarkan
+        $this->actingAs($super)->post("/perusahaan/{$isi->id}/status", ['aktif' => 1]);
+        $this->assertTrue($isi->fresh()->is_active);
+
+        // hard delete: kode salah ditolak, kode benar menghapus semua data perusahaan itu saja
+        $this->actingAs($super)->delete("/perusahaan/{$isi->id}", ['konfirmasi_kode' => 'SALAH'])->assertSessionHasErrors('konfirmasi_kode');
+        $this->assertNotNull(Company::find($isi->id));
+        $lainSebelum = DB::table('karyawan')->where('company_id', '!=', $isi->id)->count();
+        $this->actingAs($super)->delete("/perusahaan/{$isi->id}", ['konfirmasi_kode' => 'ISI'])->assertRedirect(route('perusahaan.index'));
+        $this->assertNull(Company::find($isi->id));
+        foreach (['users', 'roles', 'privileges', 'karyawan', 'departemen'] as $t) {
+            $this->assertSame(0, DB::table($t)->where('company_id', $isi->id)->count(), $t);
+        }
+        $this->assertSame($lainSebelum, DB::table('karyawan')->count(), 'data perusahaan lain utuh');
+
+        $default = Company::where('code', Company::DEFAULT_CODE)->firstOrFail();
+        $this->actingAs($super)->delete("/perusahaan/{$default->id}", ['konfirmasi_kode' => 'DEFAULT'])->assertStatus(422);
+    }
+
+    /** AUDIT.md §78: DEFAULT dikosongkan jadi templat murni: role tetap (disalin ke perusahaan baru), tidak tampil di daftar. */
+    public function test_default_dikosongkan_jadi_templat_dan_disembunyikan(): void
+    {
+        $super = $this->buatSuperAdmin();
+        $default = Company::where('code', Company::DEFAULT_CODE)->firstOrFail();
+        app(\App\Domain\Company\Actions\HapusPerusahaan::class)->kosongkanTemplat();
+        $this->assertSame(0, DB::table('karyawan')->where('company_id', $default->id)->count());
+        $this->assertSame(0, DB::table('users')->where('company_id', $default->id)->count());
+        $this->assertGreaterThan(0, DB::table('roles')->where('company_id', $default->id)->count());
+        $this->actingAs($super)->get('/perusahaan')->assertOk()->assertDontSee('Perusahaan Default');
+        $this->actingAs($super)->post('/perusahaan', ['code' => 'BRU', 'name' => 'PT Baru', 'admin_username' => 'admin.bru', 'admin_password' => 'rahasia123', 'admin_password_confirmation' => 'rahasia123'])->assertSessionHasNoErrors();
+        $baru = Company::where('code', 'BRU')->firstOrFail();
+        $this->assertEqualsCanonicalizing(DB::table('roles')->where('company_id', $default->id)->pluck('nama')->all(), DB::table('roles')->where('company_id', $baru->id)->pluck('nama')->all());
+        $this->actingAs($super)->get('/perusahaan')->assertOk()->assertSee('PT Baru');
+    }
+}

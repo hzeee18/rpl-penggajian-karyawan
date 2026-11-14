@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Domain\Company\Tenancy\BelongsToCompany;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
@@ -11,6 +12,8 @@ use Illuminate\Database\Eloquent\Model;
  */
 class MasterPayroll extends Model
 {
+    use BelongsToCompany;
+
     protected $table = 'master_payroll';
     protected $fillable = ['periode', 'tgl_mulai', 'tgl_selesai', 'tgl_cutoff', 'hari_kerja', 'pembagi_lembur', 'pengali_jam1', 'pengali_jam_berikut', 'dibuat_oleh'];
     protected $casts = [

@@ -1,0 +1,342 @@
+---
+title: Class Diagram - Aplikasi Penggajian Karyawan (Multi-Perusahaan)
+---
+classDiagram
+  class Company {
+    -int id
+    -String code
+    -String name
+    -String signer_name
+    -String signature_path
+    -bool payroll_baru
+    -bool payroll_butuh_approval
+    -bool slip_pakai_password
+    -String prorata_dasar
+    -bool is_active
+    +aktifkanPayroll() void
+  }
+  class User {
+    -int id
+    -int company_id
+    -String username
+    -String password
+    -bool is_active
+    -bool is_locked
+    +login() bool
+    +pilihPerusahaan(companyId) void
+  }
+  class Role {
+    -int id
+    -int company_id
+    -String nama
+  }
+  class Menu {
+    -int id
+    -int parent_id
+    -String nama
+    -String url
+  }
+  class Privilege {
+    -int id
+    -int role_id
+    -int menu_id
+    -bool can_view
+    -bool can_create
+    -bool can_update
+    -bool can_delete
+    -bool can_approve
+    +cekAkses(role, menu, aksi) bool
+  }
+  class Departemen {
+    -int id
+    -int company_id
+    -String kode
+    -String nama
+    -int pay_work_pattern_id
+  }
+  class WorkPattern {
+    -int id
+    -String code
+    -String name
+    -String work_days
+    -bool is_default
+    +hariUntuk(polaKaryawan, polaDepartemen) int[]
+  }
+  class Holiday {
+    -int id
+    -Date holiday_date
+    -String type
+    -int departemen_id
+    -String name
+  }
+  class PayPeriod {
+    -int id
+    -String period_month
+    -Date start_date
+    -Date end_date
+    +status() String
+  }
+  class KelolaPeriode {
+    +untukBulan(bulan) PayPeriod
+    +buatBerikutnya() PayPeriod
+    +ubahSelesai(periode, tanggal) void
+    +hapus(periode) void
+  }
+  class Employee {
+    -int id
+    -int company_id
+    -String nik
+    -String nama
+    -int position_id
+    -int pajak_id
+    -bool has_npwp
+    -String bank_account_no
+    -Date tgl_masuk
+    -Date resign_date
+    -int pay_work_pattern_id
+    -bool is_active
+    +employeeNo() String
+    +ptkpStatus() String
+    +hariKerja() int[]
+  }
+  class Position {
+    -int id
+    -String code
+    -String name
+  }
+  class Component {
+    -int id
+    -String code
+    -String name
+    -String type
+    -bool is_taxable
+    -bool is_tax_deductible
+    -bool is_contractable
+    -decimal default_amount
+  }
+  class Contract {
+    -int id
+    -int employee_id
+    -int previous_contract_id
+    -Date start_date
+    -Date end_date
+    -bool is_active
+    +perbarui(data) Contract
+    +nonaktifkan() void
+    +hampirBerakhir() bool
+  }
+  class KontrakPeriode {
+    -array segmen
+    +untuk(employee, mulai, selesai) KontrakPeriode
+    +terakhir() Contract
+    +penuh() bool
+  }
+  class ContractComponent {
+    -int id
+    -int contract_id
+    -int component_id
+    -decimal amount
+  }
+  class Attendance {
+    -int id
+    -int employee_id
+    -Date attendance_date
+    -Time check_in
+    -Time check_out
+    -decimal late_hours
+  }
+  class Leave {
+    -int id
+    -int employee_id
+    -int leave_type_id
+    -Date leave_date
+  }
+  class Overtime {
+    -int id
+    -int employee_id
+    -Date overtime_date
+    -decimal duration_hours
+  }
+  class ImportBatch {
+    -int id
+    -String type
+    -int total_rows
+    -int valid_rows
+    -String status
+    +unggah(file) ImportBatch
+    +validasiUlang() ImportBatch
+    +simpan() int
+  }
+  class ReferenceTable {
+    -int id
+    -int company_id
+    -String code
+    -String name
+    +isNasional() bool
+  }
+  class ReferenceTableVersion {
+    -int id
+    -int version_no
+    -Date effective_from
+    -DateTime locked_at
+    +terbitkan(berlakuMulai) void
+    +salin() ReferenceTableVersion
+  }
+  class Master {
+    -int id
+    -String code
+    -String name
+    -int current_version_id
+  }
+  class MasterVersion {
+    -int id
+    -int version_no
+    -String status
+    -DateTime locked_at
+    +terbitkan() void
+    +salin() MasterVersion
+  }
+  class Variable {
+    -int id
+    -String code
+    -String kind
+    -String source
+    -String aggregate
+    -String formula
+  }
+  class Param {
+    -int id
+    -String code
+    -decimal value
+  }
+  class Item {
+    -int id
+    -String code
+    -String type
+    -String calc_type
+    -String formula
+    -String item_role
+    -int sort_order
+  }
+  class PeriodConfig {
+    -int start_day
+    -int end_day
+    -bool start_in_previous_month
+    +rentang(periode) Date[]
+  }
+  class Kalkulator {
+    +hitung(employee, kontrakPeriode, mulai, selesai, penyesuaian) HasilHitung
+    -prorata(periode) decimal[]
+  }
+  class PenyetujuPayroll {
+    +boleh(user) bool
+    +daftar() User[]
+  }
+  class PayrollRun {
+    -int id
+    -String title
+    -Date period_start
+    -Date period_end
+    -String status
+    -String job_status
+    -int approver_user_id
+    -bool is_blocking
+    +mulaiPratinjau(master) void
+    +tambahPenyesuaian(data) RunAdjustment
+    +generate() void
+    +setujui(user) void
+    +tolak(user, alasan) void
+    +tarikKembali(alasan) void
+    +batalkanProses() void
+  }
+  class RunAdjustment {
+    -int id
+    -int run_id
+    -int employee_id
+    -int component_id
+    -decimal amount
+    -String note
+  }
+  class RunEmployee {
+    -int id
+    -int employee_id
+    -int contract_id
+    -bool is_blocking
+    -decimal total_earnings
+    -decimal total_deductions
+    -decimal take_home_pay
+  }
+  class RunItem {
+    -int id
+    -String code
+    -decimal calculated_amount
+    -decimal final_amount
+    -bool is_taxable
+  }
+  class Payslip {
+    -int id
+    -int run_employee_id
+    -String file_path
+    -DateTime generated_at
+    +buatPdf() void
+    +password() String
+    +pakaiPassword() bool
+  }
+  class TaxMonthlyHistory {
+    -int id
+    -int tax_year
+    -int tax_month
+    -decimal gross_taxable
+    -decimal pph21
+  }
+  class AuditLog {
+    -int id
+    -String action
+    -String entity_type
+    -int entity_id
+  }
+  Company "1" *-- "0..*" User : punya
+  Company "1" *-- "0..*" Employee : punya
+  Company "0..1" *-- "0..*" ReferenceTable : NULL = nasional
+  Role "1" --> "0..*" User : dimiliki
+  Role "1" *-- "0..*" Privilege
+  Menu "1" *-- "0..*" Privilege
+  User "0..1" --> "0..1" Employee : akun
+  PenyetujuPayroll ..> PayrollApprover : user/role terpilih
+  Departemen "0..*" --> "0..1" WorkPattern : pola hari kerja
+  Employee "0..*" --> "0..1" WorkPattern : pengecualian
+  Departemen "0..1" o-- "0..*" Holiday : libur khusus
+  Company "1" *-- "0..*" PayPeriod : Kalender Payroll
+  KelolaPeriode ..> PayPeriod
+  KelolaPeriode ..> PeriodConfig : tanggal otomatis
+  Departemen "1" o-- "0..*" Employee : anggota
+  Position "1" o-- "0..*" Employee : jabatan
+  Employee "1" *-- "0..*" Contract : berversi
+  Contract "1" *-- "1..*" ContractComponent
+  Component "1" --> "0..*" ContractComponent : nilai disalin
+  Employee "1" *-- "0..*" Attendance
+  Employee "1" *-- "0..*" Leave
+  Employee "1" *-- "0..*" Overtime
+  ImportBatch "0..1" --> "0..*" Attendance : sumber CSV
+  ReferenceTable "1" *-- "1..*" ReferenceTableVersion
+  Master "1" *-- "1..*" MasterVersion
+  MasterVersion "1" *-- "0..*" Variable
+  MasterVersion "1" *-- "0..*" Param
+  MasterVersion "1" *-- "1..*" Item
+  Item "0..*" --> "1" Component
+  Kalkulator ..> MasterVersion : evaluasi rumus
+  Kalkulator ..> ReferenceTableVersion : LOOKUP TER
+  PayrollRun "0..*" --> "1" MasterVersion : memakai
+  PayrollRun "1" *-- "0..*" RunEmployee : snapshot
+  RunEmployee "1" *-- "1..*" RunItem
+  RunEmployee "1" --> "0..1" Payslip
+  PayrollRun "1" --> "0..*" TaxMonthlyHistory : saat disetujui
+  PayrollRun ..> Kalkulator : preview dan generate
+  PayrollRun ..> PayPeriod : rentang periode
+  PayrollRun "1" *-- "0..*" RunAdjustment : penyesuaian
+  RunAdjustment "0..*" --> "1" Component : jenis
+  Kalkulator ..> KontrakPeriode : prorata hari kerja
+  Kalkulator ..> WorkPattern : hari kerja
+  Kalkulator ..> Holiday : libur
+  KontrakPeriode ..> Contract : segmen
+  PayrollRun ..> PenyetujuPayroll : setujui / tolak

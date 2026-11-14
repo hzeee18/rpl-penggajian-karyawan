@@ -12,7 +12,13 @@
             <div class="col-md-8 mb-3"><label class="form-label">Nama lengkap</label><input name="nama" value="{{ old('nama', $karyawan->nama) }}" class="form-control" required></div>
             <div class="col-md-4 mb-3"><label class="form-label">Departemen</label>
                 <select name="departemen_id" class="form-select" required><option value="">Pilih</option>@foreach ($departemen as $d)<option value="{{ $d->id }}" @selected(old('departemen_id', $karyawan->departemen_id) == $d->id)>{{ $d->nama }}</option>@endforeach</select></div>
+@if ($payrollBaru ?? false)
+            {{-- satu Jabatan saja: master Jabatan payroll (kolom teks jabatan diisi otomatis dari namanya) --}}
+            <div class="col-md-4 mb-3"><label class="form-label">Jabatan</label>
+                <select name="position_id" class="form-select" required><option value="">Pilih</option>@foreach ($jabatanPayroll as $j)<option value="{{ $j->id }}" @selected(old('position_id', $karyawan->position_id) == $j->id)>{{ $j->name }}</option>@endforeach</select></div>
+@else
             <div class="col-md-4 mb-3"><label class="form-label">Jabatan</label><input name="jabatan" value="{{ old('jabatan', $karyawan->jabatan) }}" class="form-control" required></div>
+@endif
             <div class="col-md-4 mb-3"><label class="form-label">Tanggal masuk</label><input type="date" name="tgl_masuk" value="{{ old('tgl_masuk', $karyawan->tgl_masuk?->toDateString()) }}" class="form-control" required></div>
             <div class="col-md-4 mb-3"><label class="form-label">Status kepegawaian</label>
                 <select name="status_kepegawaian" class="form-select">@foreach (['tetap', 'kontrak', 'harian'] as $s)<option value="{{ $s }}" @selected(old('status_kepegawaian', $karyawan->status_kepegawaian) === $s)>{{ ucfirst($s) }}</option>@endforeach</select></div>
@@ -31,6 +37,17 @@
             <div class="col-md-4 mb-3"><label class="form-label">No. rekening</label><input name="no_rekening" value="{{ old('no_rekening', $karyawan->no_rekening) }}" class="form-control"></div>
             <div class="col-md-4 mb-3 d-flex align-items-end"><div class="form-check"><input type="checkbox" name="is_active" value="1" id="aktif" class="form-check-input" @checked(old('is_active', $karyawan->is_active))><label class="form-check-label" for="aktif">Karyawan aktif</label></div></div>
         </div>
+@if ($payrollBaru ?? false)
+            {{-- data modul payroll baru (dulu menu Karyawan Payroll) --}}
+            <input type="hidden" name="data_payroll" value="1">
+            <h6 class="text-muted mb-3 mt-2">Data payroll</h6>
+            <div class="row">
+                <div class="col-md-4 mb-3"><label class="form-label">Tanggal resign</label><input type="date" name="resign_date" value="{{ old('resign_date', $karyawan->resign_date?->toDateString()) }}" class="form-control"></div>
+                <div class="col-md-4 mb-3 d-flex align-items-end"><div class="form-check"><input type="checkbox" name="has_npwp" value="1" id="has_npwp" class="form-check-input" @checked(old('has_npwp', $karyawan->has_npwp))><label class="form-check-label" for="has_npwp">Punya NPWP</label></div></div>
+                <div class="col-md-4 mb-3"><label class="form-label">NPWP</label><input name="npwp" value="{{ old('npwp') }}" class="form-control" autocomplete="off"
+                    placeholder="{{ $karyawan->npwp ? 'Tersimpan (terenkripsi). Isi untuk mengganti.' : '15-16 digit' }}"></div>
+            </div>
+@endif
     </div>
     <div class="card-footer bg-white text-end">
         <a href="{{ route('karyawan.index') }}" class="btn btn-light">Batal</a>

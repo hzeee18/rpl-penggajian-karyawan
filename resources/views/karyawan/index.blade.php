@@ -11,7 +11,7 @@
         <x-cari placeholder="Cari nama atau NIK..." />
         <div class="table-responsive">
             <table class="table table-hover">
-                <thead><tr><th>NIK</th><th>Departemen</th><th>Karyawan</th><th>PTKP</th><th>Aksi</th></tr></thead>
+                <thead><tr><th>NIK</th><th>Departemen</th><th>Karyawan</th><th>PTKP</th><th class="text-center">Aksi</th></tr></thead>
                 <tbody>
                 @forelse ($karyawan as $k)
                     <tr class="{{ $ubah?->id === $k->id ? 'terpilih' : '' }}">
@@ -19,7 +19,7 @@
                         <td>{{ $k->departemen?->nama }}</td>
                         <td><a href="{{ route('karyawan.show', $k) }}" class="text-reset">{!! orang($k->nama, $k->jabatan) !!}</a></td>
                         <td>{{ $k->pajak?->status_ptkp ?? '-' }}</td>
-                        <td class="text-nowrap">@include('partials.aksi', ['ubah' => route('karyawan.index', ['ubah' => $k->id] + request()->only('q', 'page')), 'hapus' => route('karyawan.destroy', $k), 'pesanHapus' => 'Hapus ' . $k->nama . '? Kalau sudah punya riwayat gaji, karyawan hanya dinonaktifkan.'])</td>
+                        <td class="text-nowrap text-center">@include('partials.aksi', ['ubah' => route('karyawan.index', ['ubah' => $k->id] + request()->only('q', 'page')), 'hapus' => route('karyawan.destroy', $k), 'pesanHapus' => 'Hapus ' . $k->nama . '? Kalau sudah punya riwayat gaji, karyawan hanya dinonaktifkan.'])</td>
                     </tr>
                 @empty
                     <tr><td colspan="5"><x-empty :ikon="request('q') ? 'search-x' : 'users'" :judul="request('q') ? 'Tidak ada hasil' : 'Belum ada data'" :pesan="request('q') ? 'Coba kata kunci lain.' : 'Data yang ditambahkan akan muncul di sini.'"><a href="{{ route('karyawan.create') }}" class="btn btn-primary">Tambah data</a></x-empty></td></tr>

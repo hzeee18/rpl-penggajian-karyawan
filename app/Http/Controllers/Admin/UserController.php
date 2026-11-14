@@ -101,10 +101,10 @@ class UserController extends Controller
     private function validasi(Request $request, ?User $user = null): array
     {
         $data = $request->validate([
-            'username' => ['required', 'alpha_dash', 'max:50', Rule::unique('users')->ignore($user)],
+            'username' => ['required', 'regex:/^[A-Za-z0-9._-]+$/', 'max:50', Rule::unique('users')->ignore($user)], // sama dengan akun admin perusahaan: titik boleh (mis. hr.mts)
             'email' => ['nullable', 'email', 'max:100'],
-            'role_id' => ['required', 'exists:roles,id'],
-            'karyawan_id' => ['nullable', 'exists:karyawan,id', Rule::unique('users')->ignore($user)],
+            'role_id' => ['required', \App\Domain\Company\Tenancy\TenantRule::exists('roles')],
+            'karyawan_id' => ['nullable', \App\Domain\Company\Tenancy\TenantRule::exists('karyawan'), Rule::unique('users')->ignore($user)],
             'password' => [$user ? 'nullable' : 'required', Password::min(8)],
             'is_active' => ['nullable', 'boolean'],
         ]);

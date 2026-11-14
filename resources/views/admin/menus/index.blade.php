@@ -11,7 +11,7 @@
         <x-cari placeholder="Cari menu..." />
         <div class="table-responsive">
             <table class="table table-hover">
-                <thead><tr><th>Urut</th><th>Induk</th><th>Menu</th><th class="text-center">Role</th><th>Aksi</th></tr></thead>
+                <thead><tr><th>Urut</th><th>Induk</th><th>Menu</th><th class="text-center">Role</th><th class="text-center">Aksi</th></tr></thead>
                 <tbody>
                 @forelse ($menus as $m)
                     <tr class="{{ $ubah?->id === $m->id ? 'terpilih' : '' }}">
@@ -19,7 +19,7 @@
                         <td>{{ $m->parent?->nama ?? '-' }}</td>
                         <td>{!! orang($m->nama, $m->url ? '/' . $m->url : 'Grup menu') !!}</td>
                         <td class="text-center">{{ $m->privileges->where('can_view', true)->count() }}</td>
-                        <td class="text-nowrap">@include('partials.aksi', ['ubah' => route('menus.index', ['ubah' => $m->id] + request()->only('q', 'page')), 'hapus' => route('menus.destroy', $m), 'pesanHapus' => 'Hapus menu ' . $m->nama . '? Hak akses menu ini ikut terhapus.'])</td>
+                        <td class="text-nowrap text-center">@include('partials.aksi', ['ubah' => route('menus.index', ['ubah' => $m->id] + request()->only('q', 'page')), 'hapus' => route('menus.destroy', $m), 'pesanHapus' => 'Hapus menu ' . $m->nama . '? Hak akses menu ini ikut terhapus.'])</td>
                     </tr>
                 @empty
                     <tr><td colspan="5"><x-empty ikon="search-x" judul="Tidak ada hasil" pesan="Coba kata kunci lain." /></td></tr>

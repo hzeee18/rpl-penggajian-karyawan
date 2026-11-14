@@ -12,7 +12,7 @@ class MenuController extends Controller
     public function index(Request $request)
     {
         // daftar datar (induk + anak) seperti tabel di Figma
-        $daftar = Menu::whereNull('parent_id')->orderBy('urutan')->with(['children.privileges', 'children.parent', 'privileges'])->get()
+        $daftar = Menu::whereNull('parent_id')->when(! $this->superAdmin(), fn ($q) => $q->untukPerusahaan())->orderBy('urutan')->with(['children.privileges', 'children.parent', 'privileges'])->get()
             ->flatMap(fn ($m) => collect([$m])->concat($m->children))
             ->when($request->q, fn ($c, $q) => $c->filter(fn ($m) => str_contains(strtolower($m->nama . ' ' . $m->url), strtolower($q))))
             ->values();
@@ -33,6 +33,7 @@ class MenuController extends Controller
 
     public function update(Request $request, Menu $menu)
     {
+        abort_if($menu->isPlatform() && ! $this->superAdmin(), 403, 'Menu platform hanya bisa diubah Super Admin.');
         $menu->update($this->validasi($request));
         LogAktivitas::catat('Ubah menu ' . $menu->nama, 'Menu');
 
@@ -41,10 +42,17 @@ class MenuController extends Controller
 
     public function destroy(Menu $menu)
     {
+        abort_if($menu->isPlatform() && ! $this->superAdmin(), 403, 'Menu platform hanya bisa dihapus Super Admin.');
         LogAktivitas::catat('Hapus menu ' . $menu->nama, 'Menu');
         $menu->delete();
 
         return back()->with('sukses', 'Menu dihapus.');
+    }
+
+    /** Multi-tenant: menu platform (Perusahaan) hanya dikelola Super Admin. */
+    private function superAdmin(): bool
+    {
+        return app(\App\Domain\Company\Tenancy\CurrentCompany::class)->isSuperAdmin();
     }
 
     private function validasi(Request $request): array

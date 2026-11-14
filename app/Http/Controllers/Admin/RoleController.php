@@ -23,7 +23,7 @@ class RoleController extends Controller
     {
         $roles = Role::withCount('users')->orderBy('id')->get();
         $role = $roles->firstWhere('id', $request->integer('role')) ?? $roles->firstWhere('nama', Role::MANAGER) ?? $roles->first();
-        $menus = Menu::whereNull('parent_id')->with('children')->orderBy('urutan')->get();
+        $menus = Menu::whereNull('parent_id')->untukPerusahaan()->with('children')->orderBy('urutan')->get();
         $priv = $role ? $role->privileges()->get()->keyBy('menu_id') : collect();
 
         return view('admin.roles.index', compact('roles', 'role', 'menus', 'priv'));
@@ -36,7 +36,7 @@ class RoleController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate(['nama' => 'required|max:50|unique:roles,nama']);
+        $request->validate(['nama' => ['required', 'max:50', \App\Domain\Company\Tenancy\TenantRule::unique('roles', 'nama')]]);
         $role = Role::create(['nama' => $request->nama]);
         LogAktivitas::catat('Tambah role ' . $role->nama, 'Privilege');
 
@@ -46,7 +46,7 @@ class RoleController extends Controller
     public function simpanHakAkses(Request $request, Role $role)
     {
         $input = $request->input('akses', []);
-        foreach (Menu::whereNotNull('url')->get() as $menu) {
+        foreach (Menu::whereNotNull('url')->untukPerusahaan()->get() as $menu) {
             $nilai = [];
             foreach (Privilege::AKSI as $aksi) {
                 $nilai['can_' . $aksi] = ! empty($input[$menu->id][$aksi]);

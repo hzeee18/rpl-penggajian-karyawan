@@ -162,4 +162,22 @@
             sessionStorage.removeItem('scrollPos');
         } catch (e) {}
     });
+
+
+    // ---- perpindahan tab tanpa reload (Kalender Payroll): ambil halaman lewat fetch, ganti isi <main> saja ----
+    document.addEventListener('click', async e => {
+        const a = e.target.closest('[data-tab-ajax] a[href]'); if (!a || e.metaKey || e.ctrlKey || e.shiftKey) return;
+        e.preventDefault();
+        const main = document.querySelector('main.content'); main.style.opacity = '.55';
+        try {
+            const r = await fetch(a.href, { headers: { 'X-Requested-With': 'fetch' }, credentials: 'same-origin' });
+            if (!r.ok) throw new Error(r.status);
+            const doc = new DOMParser().parseFromString(await r.text(), 'text/html');
+            const baru = doc.querySelector('main.content'); if (!baru) throw new Error('format');
+            main.innerHTML = baru.innerHTML; document.title = doc.title;
+            history.pushState({ tabAjax: true }, '', a.href);
+            if (window.lucide) lucide.createIcons(); if (window.siapkanForm) siapkanForm(main);
+        } catch (err) { location.href = a.href; } finally { main.style.opacity = ''; }
+    });
+    window.addEventListener('popstate', e => { if (e.state && e.state.tabAjax) location.reload(); });
 })();
